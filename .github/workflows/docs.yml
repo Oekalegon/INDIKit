@@ -1,9 +1,9 @@
 name: Docs
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    branches: [ "*" ]
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Allows manual triggering
 
 permissions:
   contents: read
