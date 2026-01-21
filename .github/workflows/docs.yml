@@ -40,7 +40,15 @@ jobs:
             --target INDIKit \
             --output-path ./public \
             --transform-for-static-hosting \
-            --hosting-base-path /INDIKit
+            --hosting-base-path INDIKit
+
+      - name: List generated files
+        run: |
+          echo "Generated files in public directory:"
+          ls -la ./public/ || echo "public directory not found"
+          echo ""
+          echo "First level contents:"
+          find ./public -maxdepth 2 -type f | head -20
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
@@ -73,4 +81,4 @@ jobs:
             --target INDIKit \
             --output-path ./public \
             --transform-for-static-hosting \
-            --hosting-base-path /INDIKit
+            --hosting-base-path INDIKit
