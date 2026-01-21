@@ -8,6 +8,7 @@ on:
 
 jobs:
   swiftlint:
+    name: SwiftLint
     runs-on: macos-latest
     
     steps:
