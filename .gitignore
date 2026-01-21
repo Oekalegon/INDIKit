@@ -30,6 +30,7 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+.docc-build/
 
 # CocoaPods
 #
@@ -60,3 +61,7 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# Generated documentation
+*.doccarchive
+Docs/

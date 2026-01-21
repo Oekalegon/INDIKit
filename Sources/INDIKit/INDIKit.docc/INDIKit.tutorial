@@ -1,0 +1,5 @@
+@Tutorials(name: "INDIKit Tutorials") {
+    @Intro(title: "Getting Started with INDIKit") {
+        INDIKit is a Swift package. This is a placeholder tutorial you can extend.
+    }
+}
