@@ -1,8 +1,5 @@
 @Tutorials(name: "INDIKit Tutorials") {
     @Intro(title: "Getting Started with INDIKit") {
-        @Image(source: "", alt: "")
-        @ContentAndMedia {
-            INDIKit is a Swift package. This is a placeholder tutorial you can extend.
-        }
+        INDIKit is a Swift package. This is a placeholder tutorial you can extend.
     }
 }
