@@ -42,6 +42,24 @@ jobs:
             --transform-for-static-hosting \
             --hosting-base-path INDIKit
 
+      - name: Check for theme-settings.json and create if missing
+        run: |
+          echo "Checking for theme-settings.json:"
+          if [ -f ./public/theme-settings.json ]; then
+            echo "theme-settings.json exists"
+            cat ./public/theme-settings.json
+          else
+            echo "theme-settings.json not found, creating it"
+            echo '{"colorScheme":"auto"}' > ./public/theme-settings.json
+            echo "Created theme-settings.json"
+          fi
+          echo ""
+          echo "Files in index directory:"
+          ls -la ./public/index/ 2>/dev/null || echo "index directory not found"
+          echo ""
+          echo "Checking for theme-settings.json in root:"
+          ls -la ./public/theme-settings.json 2>/dev/null || echo "theme-settings.json not in root"
+
       - name: List generated files
         run: |
           echo "Generated files in public directory:"
@@ -56,8 +74,23 @@ jobs:
           echo "Documentation directory contents:"
           ls -la ./public/documentation/ 2>/dev/null || echo "documentation directory not found"
           echo ""
+          echo "Documentation/indikit contents:"
+          ls -la ./public/documentation/indikit/ 2>/dev/null || echo "documentation/indikit not found"
+          echo ""
           echo "Data directory contents:"
           ls -la ./public/data/ 2>/dev/null || echo "data directory not found"
+          echo ""
+          echo "Data/documentation contents:"
+          find ./public/data/documentation -type f | head -10
+          echo ""
+          echo "Index directory contents:"
+          ls -la ./public/index/ 2>/dev/null || echo "index directory not found"
+          echo ""
+          echo "Checking for data.json in index:"
+          ls -la ./public/index/*.json 2>/dev/null || echo "No JSON files in index directory"
+          echo ""
+          echo "All files in index directory:"
+          find ./public/index -type f
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
