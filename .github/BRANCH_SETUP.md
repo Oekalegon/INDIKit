@@ -18,10 +18,12 @@ This document describes the branch protection rules and workflow requirements fo
 
 ### 1. Set Default Branch to `develop`
 
-1. Go to **Settings** → **Branches**
-2. Under "Default branch", click the switch icon
-3. Select `develop` as the default branch
-4. Click **Update**
+1. Go to **Settings** → **General**
+2. Scroll down to the "Default branch" section
+3. Click the switch/edit icon next to the current default branch
+4. Select `develop` from the dropdown
+5. Click **Update**
+6. Confirm the change if prompted
 
 ### 2. Configure Branch Protection Rules
 
@@ -39,12 +41,17 @@ This document describes the branch protection rules and workflow requirements fo
      - **Status checks that are required:**
        - ✅ `CI / build-and-test` (from ci.yml)
        - ✅ `SwiftLint` (from lint.yml)
-       - ❌ `Docs / validate-docs` (optional - runs but not required)
-   - ✅ **Require conversation resolution before merging**
-   - ✅ **Do not allow bypassing the above settings**
-   - ✅ **Restrict who can push to matching branches**: (leave empty or add specific users/teams)
+       - ✅ `PR Validation / validate-branch-target` (from pr-validation.yml)
+       - ✅ `Docs / validate-docs` (from docs.yml - validates documentation builds on PRs)
+   - ❌ **Do not allow bypassing the above settings** (unchecked - allows repository admins/owners to bypass)
    - ❌ **Allow force pushes** (unchecked)
    - ❌ **Allow deletions** (unchecked)
+   
+   **Note**: Some options like "Require conversation resolution" and "Restrict who can push" may not be visible in all GitHub repositories or may be located in different sections. Focus on the core settings listed above.
+   
+   **Note**: By unchecking "Do not allow bypassing the above settings", repository owners and admins can merge PRs even without approvals or passing status checks. This allows you to override the rules when needed.
+   
+   **Additional settings**: If you see other options in your GitHub UI that aren't listed here, you can configure them as needed. The most important settings are requiring PRs, approvals, and status checks.
 
 #### For `main` branch:
 
@@ -60,12 +67,17 @@ This document describes the branch protection rules and workflow requirements fo
      - **Status checks that are required:**
        - ✅ `CI / build-and-test` (from ci.yml)
        - ✅ `SwiftLint` (from lint.yml)
-       - ❌ `Docs / validate-docs` (optional - runs but not required)
-   - ✅ **Require conversation resolution before merging**
-   - ✅ **Do not allow bypassing the above settings**
-   - ✅ **Restrict who can push to matching branches**: (leave empty or add specific users/teams)
+       - ✅ `PR Validation / validate-branch-target` (from pr-validation.yml)
+       - ✅ `Docs / validate-docs` (from docs.yml - validates documentation builds on PRs)
+   - ❌ **Do not allow bypassing the above settings** (unchecked - allows repository admins/owners to bypass)
    - ❌ **Allow force pushes** (unchecked)
    - ❌ **Allow deletions** (unchecked)
+   
+   **Note**: Some options like "Require conversation resolution" and "Restrict who can push" may not be visible in all GitHub repositories or may be located in different sections. Focus on the core settings listed above.
+   
+   **Note**: By unchecking "Do not allow bypassing the above settings", repository owners and admins can merge PRs even without approvals or passing status checks. This allows you to override the rules when needed.
+   
+   **Additional settings**: If you see other options in your GitHub UI that aren't listed here, you can configure them as needed. The most important settings are requiring PRs, approvals, and status checks.
 
 ### 3. Configure Branch Rules for PR Targeting
 
@@ -78,31 +90,33 @@ This repository includes a PR validation workflow (`.github/workflows/pr-validat
 
 This workflow runs automatically on PRs and will fail if a branch targets the wrong base branch. Only `hotfix/*` and `release/*` branches are allowed to target `main`.
 
-**Optional**: If you want this validation to be required before merging:
-1. Go to branch protection settings for `develop` and `main`
-2. Add `PR Validation / validate-branch-target` to the required status checks
+**Note**: This check is configured as required in the branch protection rules above, so PRs cannot be merged if they target the wrong branch.
 
 ### 4. Configure Releases for Downloads
 
-To make `main` the branch shown for downloads:
+When creating releases manually:
 
-1. Go to **Settings** → **General** → **Releases**
-2. Ensure releases are created from `main` branch
-3. When creating releases, tag from `main` branch
+1. Go to your repository's **Releases** page
+2. Click **Create a new release**
+3. Select the tag from the `main` branch (or create a new tag on `main`)
+4. The release will be associated with `main` branch
+
+**Note**: GitHub doesn't have a setting to automatically enforce which branch releases come from. You need to manually ensure that when creating releases, you select tags that are on the `main` branch. The release page will show which branch/commit the tag points to.
 
 ## Workflow Status Checks
 
 ### Required Checks (must pass before merge):
 - ✅ **CI / build-and-test**: Builds and tests the Swift package
 - ✅ **SwiftLint**: Runs SwiftLint with strict mode
+- ✅ **PR Validation / validate-branch-target**: Validates PR branch targeting rules (enforces feature→develop, hotfix/release→main, others→develop)
+- ✅ **Docs / validate-docs**: Validates documentation builds on PRs (ensures docs build successfully before merge)
 
-### Optional Checks (run but not required):
-- ⚠️ **Docs / validate-docs**: Validates documentation builds (runs on PRs but not required)
-- ⚠️ **PR Validation / validate-branch-target**: Validates PR branch targeting rules (optional - can be made required if desired)
+### Post-Merge Actions (run after merging, not required for PRs):
+- 📦 **Docs / build-and-deploy**: Builds and deploys documentation to GitHub Pages (only runs on push to main, not on PRs)
 
 ## Notes
 
-- The `docs.yml` workflow has a `validate-docs` job that runs on PRs to check if documentation builds correctly, but it's not set as required to avoid blocking merges for documentation-only issues
-- The `build-and-deploy` job in `docs.yml` only runs on pushes to `main` or manual dispatch, not on PRs
+- The `docs.yml` workflow has a `validate-docs` job that runs on PRs to validate documentation builds correctly - this is required before merging
+- The `build-and-deploy` job in `docs.yml` only runs on pushes to `main` or manual dispatch (after merging), not on PRs, so it cannot be a required check for PRs
 - All direct pushes to `develop` and `main` are blocked by branch protection rules
 
