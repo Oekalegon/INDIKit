@@ -1,0 +1,57 @@
+name: PR Validation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+jobs:
+  validate-branch-target:
+    name: Validate PR Branch Target
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Check PR target branch
+        run: |
+          PR_BRANCH="${{ github.head_ref }}"
+          TARGET_BRANCH="${{ github.base_ref }}"
+          
+          echo "PR branch: $PR_BRANCH"
+          echo "Target branch: $TARGET_BRANCH"
+          
+          # Feature branches should target develop
+          if [[ "$PR_BRANCH" == feature/* ]]; then
+            if [[ "$TARGET_BRANCH" != "develop" ]]; then
+              echo "❌ Error: Feature branches (feature/*) must target 'develop', not '$TARGET_BRANCH'"
+              exit 1
+            fi
+            echo "✅ Feature branch correctly targeting develop"
+          fi
+          
+          # Hotfix branches should target main
+          if [[ "$PR_BRANCH" == hotfix/* ]]; then
+            if [[ "$TARGET_BRANCH" != "main" ]]; then
+              echo "❌ Error: Hotfix branches (hotfix/*) must target 'main', not '$TARGET_BRANCH'"
+              exit 1
+            fi
+            echo "✅ Hotfix branch correctly targeting main"
+          fi
+          
+          # Release branches should target main
+          if [[ "$PR_BRANCH" == release/* ]]; then
+            if [[ "$TARGET_BRANCH" != "main" ]]; then
+              echo "❌ Error: Release branches (release/*) must target 'main', not '$TARGET_BRANCH'"
+              exit 1
+            fi
+            echo "✅ Release branch correctly targeting main"
+            exit 0
+          fi
+          
+          # All other branches should target develop
+          if [[ "$TARGET_BRANCH" != "develop" ]]; then
+            echo "❌ Error: Branch '$PR_BRANCH' must target 'develop', not '$TARGET_BRANCH'"
+            echo "ℹ️  Only hotfix/* and release/* branches can target 'main'"
+            exit 1
+          fi
+          echo "✅ Branch '$PR_BRANCH' correctly targeting develop"
+
