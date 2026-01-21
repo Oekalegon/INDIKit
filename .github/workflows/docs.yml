@@ -64,18 +64,6 @@ jobs:
           echo ""
           echo "Checking index.json content to see what it references:"
           cat ./public/index/index.json | head -50
-          echo ""
-          echo "Adding redirect from root to module index..."
-          # Add a redirect script to index.html to redirect root to module documentation
-          if [ -f ./public/index.html ]; then
-            # Check if redirect already exists
-            if ! grep -q "window.location.pathname === '/INDIKit/'" ./public/index.html; then
-              # Insert redirect script right after the baseUrl script
-              python3 -c "import re; content = open('./public/index.html', 'r').read(); redirect_script = '<script>if (window.location.pathname === \"/INDIKit/\" || window.location.pathname === \"/INDIKit\") { window.location.href = \"/INDIKit/documentation/indikit\"; }</script>'; content = content.replace('var baseUrl = \"/INDIKit/\"', 'var baseUrl = \"/INDIKit/\"\\n' + redirect_script); open('./public/index.html', 'w').write(content); print('✓ Added redirect to index.html')"
-            else
-              echo "✓ Redirect already exists in index.html"
-            fi
-          fi
 
       - name: List generated files
         run: |
