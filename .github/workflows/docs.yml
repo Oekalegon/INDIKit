@@ -44,21 +44,41 @@ jobs:
 
       - name: Check for theme-settings.json and create if missing
         run: |
-          echo "Checking for theme-settings.json:"
+          echo "Checking for theme-settings.json in various locations:"
           if [ -f ./public/theme-settings.json ]; then
-            echo "theme-settings.json exists"
+            echo "✓ theme-settings.json exists in root"
             cat ./public/theme-settings.json
           else
-            echo "theme-settings.json not found, creating it"
+            echo "✗ theme-settings.json not found in root, creating it"
             echo '{"colorScheme":"auto"}' > ./public/theme-settings.json
-            echo "Created theme-settings.json"
+            echo "Created theme-settings.json in root"
+          fi
+          # Also check/create in index directory (some DocC versions expect it there)
+          if [ -f ./public/index/theme-settings.json ]; then
+            echo "✓ theme-settings.json exists in index directory"
+          else
+            echo "Creating theme-settings.json in index directory as well"
+            echo '{"colorScheme":"auto"}' > ./public/index/theme-settings.json
+            echo "Created theme-settings.json in index directory"
           fi
           echo ""
-          echo "Files in index directory:"
-          ls -la ./public/index/ 2>/dev/null || echo "index directory not found"
+          echo "Checking index.json content to see what it references:"
+          cat ./public/index/index.json | head -50
           echo ""
-          echo "Checking for theme-settings.json in root:"
-          ls -la ./public/theme-settings.json 2>/dev/null || echo "theme-settings.json not in root"
+          echo "Adding redirect from root to module index..."
+          # Add a redirect script to index.html to redirect root to module documentation
+          if [ -f ./public/index.html ]; then
+            # Check if redirect already exists
+            if ! grep -q "window.location.pathname === '/INDIKit/'" ./public/index.html; then
+              # Insert redirect script right after the baseUrl script
+              sed -i.bak '/var baseUrl = "\/INDIKit\/"/a\
+<script>if (window.location.pathname === "/INDIKit/" || window.location.pathname === "/INDIKit") { window.location.href = "/INDIKit/documentation/indikit"; }</script>' ./public/index.html
+              rm -f ./public/index.html.bak
+              echo "✓ Added redirect to index.html"
+            else
+              echo "✓ Redirect already exists in index.html"
+            fi
+          fi
 
       - name: List generated files
         run: |
