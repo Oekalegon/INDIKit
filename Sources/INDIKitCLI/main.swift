@@ -25,7 +25,7 @@ struct INDIKitCLI {
 
         do {
             // Establish the connection (will throw if it fails)
-            let stream = try await server.connect()
+            _ = try await server.connect()
 
             print("Connected! Sending INDI handshake and listening for messages...")
             print("Type additional messages to send (or press Ctrl+C to disconnect):\n")
@@ -50,15 +50,8 @@ struct INDIKitCLI {
                 }
             }
 
-            for try await data in stream {
-                print("Received \(data.count) bytes:")
-                if let string = String(data: data, encoding: .utf8) {
-                    print(string)
-                } else {
-                    print(data.map { String(format: "%02x", $0) }.joined(separator: " "))
-                }
-                print("---")
-            }
+            // Parse and print INDIMessages
+            try await server.parseAndPrintMessages()
 
             print("\nConnection closed.")
         } catch {

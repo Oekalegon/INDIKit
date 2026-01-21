@@ -22,6 +22,7 @@ public actor INDIServer {
     private var connectionQueue: DispatchQueue?
     private var receiveContinuation: AsyncThrowingStream<Data, Error>.Continuation?
     private var receiveStream: AsyncThrowingStream<Data, Error>?
+    private let parser = INDIXMLParser()
 
     public private(set) var isConnected: Bool = false
 
@@ -118,6 +119,65 @@ public actor INDIServer {
     /// Call `connect()` first to establish the connection and start the receive loop.
     public func messages() -> AsyncThrowingStream<Data, Error>? {
         receiveStream
+    }
+
+    // MARK: - Temporary debugging methods
+
+    /// Parse and print INDIMessages from the data stream.
+    ///
+    /// This is a convenience method for testing/debugging. It parses incoming
+    /// data and prints the resulting INDIMessage objects.
+    public func parseAndPrintMessages() async throws {
+        guard let dataStream = receiveStream else {
+            throw NSError(domain: "INDIServer", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "Not connected. Call connect() first."
+            ])
+        }
+        
+        let messageStream = await parser.parse(dataStream)
+        
+        for try await message in messageStream {
+            print("Parsed INDIMessage:")
+            printMessage(message)
+        }
+    }
+    
+    /// Print an INDIMessage in a readable format.
+    private func printMessage(_ message: INDIMessage) {
+        print("  Operation: \(message.operation)")
+        print("  Property Type: \(message.propertyType)")
+        
+        if !message.device.isEmpty {
+            print("  Device: \(message.device)")
+        }
+        if !message.group.isEmpty {
+            print("  Group: \(message.group)")
+        }
+        if !message.label.isEmpty {
+            print("  Label: \(message.label)")
+        }
+        print("  Property: \(message.property.displayName)")
+        print("  Permissions: \(message.permissions.indiValue)")
+        print("  State: \(message.state.indiValue)")
+        
+        if message.timeout > 0 {
+            print("  Timeout: \(message.timeout)s")
+        }
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .medium
+        dateFormatter.timeStyle = .medium
+        print("  Timestamp: \(dateFormatter.string(from: message.timeStamp))")
+        
+        // Print child elements if available
+        if let rawMessage = message as? RawINDIMessage, !rawMessage.xmlNode.children.isEmpty {
+            print("  Children: \(rawMessage.xmlNode.children.count) element(s)")
+            for (index, child) in rawMessage.xmlNode.children.enumerated() {
+                print("    [\(index)] \(child.name)")
+            }
+        }
+        
+        print("---")
     }
 
     // MARK: - Private
