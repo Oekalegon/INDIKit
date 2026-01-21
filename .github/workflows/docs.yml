@@ -49,6 +49,15 @@ jobs:
           echo ""
           echo "First level contents:"
           find ./public -maxdepth 2 -type f | head -20
+          echo ""
+          echo "Checking index.html for base path:"
+          head -50 ./public/index.html | grep -i "base\|path\|INDIKit" || echo "No base path found in index.html"
+          echo ""
+          echo "Documentation directory contents:"
+          ls -la ./public/documentation/ 2>/dev/null || echo "documentation directory not found"
+          echo ""
+          echo "Data directory contents:"
+          ls -la ./public/data/ 2>/dev/null || echo "data directory not found"
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
