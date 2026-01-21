@@ -40,9 +40,14 @@ public actor INDIServer {
 
         let params = NWParameters.tcp
         let queue = DispatchQueue(label: "indi.connection.\(endpoint.host):\(endpoint.port)")
+        guard let port = NWEndpoint.Port(rawValue: endpoint.port) else {
+            throw NSError(domain: "INDIServerConnection", code: 2, userInfo: [
+                NSLocalizedDescriptionKey: "Invalid port number: \(endpoint.port)"
+            ])
+        }
         let nwConnection = NWConnection(
             host: NWEndpoint.Host(endpoint.host),
-            port: NWEndpoint.Port(rawValue: endpoint.port)!,
+            port: port,
             using: params
         )
 
