@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:INDIKit}",
+            "name": "Debug indikit-cli",
+            "target": "indikit-cli",
+            "configuration": "debug",
+            "preLaunchTask": "swift: Build Debug indikit-cli"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:INDIKit}",
+            "name": "Release indikit-cli",
+            "target": "indikit-cli",
+            "configuration": "release",
+            "preLaunchTask": "swift: Build Release indikit-cli"
+        }
+    ]
+}

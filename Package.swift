@@ -15,6 +15,10 @@ let package = Package(
             name: "INDIKit",
             targets: ["INDIKit"]
         ),
+        .executable(
+            name: "indikit-cli",
+            targets: ["INDIKitCLI"]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.0.0"),
@@ -24,6 +28,10 @@ let package = Package(
         // Targets can depend on other targets in this package and products from dependencies.
         .target(
             name: "INDIKit"
+        ),
+        .executableTarget(
+            name: "INDIKitCLI",
+            dependencies: ["INDIKit"]
         ),
         .testTarget(
             name: "INDIKitTests",

@@ -64,3 +64,4 @@ fastlane/test_output
 
 # Generated documentation
 *.doccarchive
+Docs/
