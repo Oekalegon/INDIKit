@@ -50,6 +50,26 @@ struct INDIKitCLI {
                 }
             }
 
+            // Set up async task to print raw data stream (for debugging)
+            Task.detached(priority: .userInitiated) {
+                if let rawStream = await server.messages() {
+                    do {
+                        for try await data in rawStream {
+                            if let string = String(data: data, encoding: .utf8) {
+                                let escaped = string
+                                    .replacingOccurrences(of: "\n", with: "\\n")
+                                    .replacingOccurrences(of: "\r", with: "\\r")
+                                print("(RAW: \(escaped))")
+                            } else {
+                                print("(RAW: <\(data.count) bytes of non-UTF8 data>)")
+                            }
+                        }
+                    } catch {
+                        // Stream ended or error occurred
+                    }
+                }
+            }
+            
             // Parse and print INDI Properties
             let propertyStream = try await server.parseProperties()
             

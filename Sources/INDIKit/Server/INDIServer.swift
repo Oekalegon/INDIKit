@@ -20,8 +20,10 @@ public actor INDIServer {
 
     private var connection: NWConnection?
     private var connectionQueue: DispatchQueue?
-    private var receiveContinuation: AsyncThrowingStream<Data, Error>.Continuation?
-    private var receiveStream: AsyncThrowingStream<Data, Error>?
+    private var rawDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+    private var parsedDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+    private var rawDataStream: AsyncThrowingStream<Data, Error>?
+    private var parsedDataStream: AsyncThrowingStream<Data, Error>?
     private let parser = INDIXMLParser()
 
     public private(set) var isConnected: Bool = false
@@ -35,7 +37,7 @@ public actor INDIServer {
     /// - Throws: An error if the connection could not be established.
     @discardableResult
     public func connect() async throws -> AsyncThrowingStream<Data, Error> {
-        if let stream = receiveStream, isConnected {
+        if let stream = rawDataStream, isConnected {
             return stream
         }
 
@@ -55,10 +57,16 @@ public actor INDIServer {
         self.connection = nwConnection
         self.connectionQueue = queue
 
-        let stream = AsyncThrowingStream<Data, Error> { continuation in
-            self.receiveContinuation = continuation
+        // Create separate streams for raw data and parsed data
+        let rawStream = AsyncThrowingStream<Data, Error> { continuation in
+            self.rawDataContinuation = continuation
         }
-        self.receiveStream = stream
+        self.rawDataStream = rawStream
+        
+        let parsedStream = AsyncThrowingStream<Data, Error> { continuation in
+            self.parsedDataContinuation = continuation
+        }
+        self.parsedDataStream = parsedStream
 
         // Start the connection and wait until it becomes ready or fails.
         try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
@@ -72,7 +80,7 @@ public actor INDIServer {
             nwConnection.start(queue: queue)
         }
 
-        return stream
+        return rawStream
     }
 
     /// Close the connection to the server.
@@ -118,7 +126,7 @@ public actor INDIServer {
     ///
     /// Call `connect()` first to establish the connection and start the receive loop.
     public func messages() -> AsyncThrowingStream<Data, Error>? {
-        receiveStream
+        rawDataStream
     }
 
     /// Parse INDI Properties from the data stream.
@@ -140,7 +148,7 @@ public actor INDIServer {
     /// }
     /// ```
     public func parseProperties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
-        guard let dataStream = receiveStream else {
+        guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Not connected. Call connect() first."
             ])
@@ -202,9 +210,12 @@ public actor INDIServer {
                         await self.handleReceivedData(data)
                     }
 
+                    // Always continue receiving unless the connection is complete
+                    // This ensures we keep listening for responses even after sending messages
                     if isComplete {
                         await self.finishReceiving(error: nil)
                     } else {
+                        // Continue receiving - this is critical to keep the loop alive
                         await self.startReceiveLoop()
                     }
                 }
@@ -214,15 +225,21 @@ public actor INDIServer {
 
     private func finishReceiving(error: Error?) async {
         if let error {
-            receiveContinuation?.finish(throwing: error)
+            rawDataContinuation?.finish(throwing: error)
+            parsedDataContinuation?.finish(throwing: error)
         } else {
-            receiveContinuation?.finish()
+            rawDataContinuation?.finish()
+            parsedDataContinuation?.finish()
         }
-        receiveContinuation = nil
-        receiveStream = nil
+        rawDataContinuation = nil
+        parsedDataContinuation = nil
+        rawDataStream = nil
+        parsedDataStream = nil
     }
 
     private func handleReceivedData(_ data: Data) async {
-        receiveContinuation?.yield(data)
+        // Broadcast data to both streams
+        rawDataContinuation?.yield(data)
+        parsedDataContinuation?.yield(data)
     }
 }
