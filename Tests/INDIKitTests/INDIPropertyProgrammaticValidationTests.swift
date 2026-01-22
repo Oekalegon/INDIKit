@@ -15,13 +15,12 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("UNKNOWN_PROPERTY"),
             values: [value]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasNote(property.diagnostics, containing: "The property name 'UNKNOWN_PROPERTY' is unknown"))
     }
@@ -34,14 +33,13 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
             permissions: .readWrite,
             values: [value]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasWarning(property.diagnostics, containing: "Permissions are ignored for light properties"))
     }
@@ -54,14 +52,13 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
             timeout: 60.0,
             values: [value]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasWarning(property.diagnostics, containing: "Timeout is ignored for light properties"))
     }
@@ -74,14 +71,13 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
             rule: .oneOfMany,
             values: [value]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasWarning(property.diagnostics, containing: "Rule is ignored for non-switch properties"))
     }
@@ -94,27 +90,25 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .number,
             device: "Test Device",
             name: .other("TEST_PROP"),
             format: ".fits",
             values: [value]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasWarning(property.diagnostics, containing: "Format is ignored for non-blob properties"))
     }
     
     @Test("Property with no values generates error")
     func testPropertyWithNoValues() {
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
             values: []
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "The property must have at least one value"))
     }
@@ -133,14 +127,13 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
             rule: .oneOfMany,
             values: [value1, value2]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "OneOfMany", "requires exactly one switch to be On", "2 switch(es) are On"))
     }
@@ -165,14 +158,13 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .other("TEST_SWITCH"),
             rule: .atMostOne,
             values: [value1, value2, value3]
-        )
+        ))
         
         #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "AtMostOne", "allows at most one switch to be On", "3 switch(es) are On"))
     }
@@ -185,8 +177,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -196,7 +187,7 @@ struct INDIPropertyProgrammaticValidationTests {
             state: .idle,
             timeout: 60.0,
             values: [value]
-        )
+        ))
         
         #expect(!INDIDiagnosticsTestHelpers.hasAnyError(property.diagnostics))
     }

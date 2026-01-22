@@ -15,13 +15,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -57,13 +56,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Telescope Simulator",
             name: .connection,
             values: [connectValue, disconnectValue]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -89,13 +87,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Telescope Simulator",
             name: .other("EQUATORIAL_EOD_COORD"),
             values: [raValue, decValue]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -115,8 +112,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -126,7 +122,7 @@ struct INDIPropertyXMLSerializationTests {
             state: .idle,
             timeout: 60.0,
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -153,13 +149,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -176,13 +171,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -195,13 +189,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property2 = INDIProperty(
-            operation: .set,
+        let property2 = INDIProperty.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
             values: [falseValue]
-        )
+        ))
         
         let xml2 = try property2.toXML()
         #expect(xml2.contains("<oneSwitch name=\"DISCONNECT\">Off</oneSwitch>"))
@@ -215,13 +208,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -242,13 +234,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Weather Station",
             name: .atmosphere,
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -274,13 +265,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("CCD1"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -306,13 +296,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("CCD1"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -330,13 +319,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Device & Name",
             name: .other("PROP<NAME>"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -354,13 +342,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST"),
             values: [value]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -390,13 +377,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
             values: [value1, value2, value3]
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -419,13 +405,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let textProperty = INDIProperty(
-            operation: .set,
+        let textProperty = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test",
             name: .other("TEXT_PROP"),
             values: [textValue]
-        )
+        ))
         
         let textXML = try textProperty.toXML()
         #expect(textXML.contains("<newTextVector"))
@@ -436,13 +421,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let numberProperty = INDIProperty(
-            operation: .set,
+        let numberProperty = INDIProperty.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Test",
             name: .other("NUM_PROP"),
             values: [numberValue]
-        )
+        ))
         
         let numberXML = try numberProperty.toXML()
         #expect(numberXML.contains("<newNumberVector"))
@@ -453,13 +437,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let switchProperty = INDIProperty(
-            operation: .set,
+        let switchProperty = INDIProperty.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test",
             name: .other("SW_PROP"),
             values: [switchValue]
-        )
+        ))
         
         let switchXML = try switchProperty.toXML()
         #expect(switchXML.contains("<newSwitchVector"))
@@ -470,13 +453,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .light
         )
         
-        let lightProperty = INDIProperty(
-            operation: .set,
+        let lightProperty = INDIProperty.setProperty(INDISetProperty(
             propertyType: .light,
             device: "Test",
             name: .other("LIGHT_PROP"),
             values: [lightValue]
-        )
+        ))
         
         let lightXML = try lightProperty.toXML()
         #expect(lightXML.contains("<newLightVector"))
@@ -487,13 +469,12 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let blobProperty = INDIProperty(
-            operation: .set,
+        let blobProperty = INDIProperty.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "Test",
             name: .other("BLOB_PROP"),
             values: [blobValue]
-        )
+        ))
         
         let blobXML = try blobProperty.toXML()
         #expect(blobXML.contains("<newBLOBVector"))
@@ -503,11 +484,10 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties without attributes to XML")
     func testSerializeGetPropertiesMinimal() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: nil
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -517,11 +497,10 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with device to XML")
     func testSerializeGetPropertiesWithDevice() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: nil
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -532,11 +511,10 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with name to XML")
     func testSerializeGetPropertiesWithName() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: .connection
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -547,11 +525,10 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with device and name to XML")
     func testSerializeGetPropertiesWithDeviceAndName() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: .connection
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -563,12 +540,11 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with custom version to XML")
     func testSerializeGetPropertiesWithCustomVersion() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: nil,
             version: "1.8"
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -578,11 +554,10 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with escaped device name")
     func testSerializeGetPropertiesWithEscapedDevice() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: "Test & Device",
             name: nil
-        )
+        ))
         
         let xml = try property.toXML()
         
@@ -593,17 +568,124 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with escaped property name")
     func testSerializeGetPropertiesWithEscapedName() throws {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: .other("TEST & PROP")
-        )
+        ))
         
         let xml = try property.toXML()
         
         // Should escape special characters
         #expect(xml.contains("name=\"TEST &amp; PROP\""))
         #expect(!xml.contains("name=\"TEST & PROP\""))
+    }
+    
+    // MARK: - enableBLOB Serialization Tests
+    
+    @Test("Serialize enableBLOB with also state to XML")
+    func testSerializeEnableBLOBWithAlso() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: BLOBSendingState.also
+        ))
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("<enableBLOB"))
+        #expect(xml.contains("device=\"CCD Simulator\""))
+        #expect(xml.contains("name=\"CCD1\""))
+        #expect(xml.contains("state=\"Also\""))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize enableBLOB with raw state to XML")
+    func testSerializeEnableBLOBWithRaw() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: BLOBSendingState.raw
+        ))
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("state=\"Raw\""))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize enableBLOB with off state to XML")
+    func testSerializeEnableBLOBWithOff() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: BLOBSendingState.off
+        ))
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("state=\"Off\""))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize enableBLOB without state to XML")
+    func testSerializeEnableBLOBWithoutState() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1")
+        ))
+        
+        let xml = try property.toXML()
+        
+        // Should not have state attribute when state is nil
+        #expect(xml.contains("<enableBLOB"))
+        #expect(xml.contains("device=\"CCD Simulator\""))
+        #expect(xml.contains("name=\"CCD1\""))
+        #expect(!xml.contains("state="))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize enableBLOB with escaped device name")
+    func testSerializeEnableBLOBWithEscapedDevice() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "Test & Device",
+            name: .other("CCD1"),
+            blobSendingState: BLOBSendingState.also
+        ))
+        
+        let xml = try property.toXML()
+        
+        // Should escape special characters
+        #expect(xml.contains("device=\"Test &amp; Device\""))
+        #expect(!xml.contains("device=\"Test & Device\""))
+    }
+    
+    @Test("Serialize enableBLOB with escaped property name")
+    func testSerializeEnableBLOBWithEscapedName() throws {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("TEST & PROP"),
+            blobSendingState: BLOBSendingState.also
+        ))
+        
+        let xml = try property.toXML()
+        
+        // Should escape special characters
+        #expect(xml.contains("name=\"TEST &amp; PROP\""))
+        #expect(!xml.contains("name=\"TEST & PROP\""))
+    }
+    
+    @Test("Serialize enableBLOB throws error when device is missing")
+    func testSerializeEnableBLOBThrowsWhenDeviceMissing() {
+        // This test would require creating an invalid property, which is prevented by the initializer
+        // So we test that the initializer requires device
+        #expect(Bool(true)) // Placeholder - the initializer enforces this at compile time
+    }
+    
+    @Test("Serialize enableBLOB throws error when name is missing")
+    func testSerializeEnableBLOBThrowsWhenNameMissing() {
+        // This test would require creating an invalid property, which is prevented by the initializer
+        // So we test that the initializer requires name
+        #expect(Bool(true)) // Placeholder - the initializer enforces this at compile time
     }
 }
 

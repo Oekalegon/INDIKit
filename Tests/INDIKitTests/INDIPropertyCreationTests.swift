@@ -16,8 +16,7 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -27,7 +26,7 @@ struct INDIPropertyCreationTests {
             state: .idle,
             timeout: 60.0,
             values: [value]
-        )
+        ))
         
         #expect(property.operation == INDIPropertyOperation.define)
         #expect(property.propertyType == INDIPropertyType.text)
@@ -44,22 +43,16 @@ struct INDIPropertyCreationTests {
         #expect(property.state == INDIState.idle)
         #expect(property.timeout == 60.0)
         
-        // Check internal XML node representation
-        // The xmlNode should have the correct element name
-        let elementName = property.xmlNode.name
-        #expect(elementName.contains("def"))
-        #expect(elementName.contains("Text"))
-        #expect(elementName.contains("Vector"))
-        
-        // Check attributes
-        let attrs = property.xmlNode.attributes
-        #expect(attrs["device"] == "Test Device")
-        #expect(attrs["name"] == "DRIVER_INFO")
-        #expect(attrs["group"] == "General Info")
-        #expect(attrs["label"] == "Driver Info")
-        #expect(attrs["perm"] == "ro")
-        #expect(attrs["state"] == "Idle")
-        #expect(attrs["timeout"] == "60.0")
+        // Check XML serialization
+        let xml = try property.toXML()
+        #expect(xml.contains("<defTextVector"))
+        #expect(xml.contains("device=\"Test Device\""))
+        #expect(xml.contains("name=\"DRIVER_INFO\""))
+        #expect(xml.contains("group=\"General Info\""))
+        #expect(xml.contains("label=\"Driver Info\""))
+        #expect(xml.contains("perm=\"ro\""))
+        #expect(xml.contains("state=\"Idle\""))
+        #expect(xml.contains("timeout=\"60.0\""))
     }
     
     @Test("Create number property programmatically")
@@ -75,15 +68,14 @@ struct INDIPropertyCreationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty(
-            operation: .update,
+        let property = INDIProperty.updateProperty(INDIUpdateProperty(
             propertyType: .number,
             device: "Weather Station",
             name: .atmosphere,
             label: "Atmosphere",
             state: .ok,
             values: [value]
-        )
+        ))
         
         #expect(property.operation == INDIPropertyOperation.update)
         #expect(property.propertyType == INDIPropertyType.number)
@@ -101,10 +93,9 @@ struct INDIPropertyCreationTests {
             #expect(firstValue.unit == "°C")
         }
         
-        // Check XML node
-        let elementName = property.xmlNode.name
-        #expect(elementName.contains("set"))
-        #expect(elementName.contains("Number") || elementName.contains("number"))
+        // Check XML serialization
+        let xml = try property.toXML()
+        #expect(xml.contains("<setNumberVector"))
     }
     
     @Test("Create switch property programmatically")
@@ -123,8 +114,7 @@ struct INDIPropertyCreationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Telescope Simulator",
             name: .connection,
@@ -135,20 +125,17 @@ struct INDIPropertyCreationTests {
             timeout: 60.0,
             rule: .oneOfMany,
             values: [connectValue, disconnectValue]
-        )
+        ))
         
         #expect(property.operation == INDIPropertyOperation.define)
         #expect(property.propertyType == INDIPropertyType.toggle)
         #expect(property.values.count == 2)
         #expect(property.rule == INDISwitchRule.oneOfMany)
         
-        // Check XML node
-        let elementName = property.xmlNode.name
-        #expect(elementName.contains("def"))
-        #expect(elementName.contains("Switch"))
-        
-        let attrs = property.xmlNode.attributes
-        #expect(attrs["rule"] == "OneOfMany")
+        // Check XML serialization
+        let xml = try property.toXML()
+        #expect(xml.contains("<defSwitchVector"))
+        #expect(xml.contains("rule=\"OneOfMany\""))
     }
     
     @Test("Create light property programmatically")
@@ -160,14 +147,13 @@ struct INDIPropertyCreationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
             label: "Status",
             values: [okValue]
-        )
+        ))
         
         #expect(property.propertyType == INDIPropertyType.light)
         #expect(property.values.count == 1)
@@ -180,10 +166,9 @@ struct INDIPropertyCreationTests {
             }
         }
         
-        // Check XML node
-        let elementName = property.xmlNode.name
-        #expect(elementName.contains("def"))
-        #expect(elementName.contains("Light"))
+        // Check XML serialization
+        let xml = try property.toXML()
+        #expect(xml.contains("<defLightVector"))
     }
     
     @Test("Create blob property programmatically")
@@ -198,15 +183,14 @@ struct INDIPropertyCreationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty(
-            operation: .define,
+        let property = INDIProperty.defineProperty(INDIDefineProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("IMAGE_DATA"),
             label: "Image Data",
             format: ".fits",
             values: [value]
-        )
+        ))
         
         #expect(property.propertyType == INDIPropertyType.blob)
         #expect(property.format == ".fits")
@@ -222,13 +206,10 @@ struct INDIPropertyCreationTests {
             #expect(firstValue.size == blobData.count)
         }
         
-        // Check XML node
-        let elementName = property.xmlNode.name
-        #expect(elementName.contains("def"))
-        #expect(elementName.contains("BLOB"))
-        
-        let attrs = property.xmlNode.attributes
-        #expect(attrs["format"] == ".fits")
+        // Check XML serialization
+        let xml = try property.toXML()
+        #expect(xml.contains("<defBLOBVector"))
+        #expect(xml.contains("format=\".fits\""))
     }
     
     @Test("Create property with minimal parameters")
@@ -239,13 +220,12 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty(
-            operation: .set,
+        let property = INDIProperty.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
             values: [value]
-        )
+        ))
         
         #expect(property.operation == INDIPropertyOperation.set)
         #expect(property.device == "Test Device")
@@ -256,86 +236,167 @@ struct INDIPropertyCreationTests {
         #expect(property.state == nil)
         #expect(property.timeout == nil)
         
-        // Check XML node has only required attributes
-        let attrs = property.xmlNode.attributes
-        #expect(attrs["device"] == "Test Device")
-        #expect(attrs["name"] == "TEST_PROP")
-        #expect(attrs["group"] == nil)
-        #expect(attrs["label"] == nil)
+        // Check XML serialization has only required attributes
+        let xml = try property.toXML()
+        #expect(xml.contains("device=\"Test Device\""))
+        #expect(xml.contains("name=\"TEST_PROP\""))
+        #expect(!xml.contains("group="))
+        #expect(!xml.contains("label="))
     }
     
     // MARK: - getProperties Creation Tests
     
     @Test("Create getProperties programmatically without attributes")
     func testCreateGetPropertiesMinimal() {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: nil
-        )
+        ))
         
         #expect(property.operation == .get)
         #expect(property.propertyType == nil)
         #expect(property.device == nil)
         #expect(property.name == nil)
         #expect(property.values.isEmpty)
-        #expect(property.xmlNode.name == "getProperties")
-        #expect(property.xmlNode.attributes["version"] == "1.7")
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("<getProperties"))
+            #expect(xml.contains("version='1.7'"))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
     }
     
     @Test("Create getProperties programmatically with device")
     func testCreateGetPropertiesWithDevice() {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: nil
-        )
+        ))
         
         #expect(property.operation == .get)
         #expect(property.device == "Telescope Simulator")
         #expect(property.name == nil)
-        #expect(property.xmlNode.attributes["device"] == "Telescope Simulator")
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("device=\"Telescope Simulator\""))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
     }
     
     @Test("Create getProperties programmatically with name")
     func testCreateGetPropertiesWithName() {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: .connection
-        )
+        ))
         
         #expect(property.operation == .get)
         #expect(property.device == nil)
         #expect(property.name?.indiName == "CONNECTION")
-        #expect(property.xmlNode.attributes["name"] == "CONNECTION")
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("name=\"CONNECTION\""))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
     }
     
     @Test("Create getProperties programmatically with device and name")
     func testCreateGetPropertiesWithDeviceAndName() {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: .connection
-        )
+        ))
         
         #expect(property.operation == .get)
         #expect(property.device == "Telescope Simulator")
         #expect(property.name?.indiName == "CONNECTION")
-        #expect(property.xmlNode.attributes["device"] == "Telescope Simulator")
-        #expect(property.xmlNode.attributes["name"] == "CONNECTION")
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("device=\"Telescope Simulator\""))
+            #expect(xml.contains("name=\"CONNECTION\""))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
     }
     
     @Test("Create getProperties programmatically with custom version")
     func testCreateGetPropertiesWithCustomVersion() {
-        let property = INDIProperty(
-            operation: .get,
+        let property = INDIProperty.getProperties(INDIGetProperties(
             device: nil,
             name: nil,
             version: "1.8"
-        )
+        ))
         
-        #expect(property.xmlNode.attributes["version"] == "1.8")
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("version='1.8'"))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
+    }
+    
+    // MARK: - enableBLOB Creation Tests
+    
+    @Test("Create enableBLOB programmatically with also state")
+    func testCreateEnableBLOBWithAlso() {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: .also
+        ))
+        
+        #expect(property.operation == .enableBlob)
+        #expect(property.propertyType == nil)
+        #expect(property.device == "CCD Simulator")
+        #expect(property.name?.indiName == "CCD1")
+        #expect(property.blobSendingState == .also)
+        #expect(property.values.isEmpty)
+        do {
+            let xml = try property.toXML()
+            #expect(xml.contains("<enableBLOB"))
+            #expect(xml.contains("device=\"CCD Simulator\""))
+            #expect(xml.contains("name=\"CCD1\""))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
+    }
+    
+    @Test("Create enableBLOB programmatically with raw state")
+    func testCreateEnableBLOBWithRaw() {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: .raw
+        ))
+        
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == BLOBSendingState.raw)
+    }
+    
+    @Test("Create enableBLOB programmatically with off state")
+    func testCreateEnableBLOBWithOff() {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1"),
+            blobSendingState: .off
+        ))
+        
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == BLOBSendingState.off)
+    }
+    
+    @Test("Create enableBLOB programmatically without state is nil")
+    func testCreateEnableBLOBWithoutState() {
+        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+            device: "CCD Simulator",
+            name: .other("CCD1")
+        ))
+        
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == nil) // Optional, no default
     }
 }
 

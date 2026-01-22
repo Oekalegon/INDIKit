@@ -361,5 +361,48 @@ struct INDIPropertyValidationTests {
             containing: "child element"
         ))
     }
+    
+    // MARK: - enableBLOB Validation Tests
+    
+    @Test("enableBLOB with valid attributes has no warnings")
+    func testEnableBLOBValidAttributes() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='Also'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should NOT have any warnings
+        #expect(!INDIDiagnosticsTestHelpers.hasAnyError(property.diagnostics))
+    }
+    
+    @Test("enableBLOB with missing device generates error")
+    func testEnableBLOBMissingDevice() async throws {
+        let xml = "<enableBLOB name='CCD1' state='Also'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have error diagnostic for missing device
+        #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "Device is required but not found"))
+        #expect(property.device == "UNKNOWN")
+    }
+    
+    @Test("enableBLOB with missing name generates error")
+    func testEnableBLOBMissingName() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' state='Also'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have error diagnostic for missing name
+        #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "The property name is required but not found"))
+        #expect(property.name?.indiName == "UNKNOWN")
+    }
 }
 

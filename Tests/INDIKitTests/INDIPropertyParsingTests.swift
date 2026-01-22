@@ -634,8 +634,91 @@ struct INDIPropertyParsingTests {
         #expect(properties.count == 1)
         let property = properties[0]
         #expect(property.operation == .get)
-        // Version is stored in xmlNode attributes
-        #expect(property.xmlNode.attributes["version"] == "1.8")
+        // Check version via XML serialization
+        do {
+            let propertyXML = try property.toXML()
+            #expect(propertyXML.contains("version='1.8'"))
+        } catch {
+            Issue.record("Failed to serialize property: \(error)")
+        }
+    }
+    
+    // MARK: - enableBLOB Tests
+    
+    @Test("Parse enableBLOB with Also state")
+    func testParseEnableBLOBWithAlso() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='Also'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.propertyType == nil)
+        #expect(property.device == "CCD Simulator")
+        #expect(property.name?.indiName == "CCD1")
+        #expect(property.blobSendingState == BLOBSendingState.also)
+        #expect(property.values.isEmpty)
+    }
+    
+    @Test("Parse enableBLOB with Raw state")
+    func testParseEnableBLOBWithRaw() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='Raw'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == BLOBSendingState.raw)
+    }
+    
+    @Test("Parse enableBLOB with Off state")
+    func testParseEnableBLOBWithOff() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='Off'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == BLOBSendingState.off)
+    }
+    
+    @Test("Parse enableBLOB with On state")
+    func testParseEnableBLOBWithOn() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='On'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == BLOBSendingState.on)
+    }
+    
+    @Test("Parse enableBLOB without state attribute is nil")
+    func testParseEnableBLOBWithoutState() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == nil) // Optional, no default
+    }
+    
+    @Test("Parse enableBLOB with invalid state is nil")
+    func testParseEnableBLOBWithInvalidState() async throws {
+        let xml = "<enableBLOB device='CCD Simulator' name='CCD1' state='Invalid'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.blobSendingState == nil) // nil when invalid
     }
 }
 

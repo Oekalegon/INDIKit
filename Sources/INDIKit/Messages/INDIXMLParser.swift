@@ -387,6 +387,7 @@ actor INDIXMLParser {
             return nil
         }
         
+        // Use the enum's factory initializer
         guard let property = INDIProperty(xmlNode: rootNode) else {
             Self.logger.warning(
                 "Failed to parse INDI property: could not create INDIProperty from element '\(rootNode.name)'"
