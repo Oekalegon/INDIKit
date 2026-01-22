@@ -121,12 +121,24 @@ public actor INDIServer {
         receiveStream
     }
 
-    // MARK: - Temporary debugging methods
-
-    /// Parse and print INDI Properties from the data stream.
+    /// Parse INDI Properties from the data stream.
     ///
-    /// This is a convenience method for testing/debugging. It parses incoming
-    /// data and prints the resulting INDIProperty objects.
+    /// Returns an asynchronous stream of parsed INDI properties from the connected server.
+    /// Properties are parsed from incoming XML data and yielded as they become available.
+    ///
+    /// - Returns: An `AsyncThrowingStream` that yields `INDIProperty` objects as they are parsed
+    /// - Throws: An error if not connected (call `connect()` first)
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// let propertyStream = try await server.parseProperties()
+    ///
+    /// for try await property in propertyStream {
+    ///     // Process each property as it arrives
+    ///     print("Received property: \(property.name.displayName)")
+    /// }
+    /// ```
     public func parseProperties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
         guard let dataStream = receiveStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
