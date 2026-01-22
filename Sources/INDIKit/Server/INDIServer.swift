@@ -113,32 +113,32 @@ public actor INDIServer {
         }
     }
     
-    /// Send an INDI property to the server.
+    /// Send an INDI message to the server.
     ///
-    /// Only properties with `.set`, `.get` (getProperties), or `.enableBlob` operations can be sent to the server.
-    /// This method serializes the property to XML and sends it to the server.
+    /// Only messages with `.set`, `.get` (getProperties), or `.enableBlob` operations can be sent to the server.
+    /// This method serializes the message to XML and sends it to the server.
     ///
-    /// - Parameter property: The INDI property to send (must have `.set`, `.get`, or `.enableBlob` operation)
-    /// - Throws: An error if not connected, if the property operation is not supported, or if serialization fails
-    public func send(_ property: INDIMessage) async throws {
+    /// - Parameter message: The INDI message to send (must have `.set`, `.get`, or `.enableBlob` operation)
+    /// - Throws: An error if not connected, if the message operation is not supported, or if serialization fails
+    public func send(_ message: INDIMessage) async throws {
         let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob]
-        guard allowedOperations.contains(property.operation) else {
-            let message = "Only properties with .set, .get, or .enableBlob operations can be sent to the server. " +
-                "Received property with operation: \(property.operation.rawValue)"
+        guard allowedOperations.contains(message.operation) else {
+            let errorMessage = "Only messages with .set, .get, or .enableBlob operations can be sent to the server. " +
+                "Received message with operation: \(message.operation.rawValue)"
             throw NSError(domain: "INDIServer", code: 2, userInfo: [
-                NSLocalizedDescriptionKey: message
+                NSLocalizedDescriptionKey: errorMessage
             ])
         }
         
-        let xml = try property.toXML()
+        let xml = try message.toXML()
         let xmlWithNewline = xml + "\n"
         try await send(Data(xmlWithNewline.utf8))
     }
 
-    /// Send the INDI handshake message to request property updates from the server.
+    /// Send the INDI handshake message to request message updates from the server.
     ///
     /// This sends `<getProperties version='1.7'/>` which tells the INDI server to start
-    /// sending property updates to this client.
+    /// sending message updates to this client.
     public func sendHandshake() async throws {
         let handshake = "<getProperties version='1.7'/>\n"
         try await send(Data(handshake.utf8))
@@ -147,29 +147,29 @@ public actor INDIServer {
     /// Returns a stream of raw message payloads received from the server.
     ///
     /// Call `connect()` first to establish the connection and start the receive loop.
-    public func messages() -> AsyncThrowingStream<Data, Error>? {
+    public func rawDataMessages() -> AsyncThrowingStream<Data, Error>? {
         rawDataStream
     }
 
-    /// Returns a stream of parsed INDI properties from the data stream.
+    /// Returns a stream of parsed INDI messages from the data stream.
     ///
-    /// Returns an asynchronous stream of parsed INDI properties from the connected server.
-    /// Properties are parsed from incoming XML data and yielded as they become available.
+    /// Returns an asynchronous stream of parsed INDI messages from the connected server.
+    /// Messages are parsed from incoming XML data and yielded as they become available.
     ///
-    /// - Returns: An `AsyncThrowingStream` that yields `INDIProperty` objects as they are parsed
+    /// - Returns: An `AsyncThrowingStream` that yields `INDIMessage` objects as they are parsed
     /// - Throws: An error if not connected (call `connect()` first)
     ///
     /// ## Example
     ///
     /// ```swift
-    /// let propertyStream = try await server.properties()
+    /// let messageStream = try await server.messages()
     ///
-    /// for try await property in propertyStream {
-    ///     // Process each property as it arrives
-    ///     print("Received property: \(property.name.displayName)")
+    /// for try await message in messageStream {
+    ///     // Process each message as it arrives
+    ///     print("Received message: \(message.name?.displayName ?? "unknown")")
     /// }
     /// ```
-    public func properties() async throws -> AsyncThrowingStream<INDIMessage, Error> {
+    public func messages() async throws -> AsyncThrowingStream<INDIMessage, Error> {
         guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Not connected. Call connect() first."

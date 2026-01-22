@@ -16,12 +16,12 @@ struct INDIPropertyValidationTests {
     }
     
     /// Parse XML and collect all properties
-    private func parseXML(_ xml: String) async throws -> [INDIProperty] {
+    private func parseXML(_ xml: String) async throws -> [INDIMessage] {
         let parser = INDIXMLParser()
         let dataStream = createDataStream(from: xml)
         let propertyStream = await parser.parse(dataStream)
         
-        var properties: [INDIProperty] = []
+        var properties: [INDIMessage] = []
         for try await property in propertyStream {
             properties.append(property)
         }
@@ -119,7 +119,7 @@ struct INDIPropertyValidationTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.propertyType == .light)
+        #expect(property.propertyType == INDIPropertyType.light)
         #expect(property.permissions != nil)
         
         // Should have warning diagnostic for permissions on light property
@@ -138,7 +138,7 @@ struct INDIPropertyValidationTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.propertyType == .light)
+        #expect(property.propertyType == INDIPropertyType.light)
         #expect(property.timeout != nil)
         
         // Should have warning diagnostic for timeout on light property
@@ -157,7 +157,7 @@ struct INDIPropertyValidationTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.propertyType == .text)
+        #expect(property.propertyType == INDIPropertyType.text)
         #expect(property.rule != nil)
         
         // Should have warning diagnostic for rule on non-switch property

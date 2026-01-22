@@ -52,7 +52,7 @@ struct INDIKitCLI {
 
             // Set up async task to print raw data stream (for debugging)
             Task.detached(priority: .userInitiated) {
-                if let rawStream = await server.messages() {
+                if let rawStream = await server.rawDataMessages() {
                     do {
                         for try await data in rawStream {
                             if let string = String(data: data, encoding: .utf8) {
@@ -71,10 +71,10 @@ struct INDIKitCLI {
             }
             
             // Parse and print INDI Properties
-            let propertyStream = try await server.properties()
+            let propertyStream = try await server.messages()
             
             for try await property in propertyStream {
-                print("Parsed INDI Property:")
+                print("Parsed INDI Message:")
                 printMessage(property)
             }
 
@@ -87,7 +87,7 @@ struct INDIKitCLI {
     
     // MARK: - Printing
     
-    private static func printMessage(_ message: INDIProperty) {
+    private static func printMessage(_ message: INDIMessage) {
         printBasicInfo(message)
         printOptionalAttributes(message)
         printValues(message)
@@ -95,7 +95,7 @@ struct INDIKitCLI {
         print("---")
     }
     
-    private static func printBasicInfo(_ message: INDIProperty) {
+    private static func printBasicInfo(_ message: INDIMessage) {
         print("  Operation: \(message.operation)")
         if let propertyType = message.propertyType {
             print("  Property Type: \(propertyType)")
@@ -115,7 +115,7 @@ struct INDIKitCLI {
         }
     }
     
-    private static func printOptionalAttributes(_ message: INDIProperty) {
+    private static func printOptionalAttributes(_ message: INDIMessage) {
         if let permissions = message.permissions {
             print("  Permissions: \(permissions.indiValue)")
         }
@@ -143,7 +143,7 @@ struct INDIKitCLI {
         }
     }
     
-    private static func printValues(_ message: INDIProperty) {
+    private static func printValues(_ message: INDIMessage) {
         guard !message.values.isEmpty else { return }
         
         print("  Values: \(message.values.count) value(s)")
@@ -176,7 +176,7 @@ struct INDIKitCLI {
         }
     }
     
-    private static func printDiagnostics(_ message: INDIProperty) {
+    private static func printDiagnostics(_ message: INDIMessage) {
         guard !message.diagnostics.isEmpty else { return }
         
         print("  Diagnostics: \(message.diagnostics.count) message(s)")
