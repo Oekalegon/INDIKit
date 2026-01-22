@@ -5,28 +5,28 @@ public enum INDIPropertyType: String, Sendable, CaseIterable {
     /// A text property type.
     ///
     /// In INDI protocol, this is represented as "text".
-    case text = "text"
+    case text = "Text"
 
     /// A number property type.
     ///
     /// In INDI protocol, this is represented as "number".
-    case number = "number"
+    case number = "Number"
 
     /// A boolean on/off control property type.
     ///
     /// In INDI protocol, this is represented as "switch" but we use "toggle"
     /// as the case name since "switch" is a reserved keyword in Swift.
-    case toggle = "switch"
+    case toggle = "Switch"
 
     /// A light property type.
     ///
     /// In INDI protocol, this is represented as "light".
-    case light = "light"
+    case light = "Light"
 
     /// A blob property type.
     ///
-    /// In INDI protocol, this is represented as "blob".
-    case blob = "blob"
+    /// In INDI protocol, this is represented as "BLOB" in element names (e.g., "defBLOBVector").
+    case blob = "BLOB"
     
     /// Initialize from an element name by matching property type keywords.
     ///

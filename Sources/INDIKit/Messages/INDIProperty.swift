@@ -39,6 +39,82 @@ public struct INDIProperty: Sendable {
     /// Diagnostic messages for the property.
     public private(set) var diagnostics: [INDIDiagnostics]
     
+    /// Create an INDI property.
+    ///
+    /// - Parameters:
+    ///   - operation: The INDI operation (e.g., `.define`, `.set`, `.update`)
+    ///   - propertyType: The type of property (e.g., `.text`, `.number`, `.toggle`)
+    ///   - device: The device name
+    ///   - name: The property name
+    ///   - values: The property values
+    ///   - group: Optional UI grouping hint
+    ///   - label: Optional human-readable label
+    ///   - permissions: Optional property permissions
+    ///   - state: Optional property state
+    ///   - timeout: Optional timeout in seconds
+    ///   - timeStamp: Optional timestamp
+    ///   - rule: Optional switch rule (only for toggle properties)
+    ///   - format: Optional format string (only for blob properties)
+    ///   - diagnostics: Optional initial diagnostics (defaults to empty array)
+    public init(
+        operation: INDIPropertyOperation,
+        propertyType: INDIPropertyType,
+        device: String,
+        name: INDIPropertyName,
+        group: String? = nil,
+        label: String? = nil,
+        permissions: INDIPropertyPermissions? = nil,
+        state: INDIState? = nil,
+        timeout: Double? = nil,
+        timeStamp: Date? = nil,
+        rule: INDISwitchRule? = nil,
+        format: String? = nil,
+        values: [INDIValue],
+    ) {
+        self.operation = operation
+        self.propertyType = propertyType
+        self.device = device
+        self.name = name
+        self.group = group
+        self.label = label
+        self.permissions = permissions
+        self.state = state
+        self.timeout = timeout
+        self.timeStamp = timeStamp
+        self.rule = rule
+        self.format = format
+        self.values = values
+        self.diagnostics = []
+        
+        // Create a minimal XMLNodeRepresentation for internal use
+        let elementName = "\(operation.rawValue)\(propertyType.rawValue)Vector"
+        var attrs: [String: String] = [
+            "device": device,
+            "name": name.indiName
+        ]
+        if let group = group { attrs["group"] = group }
+        if let label = label { attrs["label"] = label }
+        if let permissions = permissions { attrs["perm"] = permissions.indiValue }
+        if let state = state { attrs["state"] = state.indiValue }
+        if let timeout = timeout { attrs["timeout"] = String(timeout) }
+        if let timeStamp = timeStamp {
+            let formatter = ISO8601DateFormatter()
+            formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            attrs["timestamp"] = formatter.string(from: timeStamp)
+        }
+        if let rule = rule { attrs["rule"] = rule.rawValue }
+        if let format = format { attrs["format"] = format }
+        
+        self.xmlNode = XMLNodeRepresentation(
+            name: elementName,
+            attributes: attrs,
+            text: nil,
+            children: []
+        )
+        
+        self.validateProgrammatic()
+    }
+    
     init?(xmlNode: XMLNodeRepresentation) {
         self.xmlNode = xmlNode
         
@@ -94,6 +170,72 @@ public struct INDIProperty: Sendable {
     private static let knownAttributes = [
         "device", "group", "label", "name", "perm", "state", "timeout", "timestamp", "rule", "format"
     ]
+
+    /// Validate a programmatically created property.
+    ///
+    /// This validation skips checks that don't apply to programmatic creation:
+    /// - Device/name presence (user explicitly provides them)
+    /// - Unknown XML attributes (no XML to validate)
+    /// - Set operation extra attributes (no XML attributes to check)
+    ///
+    /// But still validates:
+    /// - Unknown property name warnings
+    /// - Type-specific attribute usage (permissions on light, etc.)
+    /// - At least one value requirement
+    /// - Switch rule compliance
+    private mutating func validateProgrammatic() {
+        let operationsToSkip = [INDIPropertyOperation.get, .message, .ping, .pingReply, .delete, .enableBlob]
+        if operationsToSkip.contains(self.operation) {
+            let operationValue = self.operation.rawValue
+            let message = "Validation skipped for operation: \(operationValue)"
+            INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            return
+        }
+        
+        // Warn if property name is unknown (still useful for programmatic creation)
+        if case .other(let name) = self.name {
+            let message = "The property name '\(name)' is unknown"
+            INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+
+        // Type-specific attribute validation (still applies)
+        if self.operation == .update || self.operation == .define {
+            // Light properties do not support permissions.
+            if self.permissions != nil && self.propertyType == .light {
+                let message = "Permissions are ignored for light properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Light properties do not support timeout.
+            if self.timeout != nil && self.propertyType == .light {
+                let message = "Timeout is ignored for light properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Non-switch properties do not support rule.
+            if self.rule != nil && self.propertyType != .toggle {
+                let message = "Rule is ignored for non-switch properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Not-BLOB properties do not support format.
+            if self.format != nil && self.propertyType != .blob {
+                let message = "Format is ignored for non-blob properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+        }
+
+        // Check if the property has at least one value, which is required for all properties.
+        if self.values.isEmpty {
+            let message = "The property must have at least one value"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+        
+        // Validate switch rules for toggle/switch properties
+        if self.propertyType == .toggle, let rule = self.rule {
+            validateSwitchRule(rule: rule)
+        }
+    }
 
     private mutating func validate(attrs: [String: String]) {
 

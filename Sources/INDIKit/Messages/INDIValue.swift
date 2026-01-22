@@ -49,6 +49,49 @@ public struct INDIValue: Sendable {
         case blob(Data)
     }
     
+    /// Create an INDI value programmatically.
+    ///
+    /// - Parameters:
+    ///   - name: The value name
+    ///   - value: The actual value data
+    ///   - label: Optional human-readable label
+    ///   - format: Optional printf-style format string (for number and blob types)
+    ///   - min: Optional minimum value (for number types)
+    ///   - max: Optional maximum value (for number types)
+    ///   - step: Optional step size (for number types)
+    ///   - unit: Optional unit string (for number types)
+    ///   - size: Optional size hint (for blob types)
+    ///   - compressed: Optional compression flag (for blob types)
+    ///   - diagnostics: Optional initial diagnostics (defaults to empty array)
+    ///   - propertyType: The type of property this value belongs to (for validation)
+    public init(
+        name: INDIPropertyValueName,
+        value: Value,
+        label: String? = nil,
+        format: String? = nil,
+        min: Double? = nil,
+        max: Double? = nil,
+        step: Double? = nil,
+        unit: String? = nil,
+        size: Int? = nil,
+        compressed: Bool? = nil,
+        propertyType: INDIPropertyType
+    ) {
+        self.name = name
+        self.value = value
+        self.label = label
+        self.format = format
+        self.min = min
+        self.max = max
+        self.step = step
+        self.unit = unit
+        self.size = size
+        self.compressed = compressed
+        self.diagnostics = []
+        
+        validateProgrammatic(propertyType: propertyType)
+    }
+    
     /// Initialize from an XML node representation.
     ///
     /// - Parameter xmlNode: The XML node representing the value element
@@ -251,7 +294,8 @@ public struct INDIValue: Sendable {
         // Try case-insensitive match
         let normalized = trimmed.lowercased()
         if let found = INDIState.allCases.first(where: { $0.indiValue.lowercased() == normalized }) {
-            INDIDiagnostics.logWarning("Found light state with wrong capitalization: '\(trimmed)'", logger: Self.logger, diagnostics: &diagnostics)
+            let message = "Found light state with wrong capitalization: '\(trimmed)'"
+            INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &diagnostics)
             return found
         }
         
@@ -270,6 +314,51 @@ public struct INDIValue: Sendable {
     private static let knownAttributes = [
         "name", "label", "format", "min", "max", "step", "unit", "size", "compressed"
     ]
+    
+    /// Validate a programmatically created value.
+    ///
+    /// This validation skips checks that don't apply to programmatic creation:
+    /// - Unknown XML attributes (no XML to validate)
+    /// - Value name validation against property (no property context needed)
+    ///
+    /// But still validates:
+    /// - min <= max if both are provided
+    /// - Type-specific attribute usage (format for number/blob, min/max/step/unit for number, size/compressed for blob)
+    private mutating func validateProgrammatic(propertyType: INDIPropertyType) {
+        // Validate that min <= max if both are available
+        if let minValue = self.min, let maxValue = self.max, minValue > maxValue {
+            let message = "Minimum value \(minValue) is greater than maximum value \(maxValue)"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+        
+        // Format is only valid for Number and BLOB types
+        if self.format != nil && propertyType != .number && propertyType != .blob {
+            let message = "Format is ignored for non-number, non-blob property types"
+            INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+        
+        // min, max, step, unit are only valid for Number type
+        let numberOnlyAttributes: [(String, Any?)] = [
+            ("Min", self.min),
+            ("Max", self.max),
+            ("Step", self.step),
+            ("Unit", self.unit)
+        ]
+        for (name, value) in numberOnlyAttributes where value != nil && propertyType != .number {
+            let message = "\(name) is ignored for non-number property types"
+            INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+        
+        // size and compressed are only valid for BLOB type
+        let blobOnlyAttributes: [(String, Any?)] = [
+            ("Size", self.size),
+            ("Compressed", self.compressed)
+        ]
+        for (name, value) in blobOnlyAttributes where value != nil && propertyType != .blob {
+            let message = "\(name) is ignored for non-blob property types"
+            INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+    }
     
     private mutating func validate(attrs: [String: String], propertyType: INDIPropertyType) {
         // Check for unknown attributes
