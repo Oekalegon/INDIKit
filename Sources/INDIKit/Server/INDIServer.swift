@@ -127,83 +127,14 @@ public actor INDIServer {
     ///
     /// This is a convenience method for testing/debugging. It parses incoming
     /// data and prints the resulting INDIProperty objects.
-    public func parseAndPrintMessages() async throws {
+    public func parseProperties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
         guard let dataStream = receiveStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Not connected. Call connect() first."
             ])
         }
         
-        let propertyStream = await parser.parse(dataStream)
-        
-        for try await property in propertyStream {
-            print("Parsed INDI Property:")
-            printMessage(property)
-        }
-    }
-    
-    /// Print an INDIProperty in a readable format.
-    private func printMessage(_ message: INDIProperty) {
-        print("  Operation: \(message.operation)")
-        print("  Property Type: \(message.propertyType)")
-        
-        if !message.device.isEmpty {
-            print("  Device: \(message.device)")
-        }
-        if let group = message.group {
-            print("  Group: \(group)")
-        }
-        if let label = message.label {
-            print("  Label: \(label)")
-        }
-        print("  Property: \(message.property.displayName)")
-        if let permissions = message.permissions {
-            print("  Permissions: \(permissions.indiValue)")
-        }
-        if let state = message.state {
-            print("  State: \(state.indiValue)")
-        }
-        
-        if let timeout = message.timeout, timeout > 0 {
-            print("  Timeout: \(timeout)s")
-        }
-        
-        if let timeStamp = message.timeStamp {
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateStyle = .medium
-            dateFormatter.timeStyle = .medium
-            print("  Timestamp: \(dateFormatter.string(from: timeStamp))")
-        }
-        
-        if let rule = message.rule {
-            print("  Rule: \(rule.rawValue)")
-        }
-        
-        if let format = message.format {
-            print("  Format: \(format)")
-        }
-        
-        // Print parsed values
-        if !message.values.isEmpty {
-            print("  Values: \(message.values.count) value(s)")
-            for (index, value) in message.values.enumerated() {
-                print("    [\(index)] \(value.name.indiName): ", terminator: "")
-                switch value.value {
-                case .text(let text):
-                    print("\"\(text)\"")
-                case .number(let num):
-                    print("\(num)")
-                case .boolean(let bool):
-                    print(bool)
-                case .light(let bool):
-                    print(bool)
-                case .blob(let data):
-                    print("\(data.count) bytes")
-                }
-            }
-        }
-        
-        print("---")
+        return await parser.parse(dataStream)
     }
 
     // MARK: - Private

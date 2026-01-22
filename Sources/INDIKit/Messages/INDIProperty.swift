@@ -12,10 +12,10 @@ public struct INDIProperty: Sendable {
     /// The parsed XML node representation containing the property structure.
     let xmlNode: XMLNodeRepresentation
     
-    public let operation: INDIMessageOperation
+    public let operation: INDIPropertyOperation
     public let propertyType: INDIPropertyType
     public let device: String
-    public let property: INDIPropertyName
+    public let name: INDIPropertyName
     public let group: String?
     public let label: String?
     public let permissions: INDIPropertyPermissions?
@@ -35,6 +35,9 @@ public struct INDIProperty: Sendable {
     
     /// The parsed values contained in this property.
     public let values: [INDIValue]
+
+    /// Diagnostic messages for the property.
+    public private(set) var diagnostics: [INDIDiagnostics]
     
     init?(xmlNode: XMLNodeRepresentation) {
         self.xmlNode = xmlNode
@@ -56,10 +59,10 @@ public struct INDIProperty: Sendable {
         self.propertyType = propType
         
         let attrs = xmlNode.attributes
-        self.device = attrs["device"] ?? ""
+        self.device = attrs["device"] ?? "UNKNOWN"
         self.group = attrs["group"]
         self.label = attrs["label"]
-        self.property = Self.extractProperty(from: attrs["name"] ?? "")
+        self.name = Self.extractProperty(from: attrs["name"] ?? "UNKNOWN")
         self.permissions = attrs["perm"].map { Self.extractPermissions(from: $0) }
         self.state = attrs["state"].map { Self.extractState(from: $0) }
         self.timeout = Self.extractTimeout(from: attrs["timeout"])
@@ -70,7 +73,7 @@ public struct INDIProperty: Sendable {
         // Parse child elements into INDIValue objects
         var parsedValues: [INDIValue] = []
         for child in xmlNode.children {
-            if let value = INDIValue(xmlNode: child, propertyType: propType) {
+            if let value = INDIValue(xmlNode: child, propertyType: propType, propertyName: self.name) {
                 parsedValues.append(value)
             } else {
                 let propertyName = attrs["name"] ?? "unknown"
@@ -80,12 +83,93 @@ public struct INDIProperty: Sendable {
             }
         }
         self.values = parsedValues
+
+        self.diagnostics = []
+        validate(attrs: attrs)
+    }
+
+    // MARK: - Validation
+
+    /// Known INDI property attributes.
+    private static let knownAttributes = [
+        "device", "group", "label", "name", "perm", "state", "timeout", "timestamp", "rule", "format"
+    ]
+
+    private mutating func validate(attrs: [String: String]) {
+
+        let operationsToSkip = [INDIPropertyOperation.get, .message, .ping, .pingReply, .delete, .enableBlob]
+        if operationsToSkip.contains(self.operation) {
+            let operationValue = self.operation.rawValue
+            let message = "Validation skipped for operation: \(operationValue)"
+            INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            return
+        }
+        
+        // Check if the device and name are known, as they are required and must be set.
+        if self.device == "UNKNOWN" {
+            let message = "Device is required but not found"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+        if self.name.indiName == "UNKNOWN" {
+            let message = "The property name is required but not found"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        } else if case .other(let name) = self.name {
+            let message = "The property name '\(name)' is unknown"
+            INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+
+        // Update and set operations are the only ones that can properties other than
+        // name and device.
+        if self.operation == .update || self.operation == .define {
+
+            // Check all attrs if they are known in INDI
+            let unknownAttrs = attrs.keys.filter { !Self.knownAttributes.contains($0) }
+            let elementName = xmlNode.name
+            for unknownAttr in unknownAttrs {
+                let message = "Unknown attribute '\(unknownAttr)' in INDI property element '\(elementName)'"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Light properties do not support permissions.
+            if self.permissions != nil && self.propertyType == .light {
+                let message = "Permissions are ignored for light properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Light properties do not support timeout.
+            if self.timeout != nil && self.propertyType == .light {
+                let message = "Timeout is ignored for light properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Non-switch properties do not support rule.
+            if self.rule != nil && self.propertyType != .toggle {
+                let message = "Rule is ignored for non-switch properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+
+            // Not-BLOB properties do not support format.
+            if self.format != nil && self.propertyType != .blob {
+                let message = "Format is ignored for non-blob properties"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+        } else if self.operation == .set {
+            let message = "Set (new) operations only support name and device. " +
+                "This message has other attributes: \(attrs.keys.joined(separator: ", "))"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
+
+        // Check if the property has at least one value, which is required for all properties.
+        if self.values.isEmpty {
+            let message = "The property must have at least one value"
+            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+        }
     }
     
     // MARK: - Private Helpers
     
-    private static func extractOperation(from elementName: String) -> INDIMessageOperation? {
-        INDIMessageOperation(elementName: elementName) ?? .update
+    private static func extractOperation(from elementName: String) -> INDIPropertyOperation? {
+        INDIPropertyOperation(elementName: elementName) ?? .update
     }
     
     private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {

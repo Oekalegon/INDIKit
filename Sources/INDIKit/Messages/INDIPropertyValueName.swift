@@ -51,7 +51,7 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
         }
     }
 
-    public func expectedValueName(for property: INDIPropertyName) -> [INDIPropertyValueName]? {
+    public func expectedValueNames(for property: INDIPropertyName) -> [INDIPropertyValueName]? {
         switch property {
         case .connection: return [.connect, .disconnect]
         case .devicePort: return [.port]

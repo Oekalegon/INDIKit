@@ -51,12 +51,131 @@ struct INDIKitCLI {
             }
 
             // Parse and print INDI Properties
-            try await server.parseAndPrintMessages()
+            let propertyStream = try await server.parseProperties()
+            
+            for try await property in propertyStream {
+                print("Parsed INDI Property:")
+                printMessage(property)
+            }
 
             print("\nConnection closed.")
         } catch {
             print("\nError connecting to INDI server: \(error.localizedDescription)")
             exit(1)
+        }
+    }
+    
+    // MARK: - Printing
+    
+    private static func printMessage(_ message: INDIProperty) {
+        printBasicInfo(message)
+        printOptionalAttributes(message)
+        printValues(message)
+        printDiagnostics(message)
+        print("---")
+    }
+    
+    private static func printBasicInfo(_ message: INDIProperty) {
+        print("  Operation: \(message.operation)")
+        print("  Property Type: \(message.propertyType)")
+        
+        if !message.device.isEmpty {
+            print("  Device: \(message.device)")
+        }
+        if let group = message.group {
+            print("  Group: \(group)")
+        }
+        if let label = message.label {
+            print("  Label: \(label)")
+        }
+        print("  Name: \(message.name.displayName)")
+    }
+    
+    private static func printOptionalAttributes(_ message: INDIProperty) {
+        if let permissions = message.permissions {
+            print("  Permissions: \(permissions.indiValue)")
+        }
+        if let state = message.state {
+            print("  State: \(state.indiValue)")
+        }
+        
+        if let timeout = message.timeout, timeout > 0 {
+            print("  Timeout: \(timeout)s")
+        }
+        
+        if let timeStamp = message.timeStamp {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .medium
+            print("  Timestamp: \(dateFormatter.string(from: timeStamp))")
+        }
+        
+        if let rule = message.rule {
+            print("  Rule: \(rule.rawValue)")
+        }
+        
+        if let format = message.format {
+            print("  Format: \(format)")
+        }
+    }
+    
+    private static func printValues(_ message: INDIProperty) {
+        guard !message.values.isEmpty else { return }
+        
+        print("  Values: \(message.values.count) value(s)")
+        for (index, value) in message.values.enumerated() {
+            print("    [\(index)] \(value.name.indiName): ", terminator: "")
+            printValue(value.value)
+            
+            // Print value diagnostics if any
+            if !value.diagnostics.isEmpty {
+                for diagnostic in value.diagnostics {
+                    let (prefix, msg) = diagnosticPrefixAndMessage(diagnostic)
+                    print("      [\(prefix)] \(msg)")
+                }
+            }
+        }
+    }
+    
+    private static func printValue(_ value: INDIValue.Value) {
+        switch value {
+        case .text(let text):
+            print("\"\(text)\"")
+        case .number(let num):
+            print("\(num)")
+        case .boolean(let bool):
+            print(bool)
+        case .light(let bool):
+            print(bool)
+        case .blob(let data):
+            print("\(data.count) bytes")
+        }
+    }
+    
+    private static func printDiagnostics(_ message: INDIProperty) {
+        guard !message.diagnostics.isEmpty else { return }
+        
+        print("  Diagnostics: \(message.diagnostics.count) message(s)")
+        for diagnostic in message.diagnostics {
+            let (prefix, msg) = diagnosticPrefixAndMessage(diagnostic)
+            print("    [\(prefix)] \(msg)")
+        }
+    }
+    
+    private static func diagnosticPrefixAndMessage(_ diagnostic: INDIDiagnostics) -> (String, String) {
+        switch diagnostic {
+        case .debug(let msg):
+            return ("DEBUG", msg)
+        case .note(let msg):
+            return ("NOTE", msg)
+        case .info(let msg):
+            return ("INFO", msg)
+        case .warning(let msg):
+            return ("WARNING", msg)
+        case .error(let msg):
+            return ("ERROR", msg)
+        case .fatal(let msg):
+            return ("FATAL", msg)
         }
     }
 }
