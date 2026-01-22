@@ -294,7 +294,7 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
     
     // MARK: - XML Serialization
     
-    public func toXML() throws -> String {
+    internal func toXML() throws -> String {
         let elementName = xmlNode.name
         var xml = "<\(elementName)"
         

@@ -106,7 +106,7 @@ public struct INDISetProperty: INDIPropertyMessage, Sendable {
     
     // MARK: - XML Serialization
     
-    public func toXML() throws -> String {
+    internal func toXML() throws -> String {
         let elementName = "\(operation.rawValue)\(propertyType.rawValue)Vector"
         var xml = "<\(elementName)"
         

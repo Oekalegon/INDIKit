@@ -76,7 +76,7 @@ public struct INDIGetProperties: INDIPropertyMessage, Sendable {
     
     // MARK: - XML Serialization
     
-    public func toXML() throws -> String {
+    internal func toXML() throws -> String {
         var xml = "<getProperties"
         
         // Add version attribute

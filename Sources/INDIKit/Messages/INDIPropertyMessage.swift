@@ -10,11 +10,4 @@ public protocol INDIPropertyMessage: Sendable {
     
     /// Diagnostic messages for the property.
     var diagnostics: [INDIDiagnostics] { get }
-    
-    /// Serialize this property to XML string format.
-    ///
-    /// - Returns: XML string representation of the property
-    /// - Throws: An error if the property cannot be serialized
-    func toXML() throws -> String
 }
-

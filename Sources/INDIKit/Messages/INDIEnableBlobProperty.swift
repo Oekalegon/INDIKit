@@ -83,7 +83,7 @@ public struct INDIEnableBlobProperty: INDIPropertyMessage, Sendable {
     
     // MARK: - XML Serialization
     
-    public func toXML() throws -> String {
+    internal func toXML() throws -> String {
         var xml = "<enableBLOB"
         
         xml += " device=\"\(escapeXML(device))\""

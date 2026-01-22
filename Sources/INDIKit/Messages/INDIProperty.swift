@@ -239,7 +239,7 @@ public enum INDIProperty: Sendable {
     ///
     /// - Returns: XML string representation of the property
     /// - Throws: An error if the property cannot be serialized
-    public func toXML() throws -> String {
+    internal func toXML() throws -> String {
         switch self {
         case .get(let prop): return try prop.toXML()
         case .set(let prop): return try prop.toXML()
