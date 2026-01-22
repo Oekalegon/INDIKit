@@ -19,7 +19,7 @@ public struct INDIProperty: Sendable {
     public let group: String?
     public let label: String?
     public let permissions: INDIPropertyPermissions?
-    public let state: INDIPropertyState?
+    public let state: INDIState?
     public let timeout: Double?
     public let timeStamp: Date?
     
@@ -184,8 +184,8 @@ public struct INDIProperty: Sendable {
         INDIPropertyPermissions(indiValue: permString)
     }
     
-    private static func extractState(from stateString: String) -> INDIPropertyState {
-        INDIPropertyState(indiValue: stateString)
+    private static func extractState(from stateString: String) -> INDIState {
+        INDIState(indiValue: stateString)
     }
     
     private static func extractTimeout(from timeoutString: String?) -> Double? {

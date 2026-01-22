@@ -1,21 +1,22 @@
 import Foundation
 
-/// State of a property.
+/// INDI state value.
 ///
-/// This is used to indicate the state of the property.
+/// This represents a state value used in the INDI protocol.
+/// It can be used for property states or light values.
 /// In INDI protocol, this is represented as "Idle", "Busy", "Alert", or "Ok".
-public enum INDIPropertyState: Sendable, CaseIterable {
+public enum INDIState: Sendable, CaseIterable {
 
-    /// The property is not doing anything (initial state)
+    /// The state is idle (not doing anything, initial state)
     case idle 
 
-    /// The operation was successful, the value is valid
+    /// The state is ok (operation was successful, value is valid)
     case ok
 
-    /// An operation on the property is in progress
+    /// The state is busy (an operation is in progress)
     case busy
 
-    /// The property is in an alert state (e.g. error, warning, etc.)
+    /// The state is alert (error, warning, etc.)
     case alert
 
     public var indiValue: String {
@@ -39,3 +40,4 @@ public enum INDIPropertyState: Sendable, CaseIterable {
         }
     }
 }
+

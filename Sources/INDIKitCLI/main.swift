@@ -165,8 +165,8 @@ struct INDIKitCLI {
             print("\(num)")
         case .boolean(let bool):
             print(bool)
-        case .light(let bool):
-            print(bool)
+        case .state(let state):
+            print("\"\(state.indiValue)\"")
         case .blob(let data):
             print("\(data.count) bytes")
         }

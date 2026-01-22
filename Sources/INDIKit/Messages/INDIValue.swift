@@ -45,7 +45,7 @@ public struct INDIValue: Sendable {
         case text(String)
         case number(Double)
         case boolean(Bool)
-        case light(Bool)
+        case state(INDIState)  // State value for light properties: Idle, Ok, Busy, or Alert
         case blob(Data)
     }
     
@@ -198,8 +198,8 @@ public struct INDIValue: Sendable {
             return .boolean(parseBoolean(from: textContent, context: "value", diagnostics: &diagnostics))
             
         case .light:
-            // Lights also use "On"/"Off"
-            return .light(parseBoolean(from: textContent, context: "value", diagnostics: &diagnostics))
+            // Lights use state strings: "Idle", "Ok", "Busy", "Alert" (case-insensitive)
+            return .state(parseLightState(from: textContent, diagnostics: &diagnostics))
             
         case .blob:
             // BLOBs are base64-encoded
@@ -232,6 +232,36 @@ public struct INDIValue: Sendable {
         
         // Parse: "on", "true", "1" are true; "off", "false", "0" are false
         return normalized == "on" || normalized == "true" || normalized == "1"
+    }
+    
+    /// Parse a light state value from INDI text format.
+    /// Lights use state strings: "Idle", "Ok", "Busy", "Alert" (case-insensitive).
+    /// Returns the corresponding INDIState enum value with proper capitalization.
+    private static func parseLightState(
+        from text: String,
+        diagnostics: inout [INDIDiagnostics]
+    ) -> INDIState {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Try exact match first (most common case)
+        if let found = INDIState.allCases.first(where: { $0.indiValue == trimmed }) {
+            return found
+        }
+        
+        // Try case-insensitive match
+        let normalized = trimmed.lowercased()
+        if let found = INDIState.allCases.first(where: { $0.indiValue.lowercased() == normalized }) {
+            INDIDiagnostics.logWarning("Found light state with wrong capitalization: '\(trimmed)'", logger: Self.logger, diagnostics: &diagnostics)
+            return found
+        }
+        
+        // Invalid state - log warning and return default
+        let expectedStates = INDIState.allCases.map { $0.indiValue }.joined(separator: "', '")
+        let message = "Invalid light state: '\(trimmed)'. " +
+            "Expected '\(expectedStates)'"
+        INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &diagnostics)
+        
+        return .idle
     }
     
     // MARK: - Validation
