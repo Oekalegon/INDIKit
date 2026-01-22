@@ -97,10 +97,12 @@ struct INDIKitCLI {
     
     private static func printBasicInfo(_ message: INDIProperty) {
         print("  Operation: \(message.operation)")
-        print("  Property Type: \(message.propertyType)")
+        if let propertyType = message.propertyType {
+            print("  Property Type: \(propertyType)")
+        }
         
-        if !message.device.isEmpty {
-            print("  Device: \(message.device)")
+        if let device = message.device, !device.isEmpty {
+            print("  Device: \(device)")
         }
         if let group = message.group {
             print("  Group: \(group)")
@@ -108,7 +110,9 @@ struct INDIKitCLI {
         if let label = message.label {
             print("  Label: \(label)")
         }
-        print("  Name: \(message.name.displayName)")
+        if let name = message.name {
+            print("  Name: \(name.displayName)")
+        }
     }
     
     private static func printOptionalAttributes(_ message: INDIProperty) {

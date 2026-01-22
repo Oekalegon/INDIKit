@@ -115,16 +115,18 @@ public actor INDIServer {
     
     /// Send an INDI property to the server.
     ///
-    /// Only properties with `.set` operation (new) can be sent to the server.
+    /// Only properties with `.set`, `.get` (getProperties), or `.enableBlob` operations can be sent to the server.
     /// This method serializes the property to XML and sends it to the server.
     ///
-    /// - Parameter property: The INDI property to send (must have `.set` operation)
-    /// - Throws: An error if not connected, if the property operation is not `.set`, or if serialization fails
+    /// - Parameter property: The INDI property to send (must have `.set`, `.get`, or `.enableBlob` operation)
+    /// - Throws: An error if not connected, if the property operation is not supported, or if serialization fails
     public func send(_ property: INDIProperty) async throws {
-        guard property.operation == .set else {
+        let allowedOperations: [INDIPropertyOperation] = [.set, .get, .enableBlob]
+        guard allowedOperations.contains(property.operation) else {
+            let message = "Only properties with .set, .get, or .enableBlob operations can be sent to the server. " +
+                "Received property with operation: \(property.operation.rawValue)"
             throw NSError(domain: "INDIServer", code: 2, userInfo: [
-                NSLocalizedDescriptionKey: "Only properties with .set operation can be sent to the server. " +
-                    "Received property with operation: \(property.operation.rawValue)"
+                NSLocalizedDescriptionKey: message
             ])
         }
         

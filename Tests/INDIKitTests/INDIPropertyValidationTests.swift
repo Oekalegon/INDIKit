@@ -64,7 +64,7 @@ struct INDIPropertyValidationTests {
         
         // Should have error diagnostic for missing name
         #expect(INDIDiagnosticsTestHelpers.hasError(property.diagnostics, containing: "The property name is required but not found"))
-        #expect(property.name.indiName == "UNKNOWN")
+        #expect(property.name?.indiName == "UNKNOWN")
     }
     
     @Test("Property with unknown property name generates note")
@@ -235,6 +235,131 @@ struct INDIPropertyValidationTests {
         
         // Should NOT have any error diagnostics
         #expect(!INDIDiagnosticsTestHelpers.hasAnyError(property.diagnostics))
+    }
+    
+    // MARK: - getProperties Validation Tests
+    
+    @Test("getProperties with unexpected attribute generates warning")
+    func testGetPropertiesUnexpectedAttribute() async throws {
+        let xml = "<getProperties version='1.7' device='Test' group='Main Control'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have warning about unexpected attribute
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "unexpected attribute",
+            "group"
+        ))
+    }
+    
+    @Test("getProperties with multiple unexpected attributes generates warnings")
+    func testGetPropertiesMultipleUnexpectedAttributes() async throws {
+        let xml = "<getProperties version='1.7' device='Test' group='Main' label='Test Label' state='Ok'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have warnings for each unexpected attribute
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "group"
+        ))
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "label"
+        ))
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "state"
+        ))
+    }
+    
+    @Test("getProperties with child elements generates warning")
+    func testGetPropertiesWithChildElements() async throws {
+        let xml = """
+        <getProperties version='1.7' device='Test'>
+            <defText name="VALUE">Test</defText>
+        </getProperties>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have warning about child elements
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "child element",
+            "getProperties should not have any child elements"
+        ))
+    }
+    
+    @Test("getProperties with multiple child elements generates warning")
+    func testGetPropertiesWithMultipleChildElements() async throws {
+        let xml = """
+        <getProperties version='1.7' device='Test'>
+            <defText name="VALUE1">Test1</defText>
+            <defText name="VALUE2">Test2</defText>
+        </getProperties>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should have warning about child elements
+        #expect(INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "2 child element(s)"
+        ))
+    }
+    
+    @Test("getProperties with valid attributes only has no warnings")
+    func testGetPropertiesValidAttributes() async throws {
+        let xml = "<getProperties version='1.7' device='Test' name='CONNECTION'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should NOT have any warnings
+        #expect(!INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "unexpected attribute"
+        ))
+        #expect(!INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "child element"
+        ))
+    }
+    
+    @Test("getProperties with only version has no warnings")
+    func testGetPropertiesOnlyVersion() async throws {
+        let xml = "<getProperties version='1.7'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        
+        // Should NOT have any warnings
+        #expect(!INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "unexpected attribute"
+        ))
+        #expect(!INDIDiagnosticsTestHelpers.hasWarning(
+            property.diagnostics,
+            containing: "child element"
+        ))
     }
 }
 

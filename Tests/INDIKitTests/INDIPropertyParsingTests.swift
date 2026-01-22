@@ -51,7 +51,7 @@ struct INDIPropertyParsingTests {
         #expect(property.operation == .define)
         #expect(property.propertyType == .text)
         #expect(property.device == "CCD Simulator")
-        #expect(property.name.indiName == "DRIVER_INFO")
+        #expect(property.name?.indiName == "DRIVER_INFO")
         #expect(property.label == "Driver Info")
         #expect(property.group == "General Info")
         #expect(property.permissions == .readOnly)
@@ -83,7 +83,7 @@ struct INDIPropertyParsingTests {
         #expect(property.operation == .define)
         #expect(property.propertyType == .text)
         #expect(property.device == "Test Device")
-        #expect(property.name.indiName == "TEST_PROPERTY")
+        #expect(property.name?.indiName == "TEST_PROPERTY")
         #expect(property.label == nil)
         #expect(property.group == nil)
         #expect(property.permissions == nil)
@@ -110,7 +110,7 @@ struct INDIPropertyParsingTests {
         #expect(property.operation == .update)
         #expect(property.propertyType == .number)
         #expect(property.device == "Telescope Simulator")
-        #expect(property.name.indiName == "EQUATORIAL_EOD_COORD")
+        #expect(property.name?.indiName == "EQUATORIAL_EOD_COORD")
         #expect(property.state == .idle)
         #expect(property.values.count == 2)
         
@@ -184,7 +184,7 @@ struct INDIPropertyParsingTests {
         #expect(property.operation == .define)
         #expect(property.propertyType == .toggle)
         #expect(property.device == "Telescope Simulator")
-        #expect(property.name.indiName == "CONNECTION")
+        #expect(property.name?.indiName == "CONNECTION")
         #expect(property.rule == .oneOfMany)
         #expect(property.values.count == 2)
         
@@ -239,7 +239,7 @@ struct INDIPropertyParsingTests {
         #expect(property.operation == .set)
         #expect(property.propertyType == .toggle)
         #expect(property.device == "Telescope Simulator")
-        #expect(property.name.indiName == "CONNECTION")
+        #expect(property.name?.indiName == "CONNECTION")
         #expect(property.values.count == 2)
     }
     
@@ -567,6 +567,75 @@ struct INDIPropertyParsingTests {
         } else {
             Issue.record("Expected trimmed text value")
         }
+    }
+    
+    // MARK: - getProperties Tests
+    
+    @Test("Parse getProperties without attributes")
+    func testParseGetPropertiesMinimal() async throws {
+        let xml = "<getProperties version='1.7'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == .get)
+        #expect(property.propertyType == nil)
+        #expect(property.device == nil)
+        #expect(property.name == nil)
+        #expect(property.values.isEmpty)
+    }
+    
+    @Test("Parse getProperties with device attribute")
+    func testParseGetPropertiesWithDevice() async throws {
+        let xml = "<getProperties version='1.7' device='Telescope Simulator'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == .get)
+        #expect(property.device == "Telescope Simulator")
+        #expect(property.name == nil)
+    }
+    
+    @Test("Parse getProperties with name attribute")
+    func testParseGetPropertiesWithName() async throws {
+        let xml = "<getProperties version='1.7' name='CONNECTION'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == .get)
+        #expect(property.device == nil)
+        #expect(property.name?.indiName == "CONNECTION")
+    }
+    
+    @Test("Parse getProperties with device and name attributes")
+    func testParseGetPropertiesWithDeviceAndName() async throws {
+        let xml = "<getProperties version='1.7' device='Telescope Simulator' name='CONNECTION'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == .get)
+        #expect(property.device == "Telescope Simulator")
+        #expect(property.name?.indiName == "CONNECTION")
+    }
+    
+    @Test("Parse getProperties with custom version")
+    func testParseGetPropertiesWithCustomVersion() async throws {
+        let xml = "<getProperties version='1.8'/>"
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.operation == .get)
+        // Version is stored in xmlNode attributes
+        #expect(property.xmlNode.attributes["version"] == "1.8")
     }
 }
 

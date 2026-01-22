@@ -263,5 +263,79 @@ struct INDIPropertyCreationTests {
         #expect(attrs["group"] == nil)
         #expect(attrs["label"] == nil)
     }
+    
+    // MARK: - getProperties Creation Tests
+    
+    @Test("Create getProperties programmatically without attributes")
+    func testCreateGetPropertiesMinimal() {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: nil
+        )
+        
+        #expect(property.operation == .get)
+        #expect(property.propertyType == nil)
+        #expect(property.device == nil)
+        #expect(property.name == nil)
+        #expect(property.values.isEmpty)
+        #expect(property.xmlNode.name == "getProperties")
+        #expect(property.xmlNode.attributes["version"] == "1.7")
+    }
+    
+    @Test("Create getProperties programmatically with device")
+    func testCreateGetPropertiesWithDevice() {
+        let property = INDIProperty(
+            operation: .get,
+            device: "Telescope Simulator",
+            name: nil
+        )
+        
+        #expect(property.operation == .get)
+        #expect(property.device == "Telescope Simulator")
+        #expect(property.name == nil)
+        #expect(property.xmlNode.attributes["device"] == "Telescope Simulator")
+    }
+    
+    @Test("Create getProperties programmatically with name")
+    func testCreateGetPropertiesWithName() {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: .connection
+        )
+        
+        #expect(property.operation == .get)
+        #expect(property.device == nil)
+        #expect(property.name?.indiName == "CONNECTION")
+        #expect(property.xmlNode.attributes["name"] == "CONNECTION")
+    }
+    
+    @Test("Create getProperties programmatically with device and name")
+    func testCreateGetPropertiesWithDeviceAndName() {
+        let property = INDIProperty(
+            operation: .get,
+            device: "Telescope Simulator",
+            name: .connection
+        )
+        
+        #expect(property.operation == .get)
+        #expect(property.device == "Telescope Simulator")
+        #expect(property.name?.indiName == "CONNECTION")
+        #expect(property.xmlNode.attributes["device"] == "Telescope Simulator")
+        #expect(property.xmlNode.attributes["name"] == "CONNECTION")
+    }
+    
+    @Test("Create getProperties programmatically with custom version")
+    func testCreateGetPropertiesWithCustomVersion() {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: nil,
+            version: "1.8"
+        )
+        
+        #expect(property.xmlNode.attributes["version"] == "1.8")
+    }
 }
 

@@ -96,7 +96,8 @@ public struct INDIValue: Sendable {
     ///
     /// - Parameter xmlNode: The XML node representing the value element
     /// - Parameter propertyType: The type of property this value belongs to (used to parse the value correctly)
-    /// - Parameter propertyName: The name of the parent property (used to validate the value name)
+    /// - Parameter propertyName: The name of the parent property (used to validate the value name).
+    ///   When parsing from XML, this should always be provided (even if unknown, it will be `.other("UNKNOWN")`).
     init?(xmlNode: XMLNodeRepresentation, propertyType: INDIPropertyType, propertyName: INDIPropertyName) {
         // Initialize diagnostics array at the start
         self.diagnostics = []

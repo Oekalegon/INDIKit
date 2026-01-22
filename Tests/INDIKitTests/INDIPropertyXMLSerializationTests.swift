@@ -498,5 +498,112 @@ struct INDIPropertyXMLSerializationTests {
         let blobXML = try blobProperty.toXML()
         #expect(blobXML.contains("<newBLOBVector"))
     }
+    
+    // MARK: - getProperties Serialization Tests
+    
+    @Test("Serialize getProperties without attributes to XML")
+    func testSerializeGetPropertiesMinimal() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: nil
+        )
+        
+        let xml = try property.toXML()
+        
+        // Should be self-closing
+        #expect(xml == "<getProperties version='1.7'/>")
+    }
+    
+    @Test("Serialize getProperties with device to XML")
+    func testSerializeGetPropertiesWithDevice() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: "Telescope Simulator",
+            name: nil
+        )
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("device=\"Telescope Simulator\""))
+        #expect(xml.contains("version='1.7'"))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize getProperties with name to XML")
+    func testSerializeGetPropertiesWithName() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: .connection
+        )
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("name=\"CONNECTION\""))
+        #expect(xml.contains("version='1.7'"))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize getProperties with device and name to XML")
+    func testSerializeGetPropertiesWithDeviceAndName() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: "Telescope Simulator",
+            name: .connection
+        )
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("device=\"Telescope Simulator\""))
+        #expect(xml.contains("name=\"CONNECTION\""))
+        #expect(xml.contains("version='1.7'"))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize getProperties with custom version to XML")
+    func testSerializeGetPropertiesWithCustomVersion() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: nil,
+            version: "1.8"
+        )
+        
+        let xml = try property.toXML()
+        
+        #expect(xml.contains("version='1.8'"))
+        #expect(xml.hasSuffix("/>"))
+    }
+    
+    @Test("Serialize getProperties with escaped device name")
+    func testSerializeGetPropertiesWithEscapedDevice() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: "Test & Device",
+            name: nil
+        )
+        
+        let xml = try property.toXML()
+        
+        // Should escape special characters
+        #expect(xml.contains("device=\"Test &amp; Device\""))
+        #expect(!xml.contains("device=\"Test & Device\""))
+    }
+    
+    @Test("Serialize getProperties with escaped property name")
+    func testSerializeGetPropertiesWithEscapedName() throws {
+        let property = INDIProperty(
+            operation: .get,
+            device: nil,
+            name: .other("TEST & PROP")
+        )
+        
+        let xml = try property.toXML()
+        
+        // Should escape special characters
+        #expect(xml.contains("name=\"TEST &amp; PROP\""))
+        #expect(!xml.contains("name=\"TEST & PROP\""))
+    }
 }
 
