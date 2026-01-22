@@ -1,255 +1,134 @@
 import Foundation
 
-public enum INDIProperty: Sendable, CaseIterable {
+/// A Sendable representation of an XML element.
+public struct XMLNodeRepresentation: Sendable {
+    public let name: String
+    public let attributes: [String: String]
+    public let text: String?
+    public let children: [XMLNodeRepresentation]
+    
+    public init(name: String, attributes: [String: String] = [:], text: String? = nil, children: [XMLNodeRepresentation] = []) {
+        self.name = name
+        self.attributes = attributes
+        self.text = text
+        self.children = children
+    }
+}
 
-    // MARK: General Properties
-    case connection
-    case devicePort
-    case localSideralTime
-    case universalTime
-    case geographicCoordinates
-    case atmosphere
-    case uploadMode
-    case uploadSettings
-    case activeDevices
+/// Base protocol for all INDI properties.
+///
+/// INDI properties are parsed from XML but expose only structured data,
+/// not raw XML strings. This provides a clean, type-safe API for working
+/// with INDI protocol properties such as property definitions, updates, and commands.
+public protocol INDIProperty: Sendable {
 
-    // MARK: Telescope Properties
-    case equatorialCoordinatesJ2000
-    case equatorialCoordinatesEpoch
-    case targetEquatorialCoordinatesEpoch
-    case horizontalCoordinates
-    case telescopeActionOnCoordinatesSet
-    case telescopeMotionNorthSouth
-    case telescopeMotionWestEast
-    case telescopeTimedGuideNorthSouth
-    case telescopeTimedGuideWestEast
-    case telescopeSlewRate
-    case telescopePark
-    case telescopeParkPosition
-    case telescopeParkOption
-    case telescopeAbortMotion
-    case telescopeTrackRate
-    case telescopeInfo
-    case telescopePierSide
-    case telescopeHome
-    case domePolicy
-    case periodicErrorCorrection
-    case telescopeTrackMode
-    case telescopeTrackState
-    case satelliteTLEText
-    case satellitePassWindow
-    case satelliteTrackingState
-    case telescopeReverseMotion
-    case motionControlMode
-    case joystickLockAxis
-    case simulatePierSide
+    var operation: INDIMessageOperation { get }
+    var propertyType: INDIPropertyType { get }
+    var device: String { get }
+    var group: String { get }
+    var label: String { get }
+    var property: INDIPropertyName { get }
+    var permissions: INDIPropertyPermissions { get }
+    var state: INDIPropertyState { get }
+    var timeout: Double { get }
+    var timeStamp: Date { get }
 
-    // MARK: CCD Properties
-    // MARK: CCD Streaming Properties
-    // MARK: Filter wheel Properties
-    // MARK: Focuser Properties
-    // MARK: Dome Properties
-    // MARK: Input Interface Properties
-    // MARK: Output Interface Properties
-    // MARK: Light box Interface Properties
-    // MARK: GPS Interface Properties
-    // MARK: Weather Interface Properties
-    // MARK: Rotator Interface Properties
+    /// The XML element name of this message type.
+    static var elementName: String { get }
+    
+    /// Initialize a message from an XML node representation.
+    init?(xmlNode: XMLNodeRepresentation)
+}
 
-    case other(String)
-
-    public var indiName: String {
-        switch self {
-        case .connection: return "CONNECTION"
-        case .devicePort: return "DEVICE_PORT"
-        case .localSideralTime: return "TIME_LST"
-        case .universalTime: return "TIME_UTC"
-        case .geographicCoordinates: return "GEOGRAPHIC_COORD"
-        case .atmosphere: return "ATMOSPHERE"
-        case .uploadMode: return "UPLOAD_MODE"
-        case .uploadSettings: return "UPLOAD_SETTINGS"
-        case .activeDevices: return "ACTIVE_DEVICES"
+/// A raw XML property that hasn't been parsed into a specific property type yet.
+///
+/// This property type contains the parsed XML structure but not the original XML string.
+/// Use the `xmlNode` property to access the structured data.
+public struct RawINDIProperty: INDIProperty, Sendable {
+    public static let elementName = ""
+    
+    /// The parsed XML node representation containing the property structure.
+    public let xmlNode: XMLNodeRepresentation
+    
+    // MARK: - INDIProperty Protocol Requirements
+    
+    public let operation: INDIMessageOperation
+    public let propertyType: INDIPropertyType
+    public let device: String
+    public let group: String
+    public let label: String
+    public let property: INDIPropertyName
+    public let permissions: INDIPropertyPermissions
+    public let state: INDIPropertyState
+    public let timeout: Double
+    public let timeStamp: Date
+    
+    public init?(xmlNode: XMLNodeRepresentation) {
+        self.xmlNode = xmlNode
         
-        case .equatorialCoordinatesJ2000: return "EQUATORIAL_EOD_COORD"
-        case .equatorialCoordinatesEpoch: return "EQUATORIAL_COORD"
-        case .targetEquatorialCoordinatesEpoch: return "TARGET_COORD"
-        case .horizontalCoordinates: return "HORIZONTAL_COORD"
-        case .telescopeActionOnCoordinatesSet: return "ON_COORD_SET"
-        case .telescopeMotionNorthSouth: return "TELESCOPE_TIMED_GUIDE_NS"
-        case .telescopeMotionWestEast: return "TELESCOPE_TIMED_GUIDE_WE"
-        case .telescopeTimedGuideNorthSouth: return "TELESCOPE_TIMED_GUIDE_NS"
-        case .telescopeTimedGuideWestEast: return "TELESCOPE_TIMED_GUIDE_WE"
-        case .telescopeSlewRate: return "TELESCOPE_SLEW_RATE"
-        case .telescopePark: return "TELESCOPE_PARK"
-        case .telescopeParkPosition: return "TELESCOPE_PARK_POSITION"
-        case .telescopeParkOption: return "TELESCOPE_PARK_OPTION"
-        case .telescopeAbortMotion: return "TELESCOPE_ABORT_MOTION"
-        case .telescopeTrackRate: return "TELESCOPE_TRACK_RATE"
-        case .telescopeInfo: return "TELESCOPE_INFO"
-        case .telescopePierSide: return "TELESCOPE_PIER_SIDE"
-        case .telescopeHome: return "TELESCOPE_HOME"
-        case .domePolicy: return "DOME_POLICY"
-        case .periodicErrorCorrection: return "PEC"
-        case .telescopeTrackMode: return "TELESCOPE_TRACK_MODE"
-        case .telescopeTrackState: return "TELESCOPE_TRACK_STATE"
-        case .satelliteTLEText: return "SAT_TLE_TEXT"
-        case .satellitePassWindow: return "SAT_PASS_WINDOW"
-        case .satelliteTrackingState: return "SAT_TRACKING_STAT"
-        case .telescopeReverseMotion: return "TELESCOPE_REVERSE_MOTION"
-        case .motionControlMode: return "MOTION_CONTROL_MODE"
-        case .joystickLockAxis: return "JOYSTICK_LOCK_AXIS"
-        case .simulatePierSide: return "SIMULATE_PIER_SIDE"
+        guard let op = Self.extractOperation(from: xmlNode.name) else {
+            return nil
+        }
+        self.operation = op
         
-        case .other(let name): return name
+        guard let propType = Self.extractPropertyType(from: xmlNode.name) else {
+            return nil
         }
-    }
-    
-    /// A human-readable display name for the property with proper spacing and capitalization.
-    public var displayName: String {
-        switch self {
-        case .connection: return "Connection"
-        case .devicePort: return "Device Port"
-        case .localSideralTime: return "Local Sidereal Time"
-        case .universalTime: return "Universal Time"
-        case .geographicCoordinates: return "Geographic Coordinates"
-        case .atmosphere: return "Atmosphere"
-        case .uploadMode: return "Upload Mode"
-        case .uploadSettings: return "Upload Settings"
-        case .activeDevices: return "Active Devices"
-        case .equatorialCoordinatesJ2000: return "Equatorial Coordinates J2000"
-        case .equatorialCoordinatesEpoch: return "Equatorial Coordinates Epoch"
-        case .targetEquatorialCoordinatesEpoch: return "Target Equatorial Coordinates Epoch"
-        case .horizontalCoordinates: return "Horizontal Coordinates"
-        case .telescopeActionOnCoordinatesSet: return "Telescope Action On Coordinates Set"
-        case .telescopeMotionNorthSouth: return "Telescope Motion North South"
-        case .telescopeMotionWestEast: return "Telescope Motion West East"
-        case .telescopeTimedGuideNorthSouth: return "Telescope Timed Guide North South"
-        case .telescopeTimedGuideWestEast: return "Telescope Timed Guide West East"
-        case .telescopeSlewRate: return "Telescope Slew Rate"
-        case .telescopePark: return "Telescope Park"
-        case .telescopeParkPosition: return "Telescope Park Position"
-        case .telescopeParkOption: return "Telescope Park Option"
-        case .telescopeAbortMotion: return "Telescope Abort Motion"
-        case .telescopeTrackRate: return "Telescope Track Rate"
-        case .telescopeInfo: return "Telescope Info"
-        case .telescopePierSide: return "Telescope Pier Side"
-        case .telescopeHome: return "Telescope Home"
-        case .domePolicy: return "Dome Policy"
-        case .periodicErrorCorrection: return "Periodic Error Correction"
-        case .telescopeTrackMode: return "Telescope Track Mode"
-        case .telescopeTrackState: return "Telescope Track State"
-        case .satelliteTLEText: return "Satellite TLE Text"
-        case .satellitePassWindow: return "Satellite Pass Window"
-        case .satelliteTrackingState: return "Satellite Tracking State"
-        case .telescopeReverseMotion: return "Telescope Reverse Motion"
-        case .motionControlMode: return "Motion Control Mode"
-        case .joystickLockAxis: return "Joystick Lock Axis"
-        case .simulatePierSide: return "Simulate Pier Side"
-        case .other(let name): return name
-        }
-    }
-
-    public var type: INDIPropertyType? {
-        switch self {
-        case .connection: return .toggle
-        case .devicePort: return .text
-        case .localSideralTime: return .number
-        case .universalTime: return .text
-        case .geographicCoordinates: return .number
-        case .atmosphere: return .number
-        case .uploadMode: return .toggle
-        case .uploadSettings: return .text
-        case .activeDevices: return .text
+        self.propertyType = propType
         
-        case .equatorialCoordinatesJ2000: return .number
-        case .equatorialCoordinatesEpoch: return .number
-        case .targetEquatorialCoordinatesEpoch: return .number
-        case .horizontalCoordinates: return .number
-        case .telescopeActionOnCoordinatesSet: return .toggle
-        case .telescopeMotionNorthSouth: return .toggle
-        case .telescopeMotionWestEast: return .toggle
-        case .telescopeTimedGuideNorthSouth: return .number
-        case .telescopeTimedGuideWestEast: return .number
-        case .telescopeSlewRate: return .toggle
-        case .telescopePark: return .toggle
-        case .telescopeParkPosition: return .number
-        case .telescopeParkOption: return .toggle
-        case .telescopeAbortMotion: return .toggle
-        case .telescopeTrackRate: return .number
-        case .telescopeInfo: return .number
-        case .telescopePierSide: return .toggle
-        case .telescopeHome: return .toggle
-        case .domePolicy: return .toggle
-        case .periodicErrorCorrection: return .toggle
-        case .telescopeTrackMode: return .toggle
-        case .telescopeTrackState: return .toggle
-        case .satelliteTLEText: return .text
-        case .satellitePassWindow: return .text
-        case .satelliteTrackingState: return .toggle
-        case .telescopeReverseMotion: return .toggle
-        case .motionControlMode: return .toggle
-        case .joystickLockAxis: return .toggle
-        case .simulatePierSide: return .toggle
-
-        default: return nil
-        }
+        let attrs = xmlNode.attributes
+        self.device = attrs["device"] ?? ""
+        self.group = attrs["group"] ?? ""
+        self.label = attrs["label"] ?? ""
+        self.property = Self.extractProperty(from: attrs["name"] ?? "")
+        self.permissions = Self.extractPermissions(from: attrs["perm"] ?? "rw")
+        self.state = Self.extractState(from: attrs["state"] ?? "Idle")
+        self.timeout = Self.extractTimeout(from: attrs["timeout"])
+        self.timeStamp = Self.extractTimestamp(from: attrs["timestamp"])
     }
     
-    /// Initialize from an INDI property name string.
-    ///
-    /// - Parameter indiName: The INDI property name (e.g., "CONNECTION", "TELESCOPE_PARK")
-    /// - Returns: The matching property, or `.other(name)` if no known property matches
-    public init(indiName: String) {
-        if let found = Self.allCases.first(where: { $0.indiName == indiName }) {
-            self = found
-        } else {
-            self = .other(indiName)
-        }
+    // MARK: - Private Helpers
+    
+    private static func extractOperation(from elementName: String) -> INDIMessageOperation? {
+        INDIMessageOperation(elementName: elementName) ?? .update
     }
     
-    // MARK: - CaseIterable
+    private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {
+        INDIPropertyType(elementName: elementName) ?? .text
+    }
     
-    /// All known property cases (excluding `.other` which has infinite possible values).
-    public static var allCases: [INDIProperty] {
-        [
-            .connection,
-            .devicePort,
-            .localSideralTime,
-            .universalTime,
-            .geographicCoordinates,
-            .atmosphere,
-            .uploadMode,
-            .uploadSettings,
-            .activeDevices,
-            .equatorialCoordinatesJ2000,
-            .equatorialCoordinatesEpoch,
-            .targetEquatorialCoordinatesEpoch,
-            .horizontalCoordinates,
-            .telescopeActionOnCoordinatesSet,
-            .telescopeMotionNorthSouth,
-            .telescopeMotionWestEast,
-            .telescopeTimedGuideNorthSouth,
-            .telescopeTimedGuideWestEast,
-            .telescopeSlewRate,
-            .telescopePark,
-            .telescopeParkPosition,
-            .telescopeParkOption,
-            .telescopeAbortMotion,
-            .telescopeTrackRate,
-            .telescopeInfo,
-            .telescopePierSide,
-            .telescopeHome,
-            .domePolicy,
-            .periodicErrorCorrection,
-            .telescopeTrackMode,
-            .telescopeTrackState,
-            .satelliteTLEText,
-            .satellitePassWindow,
-            .satelliteTrackingState,
-            .telescopeReverseMotion,
-            .motionControlMode,
-            .joystickLockAxis,
-            .simulatePierSide
-        ]
+    private static func extractProperty(from name: String) -> INDIPropertyName {
+        INDIPropertyName(indiName: name)
+    }
+    
+    private static func extractPermissions(from permString: String) -> INDIPropertyPermissions {
+        INDIPropertyPermissions(indiValue: permString)
+    }
+    
+    private static func extractState(from stateString: String) -> INDIPropertyState {
+        INDIPropertyState(indiValue: stateString)
+    }
+    
+    private static func extractTimeout(from timeoutString: String?) -> Double {
+        guard let timeoutString, let timeoutValue = Double(timeoutString) else {
+            return 0.0
+        }
+        return timeoutValue
+    }
+    
+    private static func extractTimestamp(from timestampString: String?) -> Date {
+        guard let timestampString else {
+            return Date()
+        }
+        
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = formatter.date(from: timestampString) {
+            return date
+        }
+        if let unixTimestamp = Double(timestampString) {
+            return Date(timeIntervalSince1970: unixTimestamp)
+        }
+        return Date()
     }
 }

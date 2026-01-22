@@ -123,10 +123,10 @@ public actor INDIServer {
 
     // MARK: - Temporary debugging methods
 
-    /// Parse and print INDIMessages from the data stream.
+    /// Parse and print INDI Properties from the data stream.
     ///
     /// This is a convenience method for testing/debugging. It parses incoming
-    /// data and prints the resulting INDIMessage objects.
+    /// data and prints the resulting INDIProperty objects.
     public func parseAndPrintMessages() async throws {
         guard let dataStream = receiveStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
@@ -134,16 +134,16 @@ public actor INDIServer {
             ])
         }
         
-        let messageStream = await parser.parse(dataStream)
+        let propertyStream = await parser.parse(dataStream)
         
-        for try await message in messageStream {
-            print("Parsed INDIMessage:")
-            printMessage(message)
+        for try await property in propertyStream {
+            print("Parsed INDI Property:")
+            printMessage(property)
         }
     }
     
-    /// Print an INDIMessage in a readable format.
-    private func printMessage(_ message: INDIMessage) {
+    /// Print an INDIProperty in a readable format.
+    private func printMessage(_ message: INDIProperty) {
         print("  Operation: \(message.operation)")
         print("  Property Type: \(message.propertyType)")
         
@@ -170,9 +170,9 @@ public actor INDIServer {
         print("  Timestamp: \(dateFormatter.string(from: message.timeStamp))")
         
         // Print child elements if available
-        if let rawMessage = message as? RawINDIMessage, !rawMessage.xmlNode.children.isEmpty {
-            print("  Children: \(rawMessage.xmlNode.children.count) element(s)")
-            for (index, child) in rawMessage.xmlNode.children.enumerated() {
+        if let rawProperty = message as? RawINDIProperty, !rawProperty.xmlNode.children.isEmpty {
+            print("  Children: \(rawProperty.xmlNode.children.count) element(s)")
+            for (index, child) in rawProperty.xmlNode.children.enumerated() {
                 print("    [\(index)] \(child.name)")
             }
         }

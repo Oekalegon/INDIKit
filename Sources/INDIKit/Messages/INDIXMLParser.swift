@@ -1,12 +1,12 @@
 import Foundation
 
-/// Parser that converts a stream of raw Data chunks into parsed INDI XML messages.
+/// Parser that converts a stream of raw Data chunks into parsed INDI XML properties.
 ///
-/// This parser uses Foundation's XMLParser (a SAX-style parser) to parse XML messages.
-/// It handles the fact that XML messages may arrive split across multiple Data chunks
+/// This parser uses Foundation's XMLParser (a SAX-style parser) to parse XML properties.
+/// It handles the fact that XML properties may arrive split across multiple Data chunks
 /// by buffering incoming data and detecting complete XML elements by tracking tag depth.
 ///
-/// The parser can handle messages larger than the 64KB chunk size from INDIServer
+/// The parser can handle properties larger than the 64KB chunk size from INDIServer
 /// by accumulating chunks until a complete XML element is detected.
 public actor INDIXMLParser {
     private var buffer = Data()
@@ -22,11 +22,11 @@ public actor INDIXMLParser {
     public init() {
     }
     
-    /// Parse a stream of Data chunks into a stream of INDIMessage objects.
+    /// Parse a stream of Data chunks into a stream of INDIProperty objects.
     ///
     /// - Parameter dataStream: The stream of raw Data chunks from INDIServer
-    /// - Returns: A stream of parsed INDIMessage objects
-    public func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIMessage, Error> {
+    /// - Returns: A stream of parsed INDIProperty objects
+    public func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIProperty, Error> {
         AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -43,10 +43,10 @@ public actor INDIXMLParser {
         }
     }
     
-    /// Process incoming data chunks, extracting and parsing complete XML messages.
+    /// Process incoming data chunks, extracting and parsing complete XML properties.
     private func processData(
         _ data: Data,
-        continuation: AsyncThrowingStream<INDIMessage, Error>.Continuation
+        continuation: AsyncThrowingStream<INDIProperty, Error>.Continuation
     ) async {
         // Check if adding this data would exceed the maximum buffer size
         if buffer.count + data.count > maxBufferSize {
@@ -64,30 +64,30 @@ public actor INDIXMLParser {
         
         buffer.append(data)
         
-        // Try to extract and parse complete XML messages
-        // Messages are detected by finding complete root XML elements
-        while let message = await extractAndParseNextMessage() {
-            continuation.yield(message)
+        // Try to extract and parse complete XML properties
+        // Properties are detected by finding complete root XML elements
+        while let property = await extractAndParseNextMessage() {
+            continuation.yield(property)
         }
     }
     
     /// Process any remaining data in the buffer after the stream ends.
     private func processRemainingBuffer(
-        continuation: AsyncThrowingStream<INDIMessage, Error>.Continuation
+        continuation: AsyncThrowingStream<INDIProperty, Error>.Continuation
     ) async {
         // Try to parse any remaining buffered data
-        while let message = await extractAndParseNextMessage() {
-            continuation.yield(message)
+        while let property = await extractAndParseNextMessage() {
+            continuation.yield(property)
         }
     }
     
-    /// Extract and parse the next complete XML message from the buffer.
+    /// Extract and parse the next complete XML property from the buffer.
     ///
-    /// A complete message is detected by finding a complete root XML element
+    /// A complete property is detected by finding a complete root XML element
     /// (opening tag with matching closing tag, or self-closing tag).
     ///
-    /// Returns nil if no complete message is available yet.
-    private func extractAndParseNextMessage() async -> INDIMessage? {
+    /// Returns nil if no complete property is available yet.
+    private func extractAndParseNextMessage() async -> INDIProperty? {
         guard !buffer.isEmpty else { return nil }
         
         guard let bufferString = String(data: buffer, encoding: .utf8) else {
@@ -112,15 +112,15 @@ public actor INDIXMLParser {
         let xmlString = String(trimmed[elementRange])
         
         // Try to parse this XML element
-        guard let message = tryParseXML(xmlString) else {
+        guard let property = tryParseXML(xmlString) else {
             // Parsing failed, skip this element and continue
             await removeFromBuffer(upTo: elementRange.upperBound, in: trimmed)
             return nil
         }
         
-        // Remove the parsed message from buffer
+        // Remove the parsed property from buffer
         await removeFromBuffer(upTo: elementRange.upperBound, in: trimmed)
-        return message
+        return property
     }
     
     /// Find a complete XML element in the string by tracking tag depth.
@@ -263,8 +263,8 @@ public actor INDIXMLParser {
         }
     }
     
-    /// Try to parse a string as XML and return an INDIMessage if successful.
-    private func tryParseXML(_ xmlString: String) -> INDIMessage? {
+    /// Try to parse a string as XML and return an INDIProperty if successful.
+    private func tryParseXML(_ xmlString: String) -> INDIProperty? {
         guard let xmlData = xmlString.data(using: .utf8) else {
             return nil
         }
@@ -281,7 +281,7 @@ public actor INDIXMLParser {
             return nil
         }
         
-        return RawINDIMessage(xmlNode: rootNode)
+        return RawINDIProperty(xmlNode: rootNode)
     }
 }
 

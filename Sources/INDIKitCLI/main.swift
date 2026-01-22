@@ -50,7 +50,7 @@ struct INDIKitCLI {
                 }
             }
 
-            // Parse and print INDIMessages
+            // Parse and print INDI Properties
             try await server.parseAndPrintMessages()
 
             print("\nConnection closed.")
