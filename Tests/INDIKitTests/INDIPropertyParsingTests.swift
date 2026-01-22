@@ -28,6 +28,47 @@ struct INDIPropertyParsingTests {
         return properties
     }
     
+    /// Check if diagnostics contain a specific type of diagnostic with a message containing all of the given texts
+    private func hasDiagnostic(
+        _ diagnostics: [INDIDiagnostics],
+        matching predicate: (INDIDiagnostics) -> Bool,
+        containing texts: [String]
+    ) -> Bool {
+        diagnostics.contains { diagnostic in
+            guard predicate(diagnostic) else { return false }
+            let message: String
+            switch diagnostic {
+            case .error(let msg): message = msg
+            case .warning(let msg): message = msg
+            case .note(let msg): message = msg
+            case .info(let msg): message = msg
+            case .debug(let msg): message = msg
+            case .fatal(let msg): message = msg
+            }
+            return texts.isEmpty || texts.allSatisfy { message.contains($0) }
+        }
+    }
+    
+    /// Check if diagnostics contain an error with a message containing all of the given texts
+    private func hasError(_ diagnostics: [INDIDiagnostics], containing texts: String...) -> Bool {
+        hasDiagnostic(diagnostics, matching: { if case .error = $0 { return true }; return false }, containing: Array(texts))
+    }
+    
+    /// Check if diagnostics contain a warning with a message containing all of the given texts
+    private func hasWarning(_ diagnostics: [INDIDiagnostics], containing texts: String...) -> Bool {
+        hasDiagnostic(diagnostics, matching: { if case .warning = $0 { return true }; return false }, containing: Array(texts))
+    }
+    
+    /// Check if diagnostics contain a note with a message containing all of the given texts
+    private func hasNote(_ diagnostics: [INDIDiagnostics], containing texts: String...) -> Bool {
+        hasDiagnostic(diagnostics, matching: { if case .note = $0 { return true }; return false }, containing: Array(texts))
+    }
+    
+    /// Check if diagnostics contain any error
+    private func hasAnyError(_ diagnostics: [INDIDiagnostics]) -> Bool {
+        diagnostics.contains { if case .error = $0 { return true }; return false }
+    }
+    
     // MARK: - defTextVector Tests
     
     @Test("Parse defTextVector property")
@@ -361,13 +402,13 @@ struct INDIPropertyParsingTests {
         #expect(invalidValue != nil)
         // Should have diagnostics warning about invalid boolean
         if let value = invalidValue {
-            let hasWarning = value.diagnostics.contains { diagnostic in
+            let hasAnyWarning = value.diagnostics.contains { diagnostic in
                 if case .warning = diagnostic {
                     return true
                 }
                 return false
             }
-            #expect(hasWarning)
+            #expect(hasAnyWarning)
         }
     }
     
@@ -414,13 +455,7 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .oneOfMany)
         
         // Should have error diagnostic for rule violation
-        let hasError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("OneOfMany") && message.contains("requires exactly one switch to be On")
-            }
-            return false
-        }
-        #expect(hasError)
+        #expect(hasError(property.diagnostics, containing: "OneOfMany", "requires exactly one switch to be On"))
     }
     
     @Test("OneOfMany rule violation - multiple switches On")
@@ -440,15 +475,8 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .oneOfMany)
         
         // Should have error diagnostic for rule violation
-        let hasError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("OneOfMany") && 
-                       message.contains("requires exactly one switch to be On") &&
-                       message.contains("2 switch(es) are On")
-            }
-            return false
-        }
-        #expect(hasError)
+        #expect(hasError(property.diagnostics, containing: "OneOfMany", 
+                        "requires exactly one switch to be On", "2 switch(es) are On"))
     }
     
     @Test("OneOfMany rule valid - exactly one switch On")
@@ -468,13 +496,7 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .oneOfMany)
         
         // Should NOT have error diagnostic for rule violation
-        let hasRuleError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("OneOfMany")
-            }
-            return false
-        }
-        #expect(!hasRuleError)
+        #expect(!hasError(property.diagnostics, containing: "OneOfMany"))
     }
     
     @Test("AtMostOne rule violation - multiple switches On")
@@ -494,15 +516,8 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .atMostOne)
         
         // Should have error diagnostic for rule violation
-        let hasError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("AtMostOne") && 
-                       message.contains("allows at most one switch to be On") &&
-                       message.contains("3 switch(es) are On")
-            }
-            return false
-        }
-        #expect(hasError)
+        #expect(hasError(property.diagnostics, containing: "AtMostOne", 
+                        "allows at most one switch to be On", "3 switch(es) are On"))
     }
     
     @Test("AtMostOne rule valid - zero switches On")
@@ -521,13 +536,7 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .atMostOne)
         
         // Should NOT have error diagnostic for rule violation
-        let hasRuleError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("AtMostOne")
-            }
-            return false
-        }
-        #expect(!hasRuleError)
+        #expect(!hasError(property.diagnostics, containing: "AtMostOne"))
     }
     
     @Test("AtMostOne rule valid - one switch On")
@@ -546,13 +555,7 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .atMostOne)
         
         // Should NOT have error diagnostic for rule violation
-        let hasRuleError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("AtMostOne")
-            }
-            return false
-        }
-        #expect(!hasRuleError)
+        #expect(!hasError(property.diagnostics, containing: "AtMostOne"))
     }
     
     @Test("AnyOfMany rule - no validation")
@@ -572,13 +575,8 @@ struct INDIPropertyParsingTests {
         #expect(property.rule == .anyOfMany)
         
         // Should NOT have error diagnostic for rule violation (AnyOfMany allows any combination)
-        let hasRuleError = property.diagnostics.contains { diagnostic in
-            if case .error(let message) = diagnostic {
-                return message.contains("AnyOfMany") || message.contains("switch rule")
-            }
-            return false
-        }
-        #expect(!hasRuleError)
+        #expect(!hasError(property.diagnostics, containing: "AnyOfMany"))
+        #expect(!hasError(property.diagnostics, containing: "switch rule"))
     }
     
     @Test("Parse property with trimmed text values")
