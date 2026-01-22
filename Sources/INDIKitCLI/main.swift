@@ -71,7 +71,7 @@ struct INDIKitCLI {
             }
             
             // Parse and print INDI Properties
-            let propertyStream = try await server.parseProperties()
+            let propertyStream = try await server.properties()
             
             for try await property in propertyStream {
                 print("Parsed INDI Property:")

@@ -112,6 +112,26 @@ public actor INDIServer {
             })
         }
     }
+    
+    /// Send an INDI property to the server.
+    ///
+    /// Only properties with `.set` operation (new) can be sent to the server.
+    /// This method serializes the property to XML and sends it to the server.
+    ///
+    /// - Parameter property: The INDI property to send (must have `.set` operation)
+    /// - Throws: An error if not connected, if the property operation is not `.set`, or if serialization fails
+    public func send(_ property: INDIProperty) async throws {
+        guard property.operation == .set else {
+            throw NSError(domain: "INDIServer", code: 2, userInfo: [
+                NSLocalizedDescriptionKey: "Only properties with .set operation can be sent to the server. " +
+                    "Received property with operation: \(property.operation.rawValue)"
+            ])
+        }
+        
+        let xml = try property.toXML()
+        let xmlWithNewline = xml + "\n"
+        try await send(Data(xmlWithNewline.utf8))
+    }
 
     /// Send the INDI handshake message to request property updates from the server.
     ///
@@ -129,7 +149,7 @@ public actor INDIServer {
         rawDataStream
     }
 
-    /// Parse INDI Properties from the data stream.
+    /// Returns a stream of parsed INDI properties from the data stream.
     ///
     /// Returns an asynchronous stream of parsed INDI properties from the connected server.
     /// Properties are parsed from incoming XML data and yielded as they become available.
@@ -140,14 +160,14 @@ public actor INDIServer {
     /// ## Example
     ///
     /// ```swift
-    /// let propertyStream = try await server.parseProperties()
+    /// let propertyStream = try await server.properties()
     ///
     /// for try await property in propertyStream {
     ///     // Process each property as it arrives
     ///     print("Received property: \(property.name.displayName)")
     /// }
     /// ```
-    public func parseProperties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
+    public func properties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
         guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Not connected. Call connect() first."
