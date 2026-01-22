@@ -164,6 +164,44 @@ public struct INDIProperty: Sendable {
             let message = "The property must have at least one value"
             INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
         }
+        
+        // Validate switch rules for toggle/switch properties
+        if self.propertyType == .toggle, let rule = self.rule {
+            validateSwitchRule(rule: rule)
+        }
+    }
+    
+    /// Validate that switch values adhere to the specified rule.
+    private mutating func validateSwitchRule(rule: INDISwitchRule) {
+        // Count how many switches are On
+        let onCount = self.values.filter { value in
+            if case .boolean(let bool) = value.value {
+                return bool
+            }
+            return false
+        }.count
+        
+        switch rule {
+        case .oneOfMany:
+            // OneOfMany: exactly one switch must be On
+            if onCount != 1 {
+                let message = "Switch rule 'OneOfMany' requires exactly one switch to be On, " +
+                    "but \(onCount) switch(es) are On"
+                INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+            
+        case .atMostOne:
+            // AtMostOne: at most one switch can be On (0 or 1)
+            if onCount > 1 {
+                let message = "Switch rule 'AtMostOne' allows at most one switch to be On, " +
+                    "but \(onCount) switch(es) are On"
+                INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
+            }
+            
+        case .anyOfMany:
+            // AnyOfMany: any combination is allowed, no validation needed
+            break
+        }
     }
     
     // MARK: - Private Helpers

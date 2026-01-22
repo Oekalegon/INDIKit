@@ -396,6 +396,191 @@ struct INDIPropertyParsingTests {
         #expect(properties[2].propertyType == .toggle)
     }
     
+    // MARK: - Switch Rule Validation Tests
+    
+    @Test("OneOfMany rule violation - no switches On")
+    func testOneOfManyRuleViolationNoSwitchesOn() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="OneOfMany">
+            <defSwitch name="OPTION1">Off</defSwitch>
+            <defSwitch name="OPTION2">Off</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .oneOfMany)
+        
+        // Should have error diagnostic for rule violation
+        let hasError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("OneOfMany") && message.contains("requires exactly one switch to be On")
+            }
+            return false
+        }
+        #expect(hasError)
+    }
+    
+    @Test("OneOfMany rule violation - multiple switches On")
+    func testOneOfManyRuleViolationMultipleSwitchesOn() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="OneOfMany">
+            <defSwitch name="OPTION1">On</defSwitch>
+            <defSwitch name="OPTION2">On</defSwitch>
+            <defSwitch name="OPTION3">Off</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .oneOfMany)
+        
+        // Should have error diagnostic for rule violation
+        let hasError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("OneOfMany") && 
+                       message.contains("requires exactly one switch to be On") &&
+                       message.contains("2 switch(es) are On")
+            }
+            return false
+        }
+        #expect(hasError)
+    }
+    
+    @Test("OneOfMany rule valid - exactly one switch On")
+    func testOneOfManyRuleValid() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="OneOfMany">
+            <defSwitch name="OPTION1">On</defSwitch>
+            <defSwitch name="OPTION2">Off</defSwitch>
+            <defSwitch name="OPTION3">Off</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .oneOfMany)
+        
+        // Should NOT have error diagnostic for rule violation
+        let hasRuleError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("OneOfMany")
+            }
+            return false
+        }
+        #expect(!hasRuleError)
+    }
+    
+    @Test("AtMostOne rule violation - multiple switches On")
+    func testAtMostOneRuleViolationMultipleSwitchesOn() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="AtMostOne">
+            <defSwitch name="OPTION1">On</defSwitch>
+            <defSwitch name="OPTION2">On</defSwitch>
+            <defSwitch name="OPTION3">On</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .atMostOne)
+        
+        // Should have error diagnostic for rule violation
+        let hasError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("AtMostOne") && 
+                       message.contains("allows at most one switch to be On") &&
+                       message.contains("3 switch(es) are On")
+            }
+            return false
+        }
+        #expect(hasError)
+    }
+    
+    @Test("AtMostOne rule valid - zero switches On")
+    func testAtMostOneRuleValidZeroOn() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="AtMostOne">
+            <defSwitch name="OPTION1">Off</defSwitch>
+            <defSwitch name="OPTION2">Off</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .atMostOne)
+        
+        // Should NOT have error diagnostic for rule violation
+        let hasRuleError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("AtMostOne")
+            }
+            return false
+        }
+        #expect(!hasRuleError)
+    }
+    
+    @Test("AtMostOne rule valid - one switch On")
+    func testAtMostOneRuleValidOneOn() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="AtMostOne">
+            <defSwitch name="OPTION1">On</defSwitch>
+            <defSwitch name="OPTION2">Off</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .atMostOne)
+        
+        // Should NOT have error diagnostic for rule violation
+        let hasRuleError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("AtMostOne")
+            }
+            return false
+        }
+        #expect(!hasRuleError)
+    }
+    
+    @Test("AnyOfMany rule - no validation")
+    func testAnyOfManyRuleNoValidation() async throws {
+        let xml = """
+        <defSwitchVector device="Test Device" name="TEST_SWITCH" rule="AnyOfMany">
+            <defSwitch name="OPTION1">On</defSwitch>
+            <defSwitch name="OPTION2">On</defSwitch>
+            <defSwitch name="OPTION3">On</defSwitch>
+        </defSwitchVector>
+        """
+        
+        let properties = try await parseXML(xml)
+        
+        #expect(properties.count == 1)
+        let property = properties[0]
+        #expect(property.rule == .anyOfMany)
+        
+        // Should NOT have error diagnostic for rule violation (AnyOfMany allows any combination)
+        let hasRuleError = property.diagnostics.contains { diagnostic in
+            if case .error(let message) = diagnostic {
+                return message.contains("AnyOfMany") || message.contains("switch rule")
+            }
+            return false
+        }
+        #expect(!hasRuleError)
+    }
+    
     @Test("Parse property with trimmed text values")
     func testParsePropertyWithTrimmedText() async throws {
         let xml = """
