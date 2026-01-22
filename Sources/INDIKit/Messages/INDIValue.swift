@@ -1,10 +1,12 @@
 import Foundation
+import os
 
 /// An INDI property value with metadata.
 ///
 /// INDI values contain both the actual value data and metadata about that value
 /// such as name, label, format, min/max, step, and unit.
 public struct INDIValue: Sendable {
+    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
     /// Required: The element name of this value.
     public let name: INDIPropertyValueName
     
@@ -47,6 +49,11 @@ public struct INDIValue: Sendable {
         
         // Extract required name
         guard let nameString = attrs["name"] else {
+            let elementName = xmlNode.name
+            let propType = propertyType.rawValue
+            let message = "Failed to parse INDI value: missing 'name' attribute in element " +
+                "'\(elementName)' for property type '\(propType)'"
+            Self.logger.warning("\(message)")
             return nil
         }
         self.name = INDIPropertyValueName(indiName: nameString)
@@ -83,10 +90,11 @@ public struct INDIValue: Sendable {
     private static func parseValue(from textContent: String, propertyType: INDIPropertyType) -> Value {
         switch propertyType {
         case .text:
-            return .text(textContent)
+            return .text(textContent.trimmingCharacters(in: .whitespacesAndNewlines))
             
         case .number:
-            if let numberValue = Double(textContent) {
+            let trimmed = textContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let numberValue = Double(trimmed) {
                 return .number(numberValue)
             } else {
                 // Invalid number, use 0.0 as fallback
@@ -103,7 +111,8 @@ public struct INDIValue: Sendable {
             
         case .blob:
             // BLOBs are base64-encoded
-            if let data = Data(base64Encoded: textContent) {
+            let trimmed = textContent.trimmingCharacters(in: .whitespacesAndNewlines)
+            if let data = Data(base64Encoded: trimmed) {
                 return .blob(data)
             } else {
                 // Invalid base64, use empty data as fallback

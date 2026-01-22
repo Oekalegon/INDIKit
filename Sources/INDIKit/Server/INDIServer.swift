@@ -175,11 +175,31 @@ public actor INDIServer {
             print("  Timestamp: \(dateFormatter.string(from: timeStamp))")
         }
         
-        // Print child elements if available
-        if !message.xmlNode.children.isEmpty {
-            print("  Children: \(message.xmlNode.children.count) element(s)")
-            for (index, child) in message.xmlNode.children.enumerated() {
-                print("    [\(index)] \(child.name)")
+        if let rule = message.rule {
+            print("  Rule: \(rule.rawValue)")
+        }
+        
+        if let format = message.format {
+            print("  Format: \(format)")
+        }
+        
+        // Print parsed values
+        if !message.values.isEmpty {
+            print("  Values: \(message.values.count) value(s)")
+            for (index, value) in message.values.enumerated() {
+                print("    [\(index)] \(value.name.indiName): ", terminator: "")
+                switch value.value {
+                case .text(let text):
+                    print("\"\(text)\"")
+                case .number(let num):
+                    print("\(num)")
+                case .boolean(let bool):
+                    print(bool)
+                case .light(let bool):
+                    print(bool)
+                case .blob(let data):
+                    print("\(data.count) bytes")
+                }
             }
         }
         

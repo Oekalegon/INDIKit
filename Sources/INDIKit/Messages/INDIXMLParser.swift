@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// A Sendable representation of an XML element.
 struct XMLNodeRepresentation: Sendable {
@@ -24,6 +25,7 @@ struct XMLNodeRepresentation: Sendable {
 /// The parser can handle properties larger than the 64KB chunk size from INDIServer
 /// by accumulating chunks until a complete XML element is detected.
 actor INDIXMLParser {
+    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
     private var buffer = Data()
     
     /// Maximum buffer size in bytes before throwing an error.
@@ -281,6 +283,7 @@ actor INDIXMLParser {
     /// Try to parse a string as XML and return an INDIProperty if successful.
     private func tryParseXML(_ xmlString: String) -> INDIProperty? {
         guard let xmlData = xmlString.data(using: .utf8) else {
+            Self.logger.warning("Failed to parse INDI property: could not convert XML string to UTF-8 data")
             return nil
         }
         
@@ -289,14 +292,23 @@ actor INDIXMLParser {
         parser.delegate = delegate
         
         guard parser.parse() else {
+            Self.logger.warning("Failed to parse INDI property: XML parsing failed")
             return nil
         }
         
         guard let rootNode = delegate.rootNode else {
+            Self.logger.warning("Failed to parse INDI property: no root node found in parsed XML")
             return nil
         }
         
-        return INDIProperty(xmlNode: rootNode)
+        guard let property = INDIProperty(xmlNode: rootNode) else {
+            Self.logger.warning(
+                "Failed to parse INDI property: could not create INDIProperty from element '\(rootNode.name)'"
+            )
+            return nil
+        }
+        
+        return property
     }
 }
 

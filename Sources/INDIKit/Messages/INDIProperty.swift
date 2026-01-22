@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// An INDI property parsed from XML.
 ///
@@ -6,6 +7,8 @@ import Foundation
 /// not raw XML strings. This provides a clean, type-safe API for working
 /// with INDI protocol properties such as property definitions, updates, and commands.
 public struct INDIProperty: Sendable {
+    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    
     /// The parsed XML node representation containing the property structure.
     let xmlNode: XMLNodeRepresentation
     
@@ -20,15 +23,34 @@ public struct INDIProperty: Sendable {
     public let timeout: Double?
     public let timeStamp: Date?
     
+    /// Rule for switch properties (only applicable to toggle/switch properties).
+    ///
+    /// Determines how multiple switches in a switch vector interact.
+    public let rule: INDISwitchRule?
+    
+    /// Format for blob properties (only applicable to blob properties).
+    ///
+    /// Specifies the format of the blob data (e.g., ".fits", ".jpg", ".png").
+    public let format: String?
+    
+    /// The parsed values contained in this property.
+    public let values: [INDIValue]
+    
     init?(xmlNode: XMLNodeRepresentation) {
         self.xmlNode = xmlNode
         
         guard let op = Self.extractOperation(from: xmlNode.name) else {
+            Self.logger.warning(
+                "Failed to parse INDI property: could not extract operation from element '\(xmlNode.name)'"
+            )
             return nil
         }
         self.operation = op
         
         guard let propType = Self.extractPropertyType(from: xmlNode.name) else {
+            Self.logger.warning(
+                "Failed to parse INDI property: could not extract property type from element '\(xmlNode.name)'"
+            )
             return nil
         }
         self.propertyType = propType
@@ -42,6 +64,22 @@ public struct INDIProperty: Sendable {
         self.state = attrs["state"].map { Self.extractState(from: $0) }
         self.timeout = Self.extractTimeout(from: attrs["timeout"])
         self.timeStamp = Self.extractTimestamp(from: attrs["timestamp"])
+        self.rule = attrs["rule"].flatMap { INDISwitchRule(indiValue: $0) }
+        self.format = attrs["format"]
+        
+        // Parse child elements into INDIValue objects
+        var parsedValues: [INDIValue] = []
+        for child in xmlNode.children {
+            if let value = INDIValue(xmlNode: child, propertyType: propType) {
+                parsedValues.append(value)
+            } else {
+                let propertyName = attrs["name"] ?? "unknown"
+                Self.logger.warning(
+                    "Failed to parse INDI value from element '\(child.name)' in property '\(propertyName)'"
+                )
+            }
+        }
+        self.values = parsedValues
     }
     
     // MARK: - Private Helpers
