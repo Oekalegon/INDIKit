@@ -15,7 +15,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("UNKNOWN_PROPERTY"),
@@ -33,7 +33,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
@@ -52,7 +52,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
@@ -71,7 +71,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
@@ -90,7 +90,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .number,
             device: "Test Device",
             name: .other("TEST_PROP"),
@@ -103,7 +103,7 @@ struct INDIPropertyProgrammaticValidationTests {
     
     @Test("Property with no values generates error")
     func testPropertyWithNoValues() {
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
@@ -127,7 +127,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
@@ -158,7 +158,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .other("TEST_SWITCH"),
@@ -177,7 +177,7 @@ struct INDIPropertyProgrammaticValidationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),

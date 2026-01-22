@@ -16,7 +16,7 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -28,7 +28,7 @@ struct INDIPropertyCreationTests {
             values: [value]
         ))
         
-        #expect(property.operation == INDIPropertyOperation.define)
+        #expect(property.operation == INDIOperation.define)
         #expect(property.propertyType == INDIPropertyType.text)
         #expect(property.device == "Test Device")
         if case .other(let name) = property.name {
@@ -68,7 +68,7 @@ struct INDIPropertyCreationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty.update(INDIUpdateProperty(
+        let property = INDIMessage.updateProperty(INDIUpdateProperty(
             propertyType: .number,
             device: "Weather Station",
             name: .atmosphere,
@@ -77,7 +77,7 @@ struct INDIPropertyCreationTests {
             values: [value]
         ))
         
-        #expect(property.operation == INDIPropertyOperation.update)
+        #expect(property.operation == INDIOperation.update)
         #expect(property.propertyType == INDIPropertyType.number)
         #expect(property.values.count == 1)
         
@@ -114,7 +114,7 @@ struct INDIPropertyCreationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .toggle,
             device: "Telescope Simulator",
             name: .connection,
@@ -127,7 +127,7 @@ struct INDIPropertyCreationTests {
             values: [connectValue, disconnectValue]
         ))
         
-        #expect(property.operation == INDIPropertyOperation.define)
+        #expect(property.operation == INDIOperation.define)
         #expect(property.propertyType == INDIPropertyType.toggle)
         #expect(property.values.count == 2)
         #expect(property.rule == INDISwitchRule.oneOfMany)
@@ -147,7 +147,7 @@ struct INDIPropertyCreationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
@@ -183,7 +183,7 @@ struct INDIPropertyCreationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("IMAGE_DATA"),
@@ -220,14 +220,14 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
             values: [value]
         ))
         
-        #expect(property.operation == INDIPropertyOperation.set)
+        #expect(property.operation == INDIOperation.set)
         #expect(property.device == "Test Device")
         #expect(property.values.count == 1)
         #expect(property.group == nil)
@@ -248,7 +248,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically without attributes")
     func testCreateGetPropertiesMinimal() {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: nil
         ))
@@ -269,7 +269,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with device")
     func testCreateGetPropertiesWithDevice() {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: nil
         ))
@@ -287,7 +287,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with name")
     func testCreateGetPropertiesWithName() {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: .connection
         ))
@@ -305,7 +305,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with device and name")
     func testCreateGetPropertiesWithDeviceAndName() {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: .connection
         ))
@@ -324,7 +324,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with custom version")
     func testCreateGetPropertiesWithCustomVersion() {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: nil,
             version: "1.8"
@@ -342,7 +342,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create enableBLOB programmatically with also state")
     func testCreateEnableBLOBWithAlso() {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: .also
@@ -366,36 +366,36 @@ struct INDIPropertyCreationTests {
     
     @Test("Create enableBLOB programmatically with raw state")
     func testCreateEnableBLOBWithRaw() {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: .raw
         ))
         
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == BLOBSendingState.raw)
     }
     
     @Test("Create enableBLOB programmatically with off state")
     func testCreateEnableBLOBWithOff() {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: .off
         ))
         
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == BLOBSendingState.off)
     }
     
     @Test("Create enableBLOB programmatically without state is nil")
     func testCreateEnableBLOBWithoutState() {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1")
         ))
         
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == nil) // Optional, no default
     }
 }

@@ -120,8 +120,8 @@ public actor INDIServer {
     ///
     /// - Parameter property: The INDI property to send (must have `.set`, `.get`, or `.enableBlob` operation)
     /// - Throws: An error if not connected, if the property operation is not supported, or if serialization fails
-    public func send(_ property: INDIProperty) async throws {
-        let allowedOperations: [INDIPropertyOperation] = [.set, .get, .enableBlob]
+    public func send(_ property: INDIMessage) async throws {
+        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob]
         guard allowedOperations.contains(property.operation) else {
             let message = "Only properties with .set, .get, or .enableBlob operations can be sent to the server. " +
                 "Received property with operation: \(property.operation.rawValue)"
@@ -169,7 +169,7 @@ public actor INDIServer {
     ///     print("Received property: \(property.name.displayName)")
     /// }
     /// ```
-    public func properties() async throws -> AsyncThrowingStream<INDIProperty, Error> {
+    public func properties() async throws -> AsyncThrowingStream<INDIMessage, Error> {
         guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Not connected. Call connect() first."

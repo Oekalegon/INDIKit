@@ -39,11 +39,11 @@ actor INDIXMLParser {
     init() {
     }
     
-    /// Parse a stream of Data chunks into a stream of INDIProperty objects.
+    /// Parse a stream of Data chunks into a stream of INDIMessage objects.
     ///
     /// - Parameter dataStream: The stream of raw Data chunks from INDIServer
-    /// - Returns: A stream of parsed INDIProperty objects
-    func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIProperty, Error> {
+    /// - Returns: A stream of parsed INDIMessage objects
+    func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIMessage, Error> {
         AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -63,7 +63,7 @@ actor INDIXMLParser {
     /// Process incoming data chunks, extracting and parsing complete XML properties.
     private func processData(
         _ data: Data,
-        continuation: AsyncThrowingStream<INDIProperty, Error>.Continuation
+        continuation: AsyncThrowingStream<INDIMessage, Error>.Continuation
     ) async {
         // Check if adding this data would exceed the maximum buffer size
         if buffer.count + data.count > maxBufferSize {
@@ -90,7 +90,7 @@ actor INDIXMLParser {
     
     /// Process any remaining data in the buffer after the stream ends.
     private func processRemainingBuffer(
-        continuation: AsyncThrowingStream<INDIProperty, Error>.Continuation
+        continuation: AsyncThrowingStream<INDIMessage, Error>.Continuation
     ) async {
         // Try to parse any remaining buffered data
         while let property = await extractAndParseNextMessage() {
@@ -104,7 +104,7 @@ actor INDIXMLParser {
     /// (opening tag with matching closing tag, or self-closing tag).
     ///
     /// Returns nil if no complete property is available yet.
-    private func extractAndParseNextMessage() async -> INDIProperty? {
+    private func extractAndParseNextMessage() async -> INDIMessage? {
         guard !buffer.isEmpty else { return nil }
         
         guard let bufferString = String(data: buffer, encoding: .utf8) else {
@@ -366,10 +366,10 @@ actor INDIXMLParser {
         }
     }
     
-    /// Try to parse a string as XML and return an INDIProperty if successful.
-    private func tryParseXML(_ xmlString: String) -> INDIProperty? {
+    /// Try to parse a string as XML and return an INDIMessage if successful.
+    private func tryParseXML(_ xmlString: String) -> INDIMessage? {
         guard let xmlData = xmlString.data(using: .utf8) else {
-            Self.logger.warning("Failed to parse INDI property: could not convert XML string to UTF-8 data")
+            Self.logger.warning("Failed to parse INDI message: could not convert XML string to UTF-8 data")
             return nil
         }
         
@@ -378,24 +378,24 @@ actor INDIXMLParser {
         parser.delegate = delegate
         
         guard parser.parse() else {
-            Self.logger.warning("Failed to parse INDI property: XML parsing failed")
+            Self.logger.warning("Failed to parse INDI message: XML parsing failed")
             return nil
         }
         
         guard let rootNode = delegate.rootNode else {
-            Self.logger.warning("Failed to parse INDI property: no root node found in parsed XML")
+            Self.logger.warning("Failed to parse INDI message: no root node found in parsed XML")
             return nil
         }
         
         // Use the enum's factory initializer
-        guard let property = INDIProperty(xmlNode: rootNode) else {
+        guard let message = INDIMessage(xmlNode: rootNode) else {
             Self.logger.warning(
-                "Failed to parse INDI property: could not create INDIProperty from element '\(rootNode.name)'"
+                "Failed to parse INDI message: could not create INDIMessage from element '\(rootNode.name)'"
             )
             return nil
         }
         
-        return property
+        return message
     }
 }
 

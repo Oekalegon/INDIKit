@@ -15,7 +15,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -56,7 +56,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Telescope Simulator",
             name: .connection,
@@ -87,7 +87,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Telescope Simulator",
             name: .other("EQUATORIAL_EOD_COORD"),
@@ -112,7 +112,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.define(INDIDefineProperty(
+        let property = INDIMessage.defineProperty(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -149,7 +149,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -171,7 +171,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
@@ -189,7 +189,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let property2 = INDIProperty.set(INDISetProperty(
+        let property2 = INDIMessage.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test Device",
             name: .connection,
@@ -208,7 +208,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
@@ -234,7 +234,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Weather Station",
             name: .atmosphere,
@@ -265,7 +265,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("CCD1"),
@@ -296,7 +296,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("CCD1"),
@@ -319,7 +319,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Device & Name",
             name: .other("PROP<NAME>"),
@@ -342,7 +342,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST"),
@@ -377,7 +377,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.set(INDISetProperty(
+        let property = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -405,7 +405,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .text
         )
         
-        let textProperty = INDIProperty.set(INDISetProperty(
+        let textProperty = INDIMessage.setProperty(INDISetProperty(
             propertyType: .text,
             device: "Test",
             name: .other("TEXT_PROP"),
@@ -421,7 +421,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .number
         )
         
-        let numberProperty = INDIProperty.set(INDISetProperty(
+        let numberProperty = INDIMessage.setProperty(INDISetProperty(
             propertyType: .number,
             device: "Test",
             name: .other("NUM_PROP"),
@@ -437,7 +437,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .toggle
         )
         
-        let switchProperty = INDIProperty.set(INDISetProperty(
+        let switchProperty = INDIMessage.setProperty(INDISetProperty(
             propertyType: .toggle,
             device: "Test",
             name: .other("SW_PROP"),
@@ -453,7 +453,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .light
         )
         
-        let lightProperty = INDIProperty.set(INDISetProperty(
+        let lightProperty = INDIMessage.setProperty(INDISetProperty(
             propertyType: .light,
             device: "Test",
             name: .other("LIGHT_PROP"),
@@ -469,7 +469,7 @@ struct INDIPropertyXMLSerializationTests {
             propertyType: .blob
         )
         
-        let blobProperty = INDIProperty.set(INDISetProperty(
+        let blobProperty = INDIMessage.setProperty(INDISetProperty(
             propertyType: .blob,
             device: "Test",
             name: .other("BLOB_PROP"),
@@ -484,7 +484,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties without attributes to XML")
     func testSerializeGetPropertiesMinimal() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: nil
         ))
@@ -497,7 +497,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with device to XML")
     func testSerializeGetPropertiesWithDevice() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: nil
         ))
@@ -511,7 +511,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with name to XML")
     func testSerializeGetPropertiesWithName() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: .connection
         ))
@@ -525,7 +525,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with device and name to XML")
     func testSerializeGetPropertiesWithDeviceAndName() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: "Telescope Simulator",
             name: .connection
         ))
@@ -540,7 +540,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with custom version to XML")
     func testSerializeGetPropertiesWithCustomVersion() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: nil,
             version: "1.8"
@@ -554,7 +554,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with escaped device name")
     func testSerializeGetPropertiesWithEscapedDevice() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: "Test & Device",
             name: nil
         ))
@@ -568,7 +568,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize getProperties with escaped property name")
     func testSerializeGetPropertiesWithEscapedName() throws {
-        let property = INDIProperty.get(INDIGetProperties(
+        let property = INDIMessage.getProperties(INDIGetProperties(
             device: nil,
             name: .other("TEST & PROP")
         ))
@@ -584,7 +584,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB with also state to XML")
     func testSerializeEnableBLOBWithAlso() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: BLOBSendingState.also
@@ -601,7 +601,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB with raw state to XML")
     func testSerializeEnableBLOBWithRaw() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: BLOBSendingState.raw
@@ -615,7 +615,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB with off state to XML")
     func testSerializeEnableBLOBWithOff() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1"),
             blobSendingState: BLOBSendingState.off
@@ -629,7 +629,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB without state to XML")
     func testSerializeEnableBLOBWithoutState() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("CCD1")
         ))
@@ -646,7 +646,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB with escaped device name")
     func testSerializeEnableBLOBWithEscapedDevice() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "Test & Device",
             name: .other("CCD1"),
             blobSendingState: BLOBSendingState.also
@@ -661,7 +661,7 @@ struct INDIPropertyXMLSerializationTests {
     
     @Test("Serialize enableBLOB with escaped property name")
     func testSerializeEnableBLOBWithEscapedName() throws {
-        let property = INDIProperty.enableBlob(INDIEnableBlobProperty(
+        let property = INDIMessage.enableBlob(INDIEnableBlob(
             device: "CCD Simulator",
             name: .other("TEST & PROP"),
             blobSendingState: BLOBSendingState.also

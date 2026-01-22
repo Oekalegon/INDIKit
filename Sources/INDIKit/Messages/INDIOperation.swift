@@ -1,6 +1,6 @@
 import Foundation
 
-public enum INDIPropertyOperation: String, Sendable, CaseIterable {
+public enum INDIOperation: String, Sendable, CaseIterable {
 
     /// Defines a property of a device or driver.
     /// 

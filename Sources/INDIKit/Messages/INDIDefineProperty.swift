@@ -13,7 +13,7 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         "device", "group", "label", "name", "perm", "state", "timeout", "timestamp", "rule", "format"
     ]
     
-    public let operation: INDIPropertyOperation = .define
+    public let operation: INDIOperation = .define
     public let device: String
     public let name: INDIPropertyName
     public let propertyType: INDIPropertyType
@@ -319,8 +319,8 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
     
     // MARK: - Private Helpers
     
-    private static func extractOperation(from elementName: String) -> INDIPropertyOperation? {
-        INDIPropertyOperation(elementName: elementName) ?? .update
+    private static func extractOperation(from elementName: String) -> INDIOperation? {
+        INDIOperation(elementName: elementName) ?? .update
     }
     
     private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {

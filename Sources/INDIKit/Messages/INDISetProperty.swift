@@ -5,10 +5,10 @@ import os
 ///
 /// This message is sent by the client to the server to change the value of a property.
 /// Set operations only support device, name, and values - no other attributes.
-public struct INDISetProperty: INDIPropertyMessage, Sendable {
+public struct INDISetProperty: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
     
-    public let operation: INDIPropertyOperation = .set
+    public let operation: INDIOperation = .set
     public let device: String
     public let name: INDIPropertyName
     public let propertyType: INDIPropertyType
@@ -128,8 +128,8 @@ public struct INDISetProperty: INDIPropertyMessage, Sendable {
     
     // MARK: - Private Helpers
     
-    private static func extractOperation(from elementName: String) -> INDIPropertyOperation? {
-        INDIPropertyOperation(elementName: elementName) ?? .update
+    private static func extractOperation(from elementName: String) -> INDIOperation? {
+        INDIOperation(elementName: elementName) ?? .update
     }
     
     private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {

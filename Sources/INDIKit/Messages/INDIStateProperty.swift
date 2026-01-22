@@ -4,7 +4,7 @@ import Foundation
 ///
 /// This protocol defines the shared properties between `INDIUpdateProperty` and `INDIDefineProperty`,
 /// which both support all optional attributes like group, label, permissions, state, timeout, etc.
-public protocol INDIStateProperty: INDIPropertyMessage {
+public protocol INDIStateProperty: INDICommand {
     /// Device name (required).
     var device: String { get }
     

@@ -5,10 +5,10 @@ import os
 ///
 /// This message is sent by the client to the server to request property information.
 /// Device and name are optional - if omitted, all properties are requested.
-public struct INDIGetProperties: INDIPropertyMessage, Sendable {
+public struct INDIGetProperties: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
     
-    public let operation: INDIPropertyOperation = .get
+    public let operation: INDIOperation = .get
     public let device: String?
     public let name: INDIPropertyName?
     public let version: String

@@ -5,10 +5,10 @@ import os
 ///
 /// This message is sent by the client to the server to control BLOB data transmission
 /// for a specific property.
-public struct INDIEnableBlobProperty: INDIPropertyMessage, Sendable {
+public struct INDIEnableBlob: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
     
-    public let operation: INDIPropertyOperation = .enableBlob
+    public let operation: INDIOperation = .enableBlob
     public let device: String
     public let name: INDIPropertyName
     public let blobSendingState: BLOBSendingState?

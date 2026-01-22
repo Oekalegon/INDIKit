@@ -16,12 +16,12 @@ struct INDIPropertyParsingTests {
     }
     
     /// Parse XML and collect all properties
-    private func parseXML(_ xml: String) async throws -> [INDIProperty] {
+    private func parseXML(_ xml: String) async throws -> [INDIMessage] {
         let parser = INDIXMLParser()
         let dataStream = createDataStream(from: xml)
         let propertyStream = await parser.parse(dataStream)
         
-        var properties: [INDIProperty] = []
+        var properties: [INDIMessage] = []
         for try await property in propertyStream {
             properties.append(property)
         }
@@ -653,7 +653,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.propertyType == nil)
         #expect(property.device == "CCD Simulator")
         #expect(property.name?.indiName == "CCD1")
@@ -669,7 +669,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == BLOBSendingState.raw)
     }
     
@@ -681,7 +681,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == BLOBSendingState.off)
     }
     
@@ -693,7 +693,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == BLOBSendingState.on)
     }
     
@@ -705,7 +705,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == nil) // Optional, no default
     }
     
@@ -717,7 +717,7 @@ struct INDIPropertyParsingTests {
         
         #expect(properties.count == 1)
         let property = properties[0]
-        #expect(property.operation == INDIPropertyOperation.enableBlob)
+        #expect(property.operation == INDIOperation.enableBlob)
         #expect(property.blobSendingState == nil) // nil when invalid
     }
 }
