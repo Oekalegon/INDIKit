@@ -42,7 +42,7 @@ public struct INDIValue: Sendable {
     ///
     /// - Parameter xmlNode: The XML node representing the value element
     /// - Parameter propertyType: The type of property this value belongs to (used to parse the value correctly)
-    public init?(xmlNode: XMLNodeRepresentation, propertyType: INDIPropertyType) {
+    init?(xmlNode: XMLNodeRepresentation, propertyType: INDIPropertyType) {
         let attrs = xmlNode.attributes
         
         // Extract required name

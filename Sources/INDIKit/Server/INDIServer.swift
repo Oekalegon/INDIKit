@@ -150,29 +150,35 @@ public actor INDIServer {
         if !message.device.isEmpty {
             print("  Device: \(message.device)")
         }
-        if !message.group.isEmpty {
-            print("  Group: \(message.group)")
+        if let group = message.group {
+            print("  Group: \(group)")
         }
-        if !message.label.isEmpty {
-            print("  Label: \(message.label)")
+        if let label = message.label {
+            print("  Label: \(label)")
         }
         print("  Property: \(message.property.displayName)")
-        print("  Permissions: \(message.permissions.indiValue)")
-        print("  State: \(message.state.indiValue)")
-        
-        if message.timeout > 0 {
-            print("  Timeout: \(message.timeout)s")
+        if let permissions = message.permissions {
+            print("  Permissions: \(permissions.indiValue)")
+        }
+        if let state = message.state {
+            print("  State: \(state.indiValue)")
         }
         
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateStyle = .medium
-        dateFormatter.timeStyle = .medium
-        print("  Timestamp: \(dateFormatter.string(from: message.timeStamp))")
+        if let timeout = message.timeout, timeout > 0 {
+            print("  Timeout: \(timeout)s")
+        }
+        
+        if let timeStamp = message.timeStamp {
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .medium
+            print("  Timestamp: \(dateFormatter.string(from: timeStamp))")
+        }
         
         // Print child elements if available
-        if let rawProperty = message as? RawINDIProperty, !rawProperty.xmlNode.children.isEmpty {
-            print("  Children: \(rawProperty.xmlNode.children.count) element(s)")
-            for (index, child) in rawProperty.xmlNode.children.enumerated() {
+        if !message.xmlNode.children.isEmpty {
+            print("  Children: \(message.xmlNode.children.count) element(s)")
+            for (index, child) in message.xmlNode.children.enumerated() {
                 print("    [\(index)] \(child.name)")
             }
         }

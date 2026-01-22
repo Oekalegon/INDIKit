@@ -1,69 +1,26 @@
 import Foundation
 
-/// A Sendable representation of an XML element.
-public struct XMLNodeRepresentation: Sendable {
-    public let name: String
-    public let attributes: [String: String]
-    public let text: String?
-    public let children: [XMLNodeRepresentation]
-    
-    public init(name: String, attributes: [String: String] = [:], text: String? = nil, children: [XMLNodeRepresentation] = []) {
-        self.name = name
-        self.attributes = attributes
-        self.text = text
-        self.children = children
-    }
-}
-
-/// Base protocol for all INDI properties.
+/// An INDI property parsed from XML.
 ///
 /// INDI properties are parsed from XML but expose only structured data,
 /// not raw XML strings. This provides a clean, type-safe API for working
 /// with INDI protocol properties such as property definitions, updates, and commands.
-public protocol INDIProperty: Sendable {
-
-    var operation: INDIMessageOperation { get }
-    var propertyType: INDIPropertyType { get }
-    var device: String { get }
-    var group: String { get }
-    var label: String { get }
-    var property: INDIPropertyName { get }
-    var permissions: INDIPropertyPermissions { get }
-    var state: INDIPropertyState { get }
-    var timeout: Double { get }
-    var timeStamp: Date { get }
-
-    /// The XML element name of this message type.
-    static var elementName: String { get }
-    
-    /// Initialize a message from an XML node representation.
-    init?(xmlNode: XMLNodeRepresentation)
-}
-
-/// A raw XML property that hasn't been parsed into a specific property type yet.
-///
-/// This property type contains the parsed XML structure but not the original XML string.
-/// Use the `xmlNode` property to access the structured data.
-public struct RawINDIProperty: INDIProperty, Sendable {
-    public static let elementName = ""
-    
+public struct INDIProperty: Sendable {
     /// The parsed XML node representation containing the property structure.
-    public let xmlNode: XMLNodeRepresentation
-    
-    // MARK: - INDIProperty Protocol Requirements
+    let xmlNode: XMLNodeRepresentation
     
     public let operation: INDIMessageOperation
     public let propertyType: INDIPropertyType
     public let device: String
-    public let group: String
-    public let label: String
     public let property: INDIPropertyName
-    public let permissions: INDIPropertyPermissions
-    public let state: INDIPropertyState
-    public let timeout: Double
-    public let timeStamp: Date
+    public let group: String?
+    public let label: String?
+    public let permissions: INDIPropertyPermissions?
+    public let state: INDIPropertyState?
+    public let timeout: Double?
+    public let timeStamp: Date?
     
-    public init?(xmlNode: XMLNodeRepresentation) {
+    init?(xmlNode: XMLNodeRepresentation) {
         self.xmlNode = xmlNode
         
         guard let op = Self.extractOperation(from: xmlNode.name) else {
@@ -78,11 +35,11 @@ public struct RawINDIProperty: INDIProperty, Sendable {
         
         let attrs = xmlNode.attributes
         self.device = attrs["device"] ?? ""
-        self.group = attrs["group"] ?? ""
-        self.label = attrs["label"] ?? ""
+        self.group = attrs["group"]
+        self.label = attrs["label"]
         self.property = Self.extractProperty(from: attrs["name"] ?? "")
-        self.permissions = Self.extractPermissions(from: attrs["perm"] ?? "rw")
-        self.state = Self.extractState(from: attrs["state"] ?? "Idle")
+        self.permissions = attrs["perm"].map { Self.extractPermissions(from: $0) }
+        self.state = attrs["state"].map { Self.extractState(from: $0) }
         self.timeout = Self.extractTimeout(from: attrs["timeout"])
         self.timeStamp = Self.extractTimestamp(from: attrs["timestamp"])
     }
@@ -109,16 +66,16 @@ public struct RawINDIProperty: INDIProperty, Sendable {
         INDIPropertyState(indiValue: stateString)
     }
     
-    private static func extractTimeout(from timeoutString: String?) -> Double {
+    private static func extractTimeout(from timeoutString: String?) -> Double? {
         guard let timeoutString, let timeoutValue = Double(timeoutString) else {
-            return 0.0
+            return nil
         }
         return timeoutValue
     }
     
-    private static func extractTimestamp(from timestampString: String?) -> Date {
+    private static func extractTimestamp(from timestampString: String?) -> Date? {
         guard let timestampString else {
-            return Date()
+            return nil
         }
         
         let formatter = ISO8601DateFormatter()
@@ -129,6 +86,6 @@ public struct RawINDIProperty: INDIProperty, Sendable {
         if let unixTimestamp = Double(timestampString) {
             return Date(timeIntervalSince1970: unixTimestamp)
         }
-        return Date()
+        return nil
     }
 }

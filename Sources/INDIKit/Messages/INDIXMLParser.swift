@@ -1,5 +1,20 @@
 import Foundation
 
+/// A Sendable representation of an XML element.
+struct XMLNodeRepresentation: Sendable {
+    let name: String
+    let attributes: [String: String]
+    let text: String?
+    let children: [XMLNodeRepresentation]
+    
+    init(name: String, attributes: [String: String] = [:], text: String? = nil, children: [XMLNodeRepresentation] = []) {
+        self.name = name
+        self.attributes = attributes
+        self.text = text
+        self.children = children
+    }
+}
+
 /// Parser that converts a stream of raw Data chunks into parsed INDI XML properties.
 ///
 /// This parser uses Foundation's XMLParser (a SAX-style parser) to parse XML properties.
@@ -8,7 +23,7 @@ import Foundation
 ///
 /// The parser can handle properties larger than the 64KB chunk size from INDIServer
 /// by accumulating chunks until a complete XML element is detected.
-public actor INDIXMLParser {
+actor INDIXMLParser {
     private var buffer = Data()
     
     /// Maximum buffer size in bytes before throwing an error.
@@ -16,17 +31,17 @@ public actor INDIXMLParser {
     /// Default is 2GB, which should accommodate large FITS files and other
     /// astronomical data transfers via INDI BLOB messages. Set to a higher value
     /// if you expect even larger messages, or lower to limit memory usage.
-    public var maxBufferSize: Int = 2 * 1024 * 1024 * 1024 // 2GB
+    var maxBufferSize: Int = 2 * 1024 * 1024 * 1024 // 2GB
     
     /// Initialize a new XML parser.
-    public init() {
+    init() {
     }
     
     /// Parse a stream of Data chunks into a stream of INDIProperty objects.
     ///
     /// - Parameter dataStream: The stream of raw Data chunks from INDIServer
     /// - Returns: A stream of parsed INDIProperty objects
-    public func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIProperty, Error> {
+    func parse(_ dataStream: AsyncThrowingStream<Data, Error>) -> AsyncThrowingStream<INDIProperty, Error> {
         AsyncThrowingStream { continuation in
             Task {
                 do {
@@ -281,7 +296,7 @@ public actor INDIXMLParser {
             return nil
         }
         
-        return RawINDIProperty(xmlNode: rootNode)
+        return INDIProperty(xmlNode: rootNode)
     }
 }
 
