@@ -16,7 +16,7 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.defineProperty(INDIDefineProperty(
+        let property = INDIProperty.define(INDIDefineProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("DRIVER_INFO"),
@@ -68,7 +68,7 @@ struct INDIPropertyCreationTests {
             propertyType: .number
         )
         
-        let property = INDIProperty.updateProperty(INDIUpdateProperty(
+        let property = INDIProperty.update(INDIUpdateProperty(
             propertyType: .number,
             device: "Weather Station",
             name: .atmosphere,
@@ -114,7 +114,7 @@ struct INDIPropertyCreationTests {
             propertyType: .toggle
         )
         
-        let property = INDIProperty.defineProperty(INDIDefineProperty(
+        let property = INDIProperty.define(INDIDefineProperty(
             propertyType: .toggle,
             device: "Telescope Simulator",
             name: .connection,
@@ -147,7 +147,7 @@ struct INDIPropertyCreationTests {
             propertyType: .light
         )
         
-        let property = INDIProperty.defineProperty(INDIDefineProperty(
+        let property = INDIProperty.define(INDIDefineProperty(
             propertyType: .light,
             device: "Test Device",
             name: .other("STATUS"),
@@ -183,7 +183,7 @@ struct INDIPropertyCreationTests {
             propertyType: .blob
         )
         
-        let property = INDIProperty.defineProperty(INDIDefineProperty(
+        let property = INDIProperty.define(INDIDefineProperty(
             propertyType: .blob,
             device: "CCD Simulator",
             name: .other("IMAGE_DATA"),
@@ -220,7 +220,7 @@ struct INDIPropertyCreationTests {
             propertyType: .text
         )
         
-        let property = INDIProperty.setProperty(INDISetProperty(
+        let property = INDIProperty.set(INDISetProperty(
             propertyType: .text,
             device: "Test Device",
             name: .other("TEST_PROP"),
@@ -248,7 +248,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically without attributes")
     func testCreateGetPropertiesMinimal() {
-        let property = INDIProperty.getProperties(INDIGetProperties(
+        let property = INDIProperty.get(INDIGetProperties(
             device: nil,
             name: nil
         ))
@@ -269,7 +269,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with device")
     func testCreateGetPropertiesWithDevice() {
-        let property = INDIProperty.getProperties(INDIGetProperties(
+        let property = INDIProperty.get(INDIGetProperties(
             device: "Telescope Simulator",
             name: nil
         ))
@@ -287,7 +287,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with name")
     func testCreateGetPropertiesWithName() {
-        let property = INDIProperty.getProperties(INDIGetProperties(
+        let property = INDIProperty.get(INDIGetProperties(
             device: nil,
             name: .connection
         ))
@@ -305,7 +305,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with device and name")
     func testCreateGetPropertiesWithDeviceAndName() {
-        let property = INDIProperty.getProperties(INDIGetProperties(
+        let property = INDIProperty.get(INDIGetProperties(
             device: "Telescope Simulator",
             name: .connection
         ))
@@ -324,7 +324,7 @@ struct INDIPropertyCreationTests {
     
     @Test("Create getProperties programmatically with custom version")
     func testCreateGetPropertiesWithCustomVersion() {
-        let property = INDIProperty.getProperties(INDIGetProperties(
+        let property = INDIProperty.get(INDIGetProperties(
             device: nil,
             name: nil,
             version: "1.8"

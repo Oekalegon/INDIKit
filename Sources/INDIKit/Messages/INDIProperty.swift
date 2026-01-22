@@ -7,19 +7,19 @@ import Foundation
 /// to the wrapped type, allowing code to work with `INDIProperty` without needing to know the
 /// specific type.
 public enum INDIProperty: Sendable {
-    case getProperties(INDIGetProperties)
-    case setProperty(INDISetProperty)
-    case updateProperty(INDIUpdateProperty)
-    case defineProperty(INDIDefineProperty)
+    case get(INDIGetProperties)
+    case set(INDISetProperty)
+    case update(INDIUpdateProperty)
+    case define(INDIDefineProperty)
     case enableBlob(INDIEnableBlobProperty)
     
     /// The operation type of this property.
     public var operation: INDIPropertyOperation {
         switch self {
-        case .getProperties(let prop): return prop.operation
-        case .setProperty(let prop): return prop.operation
-        case .updateProperty(let prop): return prop.operation
-        case .defineProperty(let prop): return prop.operation
+        case .get(let prop): return prop.operation
+        case .set(let prop): return prop.operation
+        case .update(let prop): return prop.operation
+        case .define(let prop): return prop.operation
         case .enableBlob(let prop): return prop.operation
         }
     }
@@ -27,10 +27,10 @@ public enum INDIProperty: Sendable {
     /// Diagnostic messages for the property.
     public var diagnostics: [INDIDiagnostics] {
         switch self {
-        case .getProperties(let prop): return prop.diagnostics
-        case .setProperty(let prop): return prop.diagnostics
-        case .updateProperty(let prop): return prop.diagnostics
-        case .defineProperty(let prop): return prop.diagnostics
+        case .get(let prop): return prop.diagnostics
+        case .set(let prop): return prop.diagnostics
+        case .update(let prop): return prop.diagnostics
+        case .define(let prop): return prop.diagnostics
         case .enableBlob(let prop): return prop.diagnostics
         }
     }
@@ -38,10 +38,10 @@ public enum INDIProperty: Sendable {
     /// Device name (optional for getProperties, required for others).
     public var device: String? {
         switch self {
-        case .getProperties(let prop): return prop.device
-        case .setProperty(let prop): return prop.device
-        case .updateProperty(let prop): return prop.device
-        case .defineProperty(let prop): return prop.device
+        case .get(let prop): return prop.device
+        case .set(let prop): return prop.device
+        case .update(let prop): return prop.device
+        case .define(let prop): return prop.device
         case .enableBlob(let prop): return prop.device
         }
     }
@@ -49,10 +49,10 @@ public enum INDIProperty: Sendable {
     /// Property name (optional for getProperties, required for others).
     public var name: INDIPropertyName? {
         switch self {
-        case .getProperties(let prop): return prop.name
-        case .setProperty(let prop): return prop.name
-        case .updateProperty(let prop): return prop.name
-        case .defineProperty(let prop): return prop.name
+        case .get(let prop): return prop.name
+        case .set(let prop): return prop.name
+        case .update(let prop): return prop.name
+        case .define(let prop): return prop.name
         case .enableBlob(let prop): return prop.name
         }
     }
@@ -60,10 +60,10 @@ public enum INDIProperty: Sendable {
     /// Property type (nil for getProperties and enableBLOB, required for others).
     public var propertyType: INDIPropertyType? {
         switch self {
-        case .getProperties: return nil
-        case .setProperty(let prop): return prop.propertyType
-        case .updateProperty(let prop): return prop.propertyType
-        case .defineProperty(let prop): return prop.propertyType
+        case .get: return nil
+        case .set(let prop): return prop.propertyType
+        case .update(let prop): return prop.propertyType
+        case .define(let prop): return prop.propertyType
         case .enableBlob: return nil
         }
     }
@@ -71,10 +71,10 @@ public enum INDIProperty: Sendable {
     /// The parsed values contained in this property (empty for getProperties and enableBLOB).
     public var values: [INDIValue] {
         switch self {
-        case .getProperties: return []
-        case .setProperty(let prop): return prop.values
-        case .updateProperty(let prop): return prop.values
-        case .defineProperty(let prop): return prop.values
+        case .get: return []
+        case .set(let prop): return prop.values
+        case .update(let prop): return prop.values
+        case .define(let prop): return prop.values
         case .enableBlob: return []
         }
     }
@@ -82,79 +82,79 @@ public enum INDIProperty: Sendable {
     /// Group (only for update and define properties).
     public var group: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.group
-        case .defineProperty(let prop): return prop.group
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.group
+        case .define(let prop): return prop.group
         }
     }
     
     /// Label (only for update and define properties).
     public var label: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.label
-        case .defineProperty(let prop): return prop.label
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.label
+        case .define(let prop): return prop.label
         }
     }
     
     /// Permissions (only for update and define properties).
     public var permissions: INDIPropertyPermissions? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.permissions
-        case .defineProperty(let prop): return prop.permissions
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.permissions
+        case .define(let prop): return prop.permissions
         }
     }
     
     /// State (only for update and define properties).
     public var state: INDIState? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.state
-        case .defineProperty(let prop): return prop.state
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.state
+        case .define(let prop): return prop.state
         }
     }
     
     /// Timeout (only for update and define properties).
     public var timeout: Double? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.timeout
-        case .defineProperty(let prop): return prop.timeout
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.timeout
+        case .define(let prop): return prop.timeout
         }
     }
     
     /// Timestamp (only for update and define properties).
     public var timeStamp: Date? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.timeStamp
-        case .defineProperty(let prop): return prop.timeStamp
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.timeStamp
+        case .define(let prop): return prop.timeStamp
         }
     }
     
     /// Rule for switch properties (only for update and define toggle properties).
     public var rule: INDISwitchRule? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.rule
-        case .defineProperty(let prop): return prop.rule
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.rule
+        case .define(let prop): return prop.rule
         }
     }
     
     /// Format for blob properties (only for update and define blob properties).
     public var format: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
-        case .updateProperty(let prop): return prop.format
-        case .defineProperty(let prop): return prop.format
+        case .get, .set, .enableBlob: return nil
+        case .update(let prop): return prop.format
+        case .define(let prop): return prop.format
         }
     }
     
     /// BLOB sending state (only for enableBLOB properties).
     public var blobSendingState: BLOBSendingState? {
         switch self {
-        case .getProperties, .setProperty, .updateProperty, .defineProperty: return nil
+        case .get, .set, .update, .define: return nil
         case .enableBlob(let prop): return prop.blobSendingState
         }
     }
@@ -162,8 +162,8 @@ public enum INDIProperty: Sendable {
     /// Version (only for getProperties).
     public var version: String? {
         switch self {
-        case .getProperties(let prop): return prop.version
-        case .setProperty, .updateProperty, .defineProperty, .enableBlob: return nil
+        case .get(let prop): return prop.version
+        case .set, .update, .define, .enableBlob: return nil
         }
     }
     
@@ -180,7 +180,7 @@ public enum INDIProperty: Sendable {
             // Try to parse as getProperties or enableBLOB (they don't follow the pattern)
             if xmlNode.name == "getProperties" {
                 if let getProps = INDIGetProperties(xmlNode: xmlNode) {
-                    self = .getProperties(getProps)
+                    self = .get(getProps)
                     return
                 }
             } else if xmlNode.name == "enableBLOB" {
@@ -196,28 +196,28 @@ public enum INDIProperty: Sendable {
         switch operation {
         case .get:
             if let getProps = INDIGetProperties(xmlNode: xmlNode) {
-                self = .getProperties(getProps)
+                self = .get(getProps)
             } else {
                 return nil
             }
             
         case .set:
             if let setProp = INDISetProperty(xmlNode: xmlNode) {
-                self = .setProperty(setProp)
+                self = .set(setProp)
             } else {
                 return nil
             }
             
         case .update:
             if let updateProp = INDIUpdateProperty(xmlNode: xmlNode) {
-                self = .updateProperty(updateProp)
+                self = .update(updateProp)
             } else {
                 return nil
             }
             
         case .define:
             if let defineProp = INDIDefineProperty(xmlNode: xmlNode) {
-                self = .defineProperty(defineProp)
+                self = .define(defineProp)
             } else {
                 return nil
             }
@@ -241,10 +241,10 @@ public enum INDIProperty: Sendable {
     /// - Throws: An error if the property cannot be serialized
     public func toXML() throws -> String {
         switch self {
-        case .getProperties(let prop): return try prop.toXML()
-        case .setProperty(let prop): return try prop.toXML()
-        case .updateProperty(let prop): return try prop.toXML()
-        case .defineProperty(let prop): return try prop.toXML()
+        case .get(let prop): return try prop.toXML()
+        case .set(let prop): return try prop.toXML()
+        case .update(let prop): return try prop.toXML()
+        case .define(let prop): return try prop.toXML()
         case .enableBlob(let prop): return try prop.toXML()
         }
     }
