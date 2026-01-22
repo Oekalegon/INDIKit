@@ -109,20 +109,36 @@ actor INDIXMLParser {
         
         guard let bufferString = String(data: buffer, encoding: .utf8) else {
             // Invalid UTF-8, skip this byte
+            let bufferSize = buffer.count
+            Self.logger.warning(
+                "Invalid UTF-8 data in buffer (size: \(bufferSize) bytes), skipping first byte"
+            )
             buffer.removeFirst()
             return nil
         }
         
-        // Trim leading whitespace
-        let trimmed = bufferString.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
+        // Find the start of the first XML element (skip leading whitespace)
+        let whitespaceChars = CharacterSet.whitespacesAndNewlines
+        guard let firstNonWhitespace = bufferString.rangeOfCharacter(from: whitespaceChars.inverted) else {
+            // Only whitespace, clear buffer
             buffer.removeAll()
             return nil
         }
         
+        let trimmedStart = firstNonWhitespace.lowerBound
+        let trimmed = String(bufferString[trimmedStart...])
+        
         // Find a complete XML element by tracking tag depth
         guard let elementRange = findCompleteXMLElement(in: trimmed) else {
             // No complete element found yet, wait for more data
+            // Log if buffer is getting large (might indicate a problem)
+            let bufferSize = buffer.count
+            if bufferSize > 64 * 1024 {
+                let preview = String(trimmed.prefix(200))
+                Self.logger.debug(
+                    "No complete XML element found yet (buffer: \(bufferSize) bytes). Preview: \(preview)..."
+                )
+            }
             return nil
         }
         
@@ -131,12 +147,25 @@ actor INDIXMLParser {
         // Try to parse this XML element
         guard let property = tryParseXML(xmlString) else {
             // Parsing failed, skip this element and continue
-            await removeFromBuffer(upTo: elementRange.upperBound, in: trimmed)
+            let xmlLength = xmlString.count
+            let preview = String(xmlString.prefix(200))
+            let message = "Failed to parse XML element (length: \(xmlLength) bytes). " +
+                "Skipping and continuing. Preview: \(preview)..."
+            Self.logger.warning("\(message)")
+            // Calculate the end position in the original bufferString
+            let endInTrimmed = elementRange.upperBound
+            let trimmedDistance = trimmed.distance(from: trimmed.startIndex, to: endInTrimmed)
+            let endInOriginal = bufferString.index(trimmedStart, offsetBy: trimmedDistance)
+            await removeFromBuffer(upTo: endInOriginal, in: bufferString)
             return nil
         }
         
         // Remove the parsed property from buffer
-        await removeFromBuffer(upTo: elementRange.upperBound, in: trimmed)
+        // Calculate the end position in the original bufferString
+        let endInTrimmed = elementRange.upperBound
+        let trimmedDistance = trimmed.distance(from: trimmed.startIndex, to: endInTrimmed)
+        let endInOriginal = bufferString.index(trimmedStart, offsetBy: trimmedDistance)
+        await removeFromBuffer(upTo: endInOriginal, in: bufferString)
         return property
     }
     
@@ -213,21 +242,66 @@ actor INDIXMLParser {
     ) -> Range<String.Index>? {
         // Extract the tag name from the opening tag
         guard let tagName = extractTagName(from: string, start: start) else {
+            let preview = String(string[start...].prefix(100))
+            Self.logger.debug(
+                "findCompleteElementWithClosingTag: failed to extract tag name. Preview: \(preview)..."
+            )
             return nil
         }
         
-        // Find the closing tag
+        // Track depth to find the matching closing tag
+        let openingTag = "<\(tagName)"
         let closingTag = "</\(tagName)>"
-        if let closingRange = string.range(of: closingTag, range: start..<string.endIndex) {
-            return start..<closingRange.upperBound
+        var depth = 0
+        var i = start
+        var inQuotes = false
+        var quoteChar: Character?
+        
+        while i < string.endIndex {
+            let char = string[i]
+            
+            // Track quotes to avoid matching tags inside attribute values
+            if !inQuotes && (char == "\"" || char == "'") {
+                inQuotes = true
+                quoteChar = char
+            } else if inQuotes && char == quoteChar {
+                inQuotes = false
+                quoteChar = nil
+            }
+            
+            if !inQuotes {
+                if string[i...].hasPrefix(openingTag) && isTagBoundary(string, at: i, tag: openingTag) {
+                    depth += 1
+                }
+                
+                if string[i...].hasPrefix(closingTag) {
+                    depth -= 1
+                    if depth == 0 {
+                        let tagEnd = string.index(i, offsetBy: closingTag.count)
+                        return start..<tagEnd
+                    }
+                }
+            }
+            
+            i = string.index(after: i)
         }
         
         return nil
     }
     
+    /// Check if a tag at the given position is actually a tag boundary
+    /// (followed by space, >, or /).
+    private func isTagBoundary(_ string: String, at index: String.Index, tag: String) -> Bool {
+        let afterTag = string.index(index, offsetBy: tag.count, limitedBy: string.endIndex) ?? string.endIndex
+        guard afterTag < string.endIndex else { return false }
+        let nextChar = string[afterTag]
+        return nextChar == ">" || nextChar == " " || nextChar == "/"
+    }
+    
     /// Extract the tag name from an opening XML tag.
     private func extractTagName(from string: String, start: String.Index) -> String? {
         guard start < string.endIndex && string[start] == "<" else {
+            Self.logger.debug("extractTagName: invalid start position or missing '<' character")
             return nil
         }
         
@@ -260,6 +334,10 @@ actor INDIXMLParser {
         }
         
         guard let end = tagNameEnd else {
+            let preview = String(string[start...].prefix(100))
+            Self.logger.warning(
+                "Failed to extract tag name: could not find tag name end. Preview: \(preview)..."
+            )
             return nil
         }
         
@@ -271,12 +349,20 @@ actor INDIXMLParser {
     private func removeFromBuffer(upTo index: String.Index, in string: String) async {
         let substring = String(string[string.startIndex..<index])
         guard let dataToRemove = substring.data(using: .utf8) else {
+            Self.logger.warning(
+                "removeFromBuffer: failed to convert substring to UTF-8 data. Buffer may become inconsistent."
+            )
             return
         }
         
         let bytesToRemove = dataToRemove.count
-        if buffer.count >= bytesToRemove {
+        let bufferSize = buffer.count
+        if bufferSize >= bytesToRemove {
             buffer.removeFirst(bytesToRemove)
+        } else {
+            let message = "removeFromBuffer: buffer size (\(bufferSize)) is less than " +
+                "bytes to remove (\(bytesToRemove)). Buffer may become inconsistent."
+            Self.logger.warning("\(message)")
         }
     }
     
