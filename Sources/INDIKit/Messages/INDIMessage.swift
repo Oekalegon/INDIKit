@@ -12,6 +12,7 @@ public enum INDIMessage: Sendable {
     case updateProperty(INDIUpdateProperty)
     case defineProperty(INDIDefineProperty)
     case enableBlob(INDIEnableBlob)
+    case serverMessage(INDIServerMessage)
     
     /// The operation type of this message.
     public var operation: INDIOperation {
@@ -21,6 +22,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.operation
         case .defineProperty(let prop): return prop.operation
         case .enableBlob(let prop): return prop.operation
+        case .serverMessage(let msg): return msg.operation
         }
     }
     
@@ -32,6 +34,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.diagnostics
         case .defineProperty(let prop): return prop.diagnostics
         case .enableBlob(let prop): return prop.diagnostics
+        case .serverMessage(let msg): return msg.diagnostics
         }
     }
     
@@ -43,6 +46,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.device
         case .defineProperty(let prop): return prop.device
         case .enableBlob(let prop): return prop.device
+        case .serverMessage(let msg): return msg.device
         }
     }
     
@@ -54,6 +58,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.name
         case .defineProperty(let prop): return prop.name
         case .enableBlob(let prop): return prop.name
+        case .serverMessage: return nil
         }
     }
     
@@ -65,6 +70,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.propertyType
         case .defineProperty(let prop): return prop.propertyType
         case .enableBlob: return nil
+        case .serverMessage: return nil
         }
     }
     
@@ -76,13 +82,14 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.values
         case .defineProperty(let prop): return prop.values
         case .enableBlob: return []
+        case .serverMessage: return []
         }
     }
     
     /// Group (only for update and define properties).
     public var group: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.group
         case .defineProperty(let prop): return prop.group
         }
@@ -91,7 +98,7 @@ public enum INDIMessage: Sendable {
     /// Label (only for update and define properties).
     public var label: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.label
         case .defineProperty(let prop): return prop.label
         }
@@ -100,7 +107,7 @@ public enum INDIMessage: Sendable {
     /// Permissions (only for update and define properties).
     public var permissions: INDIPropertyPermissions? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.permissions
         case .defineProperty(let prop): return prop.permissions
         }
@@ -109,7 +116,7 @@ public enum INDIMessage: Sendable {
     /// State (only for update and define properties).
     public var state: INDIState? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.state
         case .defineProperty(let prop): return prop.state
         }
@@ -118,7 +125,7 @@ public enum INDIMessage: Sendable {
     /// Timeout (only for update and define properties).
     public var timeout: Double? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.timeout
         case .defineProperty(let prop): return prop.timeout
         }
@@ -130,13 +137,14 @@ public enum INDIMessage: Sendable {
         case .getProperties, .setProperty, .enableBlob: return nil
         case .updateProperty(let prop): return prop.timeStamp
         case .defineProperty(let prop): return prop.timeStamp
+        case .serverMessage(let msg): return msg.timeStamp
         }
     }
     
     /// Rule for switch properties (only for update and define toggle properties).
     public var rule: INDISwitchRule? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.rule
         case .defineProperty(let prop): return prop.rule
         }
@@ -145,7 +153,7 @@ public enum INDIMessage: Sendable {
     /// Format for blob properties (only for update and define blob properties).
     public var format: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
         case .updateProperty(let prop): return prop.format
         case .defineProperty(let prop): return prop.format
         }
@@ -154,7 +162,7 @@ public enum INDIMessage: Sendable {
     /// BLOB sending state (only for enableBLOB properties).
     public var blobSendingState: BLOBSendingState? {
         switch self {
-        case .getProperties, .setProperty, .updateProperty, .defineProperty: return nil
+        case .getProperties, .setProperty, .updateProperty, .defineProperty, .serverMessage: return nil
         case .enableBlob(let prop): return prop.blobSendingState
         }
     }
@@ -163,7 +171,15 @@ public enum INDIMessage: Sendable {
     public var version: String? {
         switch self {
         case .getProperties(let prop): return prop.version
-        case .setProperty, .updateProperty, .defineProperty, .enableBlob: return nil
+        case .setProperty, .updateProperty, .defineProperty, .enableBlob, .serverMessage: return nil
+        }
+    }
+    
+    /// Message text (only for server messages).
+    public var messageText: String? {
+        switch self {
+        case .serverMessage(let msg): return msg.message
+        case .getProperties, .setProperty, .updateProperty, .defineProperty, .enableBlob: return nil
         }
     }
     
@@ -229,7 +245,14 @@ public enum INDIMessage: Sendable {
                 return nil
             }
             
-        case .message, .ping, .pingReply, .delete:
+        case .message:
+            if let serverMessage = INDIServerMessage(xmlNode: xmlNode) {
+                self = .serverMessage(serverMessage)
+            } else {
+                return nil
+            }
+            
+        case .ping, .pingReply, .delete:
             // These operations are not yet supported
             return nil
         }
@@ -246,6 +269,7 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return try prop.toXML()
         case .defineProperty(let prop): return try prop.toXML()
         case .enableBlob(let prop): return try prop.toXML()
+        case .serverMessage(let msg): return try msg.toXML()
         }
     }
 }

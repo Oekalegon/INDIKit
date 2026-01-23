@@ -38,11 +38,11 @@ public struct INDISetProperty: INDICommand, Sendable {
     
     /// Parse a set property message from XML.
     init?(xmlNode: XMLNodeRepresentation) {
-        guard let op = Self.extractOperation(from: xmlNode.name), op == .set else {
+        guard let op = INDIParsingHelpers.extractOperation(from: xmlNode.name), op == .set else {
             return nil
         }
         
-        guard let propType = Self.extractPropertyType(from: xmlNode.name) else {
+        guard let propType = INDIParsingHelpers.extractPropertyType(from: xmlNode.name) else {
             Self.logger.warning(
                 "Failed to parse INDI set property: could not extract property type from element '\(xmlNode.name)'"
             )
@@ -54,7 +54,7 @@ public struct INDISetProperty: INDICommand, Sendable {
         self.propertyType = propType
         self.device = attrs["device"] ?? "UNKNOWN"
         let nameString = attrs["name"] ?? "UNKNOWN"
-        self.name = Self.extractProperty(from: nameString)
+        self.name = INDIParsingHelpers.extractProperty(from: nameString)
         
         // Parse child elements into INDIValue objects
         var parsedValues: [INDIValue] = []
@@ -125,20 +125,5 @@ public struct INDISetProperty: INDICommand, Sendable {
         
         return xml
     }
-    
-    // MARK: - Private Helpers
-    
-    private static func extractOperation(from elementName: String) -> INDIOperation? {
-        INDIOperation(elementName: elementName) ?? .update
-    }
-    
-    private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {
-        INDIPropertyType(elementName: elementName) ?? .text
-    }
-    
-    private static func extractProperty(from name: String) -> INDIPropertyName {
-        INDIPropertyName(indiName: name)
-    }
 }
-
 

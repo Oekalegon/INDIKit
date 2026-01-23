@@ -42,7 +42,7 @@ public struct INDIEnableBlob: INDICommand, Sendable {
         // Set to "UNKNOWN" if missing so validation can run
         self.device = attrs["device"] ?? "UNKNOWN"
         let nameString = attrs["name"] ?? "UNKNOWN"
-        self.name = Self.extractProperty(from: nameString)
+        self.name = INDIParsingHelpers.extractProperty(from: nameString)
         
         // Parse blob sending state from state attribute
         if let stateString = attrs["state"], let blobState = BLOBSendingState(rawValue: stateString) {
@@ -97,11 +97,5 @@ public struct INDIEnableBlob: INDICommand, Sendable {
         xml += "/>"
         
         return xml
-    }
-    
-    // MARK: - Private Helpers
-    
-    private static func extractProperty(from name: String) -> INDIPropertyName {
-        INDIPropertyName(indiName: name)
     }
 }

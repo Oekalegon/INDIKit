@@ -44,5 +44,10 @@ enum INDIDiagnosticsTestHelpers {
     static func hasAnyError(_ diagnostics: [INDIDiagnostics]) -> Bool {
         diagnostics.contains { if case .error = $0 { return true }; return false }
     }
+    
+    /// Check if diagnostics contain any warning
+    static func hasAnyWarning(_ diagnostics: [INDIDiagnostics]) -> Bool {
+        diagnostics.contains { if case .warning = $0 { return true }; return false }
+    }
 }
 

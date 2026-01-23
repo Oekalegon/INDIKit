@@ -41,7 +41,7 @@ public struct INDIGetProperties: INDICommand, Sendable {
         let attrs = xmlNode.attributes
         self.device = attrs["device"]
         if let nameString = attrs["name"] {
-            self.name = Self.extractProperty(from: nameString)
+            self.name = INDIParsingHelpers.extractProperty(from: nameString)
         } else {
             self.name = nil
         }
@@ -93,12 +93,4 @@ public struct INDIGetProperties: INDICommand, Sendable {
         xml += "/>"
         return xml
     }
-    
-    // MARK: - Private Helpers
-    
-    private static func extractProperty(from name: String) -> INDIPropertyName {
-        INDIPropertyName(indiName: name)
-    }
 }
-
-

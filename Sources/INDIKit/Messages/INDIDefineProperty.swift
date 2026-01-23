@@ -106,11 +106,11 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
     
     /// Parse a define property message from XML.
     init?(xmlNode: XMLNodeRepresentation) {
-        guard let op = Self.extractOperation(from: xmlNode.name), op == .define else {
+        guard let op = INDIParsingHelpers.extractOperation(from: xmlNode.name), op == .define else {
             return nil
         }
         
-        guard let propType = Self.extractPropertyType(from: xmlNode.name) else {
+        guard let propType = INDIParsingHelpers.extractPropertyType(from: xmlNode.name) else {
             Self.logger.warning(
                 "Failed to parse INDI define property: could not extract property type from element '\(xmlNode.name)'"
             )
@@ -122,13 +122,13 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         self.propertyType = propType
         self.device = attrs["device"] ?? "UNKNOWN"
         let nameString = attrs["name"] ?? "UNKNOWN"
-        self.name = Self.extractProperty(from: nameString)
+        self.name = INDIParsingHelpers.extractProperty(from: nameString)
         self.group = attrs["group"]
         self.label = attrs["label"]
-        self.permissions = attrs["perm"].map { Self.extractPermissions(from: $0) }
-        self.state = attrs["state"].map { Self.extractState(from: $0) }
-        self.timeout = Self.extractTimeout(from: attrs["timeout"])
-        self.timeStamp = Self.extractTimestamp(from: attrs["timestamp"])
+        self.permissions = attrs["perm"].map { INDIParsingHelpers.extractPermissions(from: $0) }
+        self.state = attrs["state"].map { INDIParsingHelpers.extractState(from: $0) }
+        self.timeout = INDIParsingHelpers.extractTimeout(from: attrs["timeout"])
+        self.timeStamp = INDIParsingHelpers.extractTimestamp(from: attrs["timestamp"])
         self.rule = attrs["rule"].flatMap { INDISwitchRule(indiValue: $0) }
         self.format = attrs["format"]
         
@@ -315,50 +315,5 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         xml += "\n</\(elementName)>"
         
         return xml
-    }
-    
-    // MARK: - Private Helpers
-    
-    private static func extractOperation(from elementName: String) -> INDIOperation? {
-        INDIOperation(elementName: elementName) ?? .update
-    }
-    
-    private static func extractPropertyType(from elementName: String) -> INDIPropertyType? {
-        INDIPropertyType(elementName: elementName) ?? .text
-    }
-    
-    private static func extractProperty(from name: String) -> INDIPropertyName {
-        INDIPropertyName(indiName: name)
-    }
-    
-    private static func extractPermissions(from permString: String) -> INDIPropertyPermissions {
-        INDIPropertyPermissions(indiValue: permString)
-    }
-    
-    private static func extractState(from stateString: String) -> INDIState {
-        INDIState(indiValue: stateString)
-    }
-    
-    private static func extractTimeout(from timeoutString: String?) -> Double? {
-        guard let timeoutString, let timeoutValue = Double(timeoutString) else {
-            return nil
-        }
-        return timeoutValue
-    }
-    
-    private static func extractTimestamp(from timestampString: String?) -> Date? {
-        guard let timestampString else {
-            return nil
-        }
-        
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: timestampString) {
-            return date
-        }
-        if let unixTimestamp = Double(timestampString) {
-            return Date(timeIntervalSince1970: unixTimestamp)
-        }
-        return nil
     }
 }
