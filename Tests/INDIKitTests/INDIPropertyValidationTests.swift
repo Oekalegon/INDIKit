@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import INDIKit
+@testable import INDIProtocol
 
 @Suite("INDI Property Validation Tests")
 struct INDIPropertyValidationTests {

@@ -1,5 +1,5 @@
 import Testing
-@testable import INDIKit
+@testable import INDIProtocol
 
 /// Shared test helpers for checking diagnostics across test suites.
 enum INDIDiagnosticsTestHelpers {

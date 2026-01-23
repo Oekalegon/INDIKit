@@ -1,5 +1,5 @@
 import Foundation
-import INDIKit
+import INDIProtocol
 
 @main
 struct INDIKitCLI {

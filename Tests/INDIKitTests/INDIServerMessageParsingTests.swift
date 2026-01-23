@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import INDIKit
+@testable import INDIProtocol
 
 @Suite("INDI Server Message Parsing Tests")
 struct INDIServerMessageParsingTests {
