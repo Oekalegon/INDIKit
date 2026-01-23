@@ -13,6 +13,9 @@ public enum INDIMessage: Sendable {
     case defineProperty(INDIDefineProperty)
     case enableBlob(INDIEnableBlob)
     case serverMessage(INDIServerMessage)
+    case deleteProperty(INDIDeleteProperty)
+    case ping(INDIPing)
+    case pingReply(INDIPingReply)
     
     /// The operation type of this message.
     public var operation: INDIOperation {
@@ -23,6 +26,9 @@ public enum INDIMessage: Sendable {
         case .defineProperty(let prop): return prop.operation
         case .enableBlob(let prop): return prop.operation
         case .serverMessage(let msg): return msg.operation
+        case .deleteProperty(let prop): return prop.operation
+        case .ping(let ping): return ping.operation
+        case .pingReply(let reply): return reply.operation
         }
     }
     
@@ -35,6 +41,9 @@ public enum INDIMessage: Sendable {
         case .defineProperty(let prop): return prop.diagnostics
         case .enableBlob(let prop): return prop.diagnostics
         case .serverMessage(let msg): return msg.diagnostics
+        case .deleteProperty(let prop): return prop.diagnostics
+        case .ping(let ping): return ping.diagnostics
+        case .pingReply(let reply): return reply.diagnostics
         }
     }
     
@@ -47,6 +56,8 @@ public enum INDIMessage: Sendable {
         case .defineProperty(let prop): return prop.device
         case .enableBlob(let prop): return prop.device
         case .serverMessage(let msg): return msg.device
+        case .deleteProperty(let prop): return prop.device
+        case .ping, .pingReply: return nil
         }
     }
     
@@ -58,38 +69,35 @@ public enum INDIMessage: Sendable {
         case .updateProperty(let prop): return prop.name
         case .defineProperty(let prop): return prop.name
         case .enableBlob(let prop): return prop.name
-        case .serverMessage: return nil
+        case .serverMessage, .ping, .pingReply: return nil
+        case .deleteProperty(let prop): return prop.name
         }
     }
     
     /// Property type (nil for getProperties and enableBLOB, required for others).
     public var propertyType: INDIPropertyType? {
         switch self {
-        case .getProperties: return nil
+        case .getProperties, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .setProperty(let prop): return prop.propertyType
         case .updateProperty(let prop): return prop.propertyType
         case .defineProperty(let prop): return prop.propertyType
-        case .enableBlob: return nil
-        case .serverMessage: return nil
         }
     }
     
     /// The parsed values contained in this property (empty for getProperties and enableBLOB).
     public var values: [INDIValue] {
         switch self {
-        case .getProperties: return []
+        case .getProperties, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return []
         case .setProperty(let prop): return prop.values
         case .updateProperty(let prop): return prop.values
         case .defineProperty(let prop): return prop.values
-        case .enableBlob: return []
-        case .serverMessage: return []
         }
     }
     
     /// Group (only for update and define properties).
     public var group: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.group
         case .defineProperty(let prop): return prop.group
         }
@@ -98,7 +106,7 @@ public enum INDIMessage: Sendable {
     /// Label (only for update and define properties).
     public var label: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.label
         case .defineProperty(let prop): return prop.label
         }
@@ -107,7 +115,7 @@ public enum INDIMessage: Sendable {
     /// Permissions (only for update and define properties).
     public var permissions: INDIPropertyPermissions? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.permissions
         case .defineProperty(let prop): return prop.permissions
         }
@@ -116,7 +124,7 @@ public enum INDIMessage: Sendable {
     /// State (only for update and define properties).
     public var state: INDIState? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.state
         case .defineProperty(let prop): return prop.state
         }
@@ -125,7 +133,7 @@ public enum INDIMessage: Sendable {
     /// Timeout (only for update and define properties).
     public var timeout: Double? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.timeout
         case .defineProperty(let prop): return prop.timeout
         }
@@ -134,7 +142,7 @@ public enum INDIMessage: Sendable {
     /// Timestamp (only for update and define properties).
     public var timeStamp: Date? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .enableBlob, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.timeStamp
         case .defineProperty(let prop): return prop.timeStamp
         case .serverMessage(let msg): return msg.timeStamp
@@ -144,7 +152,7 @@ public enum INDIMessage: Sendable {
     /// Rule for switch properties (only for update and define toggle properties).
     public var rule: INDISwitchRule? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.rule
         case .defineProperty(let prop): return prop.rule
         }
@@ -153,7 +161,7 @@ public enum INDIMessage: Sendable {
     /// Format for blob properties (only for update and define blob properties).
     public var format: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.format
         case .defineProperty(let prop): return prop.format
         }
@@ -162,7 +170,8 @@ public enum INDIMessage: Sendable {
     /// BLOB sending state (only for enableBLOB properties).
     public var blobSendingState: BLOBSendingState? {
         switch self {
-        case .getProperties, .setProperty, .updateProperty, .defineProperty, .serverMessage: return nil
+        case .getProperties, .setProperty, .updateProperty, .defineProperty,
+             .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .enableBlob(let prop): return prop.blobSendingState
         }
     }
@@ -171,7 +180,8 @@ public enum INDIMessage: Sendable {
     public var version: String? {
         switch self {
         case .getProperties(let prop): return prop.version
-        case .setProperty, .updateProperty, .defineProperty, .enableBlob, .serverMessage: return nil
+        case .setProperty, .updateProperty, .defineProperty, .enableBlob,
+             .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         }
     }
     
@@ -179,7 +189,8 @@ public enum INDIMessage: Sendable {
     public var messageText: String? {
         switch self {
         case .serverMessage(let msg): return msg.message
-        case .getProperties, .setProperty, .updateProperty, .defineProperty, .enableBlob: return nil
+        case .getProperties, .setProperty, .updateProperty, .defineProperty,
+             .enableBlob, .deleteProperty, .ping, .pingReply: return nil
         }
     }
     
@@ -252,9 +263,23 @@ public enum INDIMessage: Sendable {
                 return nil
             }
             
-        case .ping, .pingReply, .delete:
-            // These operations are not yet supported
+        case .delete:
+            if let deleteProperty = INDIDeleteProperty(xmlNode: xmlNode) {
+                self = .deleteProperty(deleteProperty)
+            } else {
+                return nil
+            }
+            
+        case .ping:
+            // Ping messages are send-only, cannot be parsed from XML
             return nil
+            
+        case .pingReply:
+            if let pingReply = INDIPingReply(xmlNode: xmlNode) {
+                self = .pingReply(pingReply)
+            } else {
+                return nil
+            }
         }
     }
     
@@ -270,6 +295,15 @@ public enum INDIMessage: Sendable {
         case .defineProperty(let prop): return try prop.toXML()
         case .enableBlob(let prop): return try prop.toXML()
         case .serverMessage(let msg): return try msg.toXML()
+        case .ping(let ping): return try ping.toXML()
+        case .deleteProperty, .pingReply:
+            // These messages are receive-only and cannot be serialized
+            let errorMessage = "\(operation.rawValue) messages cannot be serialized"
+            throw NSError(
+                domain: "INDIKit",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: errorMessage]
+            )
         }
     }
 }
