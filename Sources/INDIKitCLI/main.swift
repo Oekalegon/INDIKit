@@ -6,15 +6,7 @@ struct INDIKitCLI {
     static func main() async {
         let arguments = CommandLine.arguments
 
-        guard arguments.count == 3 else {
-            print("Usage: \(arguments[0]) <host> <port>")
-            print("Example: \(arguments[0]) localhost 7624")
-            exit(1)
-        }
-
-        let host = arguments[1]
-        guard let port = UInt16(arguments[2]) else {
-            print("Error: Invalid port number '\(arguments[2])'")
+        guard let (host, port) = parseArguments(arguments) else {
             exit(1)
         }
 
@@ -24,55 +16,15 @@ struct INDIKitCLI {
         print("Connecting to INDI server at \(host):\(port)...")
 
         do {
-            // Establish the connection (will throw if it fails)
             _ = try await server.connect()
-
             print("Connected! Sending INDI handshake and listening for messages...")
             print("Type additional messages to send (or press Ctrl+C to disconnect):\n")
 
-            // Send INDI handshake to start receiving property updates
-            do {
-                try await server.sendHandshake()
-            } catch {
-                print("(Error sending handshake: \(error.localizedDescription))")
-            }
-
-            // Set up async task to read from stdin and send messages (non-blocking)
-            Task.detached(priority: .userInitiated) {
-                while let line = readLine() {
-                    let message = line + "\n"
-                    do {
-                        try await server.send(Data(message.utf8))
-                        print("(Sent: \(message.trimmingCharacters(in: .whitespacesAndNewlines)))")
-                    } catch {
-                        print("(Error sending message: \(error.localizedDescription))")
-                    }
-                }
-            }
-
-            // Set up async task to print raw data stream (for debugging)
-            Task.detached(priority: .userInitiated) {
-                if let rawStream = await server.rawDataMessages() {
-                    do {
-                        for try await data in rawStream {
-                            if let string = String(data: data, encoding: .utf8) {
-                                let escaped = string
-                                    .replacingOccurrences(of: "\n", with: "\\n")
-                                    .replacingOccurrences(of: "\r", with: "\\r")
-                                print("(RAW: \(escaped))")
-                            } else {
-                                print("(RAW: <\(data.count) bytes of non-UTF8 data>)")
-                            }
-                        }
-                    } catch {
-                        // Stream ended or error occurred
-                    }
-                }
-            }
+            sendHandshake(server: server)
+            setupStdinReader(server: server)
+            setupRawDataPrinter(server: server)
             
-            // Parse and print INDI Properties
             let propertyStream = try await server.messages()
-            
             for try await property in propertyStream {
                 print("Parsed INDI Message:")
                 printMessage(property)
@@ -82,6 +34,69 @@ struct INDIKitCLI {
         } catch {
             print("\nError connecting to INDI server: \(error.localizedDescription)")
             exit(1)
+        }
+    }
+    
+    // MARK: - Setup Helpers
+    
+    private static func parseArguments(_ arguments: [String]) -> (host: String, port: UInt16)? {
+        guard arguments.count == 3 else {
+            print("Usage: \(arguments[0]) <host> <port>")
+            print("Example: \(arguments[0]) localhost 7624")
+            return nil
+        }
+
+        let host = arguments[1]
+        guard let port = UInt16(arguments[2]) else {
+            print("Error: Invalid port number '\(arguments[2])'")
+            return nil
+        }
+        
+        return (host, port)
+    }
+    
+    private static func sendHandshake(server: INDIServer) {
+        Task.detached(priority: .userInitiated) {
+            do {
+                try await server.sendHandshake()
+            } catch {
+                print("(Error sending handshake: \(error.localizedDescription))")
+            }
+        }
+    }
+    
+    private static func setupStdinReader(server: INDIServer) {
+        Task.detached(priority: .userInitiated) {
+            while let line = readLine() {
+                let message = line + "\n"
+                do {
+                    try await server.send(Data(message.utf8))
+                    print("(Sent: \(message.trimmingCharacters(in: .whitespacesAndNewlines)))")
+                } catch {
+                    print("(Error sending message: \(error.localizedDescription))")
+                }
+            }
+        }
+    }
+    
+    private static func setupRawDataPrinter(server: INDIServer) {
+        Task.detached(priority: .userInitiated) {
+            if let rawStream = await server.rawDataMessages() {
+                do {
+                    for try await data in rawStream {
+                        if let string = String(data: data, encoding: .utf8) {
+                            let escaped = string
+                                .replacingOccurrences(of: "\n", with: "\\n")
+                                .replacingOccurrences(of: "\r", with: "\\r")
+                            print("(RAW: \(escaped))")
+                        } else {
+                            print("(RAW: <\(data.count) bytes of non-UTF8 data>)")
+                        }
+                    }
+                } catch {
+                    // Stream ended or error occurred
+                }
+            }
         }
     }
     

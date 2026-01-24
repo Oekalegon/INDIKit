@@ -126,4 +126,3 @@ public struct INDISetProperty: INDICommand, Sendable {
         return xml
     }
 }
-

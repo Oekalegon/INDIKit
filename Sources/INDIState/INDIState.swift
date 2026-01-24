@@ -9,4 +9,3 @@ import INDIProtocol
 public enum INDIState {
     // Placeholder - to be implemented
 }
-

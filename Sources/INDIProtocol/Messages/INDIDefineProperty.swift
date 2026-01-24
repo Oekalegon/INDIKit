@@ -20,7 +20,7 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
     public let group: String?
     public let label: String?
     public let permissions: INDIPropertyPermissions?
-    public let state: INDIState?
+    public let state: INDIStatus?
     public let timeout: Double?
     public let timeStamp: Date?
     public let rule: INDISwitchRule?
@@ -53,7 +53,7 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         group: String? = nil,
         label: String? = nil,
         permissions: INDIPropertyPermissions? = nil,
-        state: INDIState? = nil,
+        state: INDIStatus? = nil,
         timeout: Double? = nil,
         timeStamp: Date? = nil,
         rule: INDISwitchRule? = nil,

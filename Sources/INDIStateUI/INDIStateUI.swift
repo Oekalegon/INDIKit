@@ -1,7 +1,7 @@
 import Foundation
-import SwiftUI
 import INDIProtocol
 import INDIState
+import SwiftUI
 
 /// INDIStateUI provides SwiftUI wrappers for INDI state management.
 ///
@@ -11,4 +11,3 @@ import INDIState
 public enum INDIStateUI {
     // Placeholder - to be implemented
 }
-

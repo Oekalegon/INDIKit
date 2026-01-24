@@ -45,7 +45,7 @@ public struct INDIValue: Sendable {
         case text(String)
         case number(Double)
         case boolean(Bool)
-        case state(INDIState)  // State value for light properties: Idle, Ok, Busy, or Alert
+        case state(INDIStatus)  // State value for light properties: Idle, Ok, Busy, or Alert
         case blob(Data)
     }
     
@@ -99,97 +99,35 @@ public struct INDIValue: Sendable {
     /// - Parameter propertyName: The name of the parent property (used to validate the value name).
     ///   When parsing from XML, this should always be provided (even if unknown, it will be `.other("UNKNOWN")`).
     init?(xmlNode: XMLNodeRepresentation, propertyType: INDIPropertyType, propertyName: INDIPropertyName) {
-        // Initialize diagnostics array at the start
         self.diagnostics = []
-        
         let attrs = xmlNode.attributes
         
-        // Extract required name
-        guard let nameString = attrs["name"] else {
-            let elementName = xmlNode.name
-            let propType = propertyType.rawValue
-            let message = "Failed to parse INDI value: missing 'name' attribute in element " +
-                "'\(elementName)' for property type '\(propType)'"
-            Self.logger.warning("\(message)")
+        // Extract and validate name
+        guard let valueName = Self.extractName(
+            from: attrs,
+            elementName: xmlNode.name,
+            propertyType: propertyType
+        ) else {
             return nil
         }
-        let valueName = INDIPropertyValueName(indiName: nameString)
         self.name = valueName
         
-        // Validate value name (only if property is known)
-        if case .other = propertyName {
-            // Property is unknown, so we can't validate value names - skip all validation
-        } else {
-            // Property is known, so we can validate value names
-            // Check if value name is expected for this property
-            if let expectedNames = valueName.expectedValueNames(for: propertyName) {
-                if !expectedNames.contains(where: { $0.indiName == valueName.indiName }) {
-                    let expectedList = expectedNames.map { $0.indiName }.joined(separator: ", ")
-                    let message = "Value name '\(valueName.indiName)' is not expected for property " +
-                        "'\(propertyName.indiName)'. Expected: \(expectedList)"
-                    INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
-                }
-            } else {
-                // If there are no expected value names, check if the value name is unknown,
-                // if it is unknown, log a note
-                if case .other(let unknownName) = valueName {
-                    let message = "Unknown value name '\(unknownName)'"
-                    INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &self.diagnostics)
-                } else {
-                    // If it is however a known value name, but not expected for this property, 
-                    // log a warning
-                    let message = "Value name '\(valueName.indiName)' is not expected for property " +
-                        "'\(propertyName.indiName)'"
-                    INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &self.diagnostics)
-                }
-            }
-        }
+        // Validate value name against property name
+        Self.validateValueName(valueName, for: propertyName, diagnostics: &self.diagnostics)
         
         // Extract optional metadata
-        self.label = attrs["label"]
-        self.format = attrs["format"]
+        let metadata = Self.extractMetadata(from: attrs, diagnostics: &self.diagnostics)
+        self.label = metadata.label
+        self.format = metadata.format
+        self.min = metadata.min
+        self.max = metadata.max
+        self.step = metadata.step
+        self.unit = metadata.unit
+        self.size = metadata.size
+        self.compressed = metadata.compressed
         
-        if let minString = attrs["min"], let minValue = Double(minString) {
-            self.min = minValue
-        } else {
-            self.min = nil
-        }
-        
-        if let maxString = attrs["max"], let maxValue = Double(maxString) {
-            self.max = maxValue
-        } else {
-            self.max = nil
-        }
-        
-        // Validate that min <= max if both are available
-        if let minValue = self.min, let maxValue = self.max, minValue > maxValue {
-            let message = "Minimum value \(minValue) is greater than maximum value \(maxValue)"
-            INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &self.diagnostics)
-        }
-        
-        if let stepString = attrs["step"], let stepValue = Double(stepString) {
-            self.step = stepValue
-        } else {
-            self.step = nil
-        }
-        
-        self.unit = attrs["unit"]
-        
-        if let sizeString = attrs["size"], let sizeValue = Int(sizeString) {
-            self.size = sizeValue
-        } else {
-            self.size = nil
-        }
-        
-        if let compressedString = attrs["compressed"] {
-            self.compressed = Self.parseBoolean(
-                from: compressedString,
-                context: "for 'compressed' attribute",
-                diagnostics: &self.diagnostics
-            )
-        } else {
-            self.compressed = nil
-        }
+        // Validate min/max relationship
+        Self.validateMinMax(min: self.min, max: self.max, diagnostics: &self.diagnostics)
         
         // Parse the actual value from text content
         self.value = Self.parseValue(
@@ -201,6 +139,72 @@ public struct INDIValue: Sendable {
         )
         
         validate(attrs: attrs, propertyType: propertyType)
+    }
+    
+    // MARK: - XML Parsing Helpers
+    
+    /// Metadata extracted from XML attributes.
+    private struct ExtractedMetadata {
+        let label: String?
+        let format: String?
+        let min: Double?
+        let max: Double?
+        let step: Double?
+        let unit: String?
+        let size: Int?
+        let compressed: Bool?
+    }
+    
+    /// Extract and validate the name attribute from XML attributes.
+    private static func extractName(
+        from attrs: [String: String],
+        elementName: String,
+        propertyType: INDIPropertyType
+    ) -> INDIPropertyValueName? {
+        guard let nameString = attrs["name"] else {
+            let propType = propertyType.rawValue
+            let message = "Failed to parse INDI value: missing 'name' attribute in element " +
+                "'\(elementName)' for property type '\(propType)'"
+            Self.logger.warning("\(message)")
+            return nil
+        }
+        return INDIPropertyValueName(indiName: nameString)
+    }
+    
+    /// Extract optional metadata attributes from XML.
+    private static func extractMetadata(
+        from attrs: [String: String],
+        diagnostics: inout [INDIDiagnostics]
+    ) -> ExtractedMetadata {
+        let label = attrs["label"]
+        let format = attrs["format"]
+        let min = Double(attrs["min"] ?? "")
+        let max = Double(attrs["max"] ?? "")
+        let step = Double(attrs["step"] ?? "")
+        let unit = attrs["unit"]
+        let size = Int(attrs["size"] ?? "")
+        
+        let compressed: Bool?
+        if let compressedString = attrs["compressed"] {
+            compressed = parseBoolean(
+                from: compressedString,
+                context: "for 'compressed' attribute",
+                diagnostics: &diagnostics
+            )
+        } else {
+            compressed = nil
+        }
+        
+        return ExtractedMetadata(
+            label: label,
+            format: format,
+            min: min,
+            max: max,
+            step: step,
+            unit: unit,
+            size: size,
+            compressed: compressed
+        )
     }
     
     /// Parse a value from text content based on property type.
@@ -284,24 +288,24 @@ public struct INDIValue: Sendable {
     private static func parseLightState(
         from text: String,
         diagnostics: inout [INDIDiagnostics]
-    ) -> INDIState {
+    ) -> INDIStatus {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Try exact match first (most common case)
-        if let found = INDIState.allCases.first(where: { $0.indiValue == trimmed }) {
+        if let found = INDIStatus.allCases.first(where: { $0.indiValue == trimmed }) {
             return found
         }
         
         // Try case-insensitive match
         let normalized = trimmed.lowercased()
-        if let found = INDIState.allCases.first(where: { $0.indiValue.lowercased() == normalized }) {
+        if let found = INDIStatus.allCases.first(where: { $0.indiValue.lowercased() == normalized }) {
             let message = "Found light state with wrong capitalization: '\(trimmed)'"
             INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &diagnostics)
             return found
         }
         
         // Invalid state - log warning and return default
-        let expectedStates = INDIState.allCases.map { $0.indiValue }.joined(separator: "', '")
+        let expectedStates = INDIStatus.allCases.map { $0.indiValue }.joined(separator: "', '")
         let message = "Invalid light state: '\(trimmed)'. " +
             "Expected '\(expectedStates)'"
         INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &diagnostics)
@@ -324,6 +328,62 @@ public struct INDIValue: Sendable {
     ///
     /// But still validates:
     /// - min <= max if both are provided
+}
+
+// MARK: - Validation
+
+extension INDIValue {
+    /// Validate that min <= max if both are available.
+    private static func validateMinMax(
+        min: Double?,
+        max: Double?,
+        diagnostics: inout [INDIDiagnostics]
+    ) {
+        guard let minValue = min, let maxValue = max, minValue > maxValue else {
+            return
+        }
+        let message = "Minimum value \(minValue) is greater than maximum value \(maxValue)"
+        INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &diagnostics)
+    }
+    
+    /// Validate value name against property name expectations.
+    private static func validateValueName(
+        _ valueName: INDIPropertyValueName,
+        for propertyName: INDIPropertyName,
+        diagnostics: inout [INDIDiagnostics]
+    ) {
+        // Skip validation if property is unknown
+        if case .other = propertyName {
+            return
+        }
+        
+        // Property is known, so we can validate value names
+        guard let expectedNames = valueName.expectedValueNames(for: propertyName) else {
+            // No expected names defined - check if value name is unknown
+            if case .other(let unknownName) = valueName {
+                let message = "Unknown value name '\(unknownName)'"
+                INDIDiagnostics.logNote(message, logger: Self.logger, diagnostics: &diagnostics)
+            } else {
+                let message = "Value name '\(valueName.indiName)' is not expected for property " +
+                    "'\(propertyName.indiName)'"
+                INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &diagnostics)
+            }
+            return
+        }
+        
+        // Check if value name is in expected list
+        if !expectedNames.contains(where: { $0.indiName == valueName.indiName }) {
+            let expectedList = expectedNames.map { $0.indiName }.joined(separator: ", ")
+            let message = "Value name '\(valueName.indiName)' is not expected for property " +
+                "'\(propertyName.indiName)'. Expected: \(expectedList)"
+            INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &diagnostics)
+        }
+    }
+    
+    /// Validate programmatically created value.
+    ///
+    /// Checks:
+    /// - Min/max relationship
     /// - Type-specific attribute usage (format for number/blob, min/max/step/unit for number, size/compressed for blob)
     private mutating func validateProgrammatic(propertyType: INDIPropertyType) {
         // Validate that min <= max if both are available

@@ -518,10 +518,10 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
         case .slew: return "SLEW"
         case .track: return "TRACK"
         case .synchronize: return "SYNC"
-        case .motionNorth: return "MOTION_N"
-        case .motionSouth: return "MOTION_S"
-        case .motionWest: return "MOTION_W"
-        case .motionEast: return "MOTION_E"
+        case .motionNorth: return "MOTION_NORTH"
+        case .motionSouth: return "MOTION_SOUTH"
+        case .motionWest: return "MOTION_WEST"
+        case .motionEast: return "MOTION_EAST"
         case .timedGuideNorth: return "TIMED_GUIDE_N"
         case .timedGuideSouth: return "TIMED_GUIDE_S"
         case .timedGuideWest: return "TIMED_GUIDE_W"
@@ -579,49 +579,49 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
         }
     }
 
+    private static let expectedValueNamesMap: [INDIPropertyName: [INDIPropertyValueName]] = [
+        .connection: [.connect, .disconnect],
+        .devicePort: [.port],
+        .localSideralTime: [.localSideralTime],
+        .universalTime: [.universalTime, .offset],
+        .geographicCoordinates: [.latitude, .longitude, .elevation],
+        .atmosphere: [.temperature, .pressure, .humidity],
+        .uploadMode: [.uploadClient, .uploadLocal, .uploadBoth],
+        .uploadSettings: [.uploadDirectory, .uploadPrefix],
+        .activeDevices: [.activeTelescope, .activeCamera, .activeFilterWheel, .activeFocuser, .activeDome, .activeGPS],
+        .equatorialCoordinatesJ2000: [.rightAscension, .declination],
+        .equatorialCoordinatesEpoch: [.rightAscension, .declination],
+        .targetEquatorialCoordinatesEpoch: [.rightAscension, .declination],
+        .horizontalCoordinates: [.azimuth, .altitude],
+        .telescopeActionOnCoordinatesSet: [.slew, .track, .synchronize],
+        .telescopeMotionNorthSouth: [.motionNorth, .motionSouth],
+        .telescopeMotionWestEast: [.motionWest, .motionEast],
+        .telescopeTimedGuideNorthSouth: [.timedGuideNorth, .timedGuideSouth],
+        .telescopeTimedGuideWestEast: [.timedGuideWest, .timedGuideEast],
+        .telescopeSlewRate: [.slewRateGuide, .slewRateCentering, .slewRateFind, .slewRateMaximum],
+        .telescopePark: [.park, .unpark],
+        .telescopeParkPosition: [.parkRightAscension, .parkDeclination, .parkAzimuth, .parkAltitude],
+        .telescopeParkOption: [.parkCurrentPosition, .parkDefaultPosition, .parkWriteData, .parkPurgeData],
+        .telescopeAbortMotion: [.abortMotion],
+        .telescopeTrackRate: [.trackRateRightAscension, .trackRateDeclination],
+        .telescopeInfo: [.telescopeAperture, .telescopeFocalLength, .guiderScopeAperture, .guiderScopeFocalLength],
+        .telescopePierSide: [.pierSideEast, .pierSideWest],
+        .telescopeHome: [.findHome, .setHome, .goHome],
+        .domePolicy: [.domeIgnore, .domeLocks],
+        .periodicErrorCorrection: [.periodicErrorCorrectionOn, .periodicErrorCorrectionOff],
+        .telescopeTrackMode: [.trackRateSidereal, .trackRateSolar, .trackRateLunar, .trackRateCustom],
+        .telescopeTrackState: [.trackStateOn, .trackStateOff],
+        .satelliteTLE: [.satelliteTLE],
+        .satellitePassWindow: [.satellitePassWindowStart, .satellitePassWindowEnd],
+        .satelliteTrackingState: [.satelliteTrackingActive, .satelliteTrackingHalted],
+        .telescopeReverseMotion: [.reverseNorthSouth, .reverseWestEast],
+        .motionControlMode: [.motionControlModeJoystick, .motionControlModeAxes],
+        .joystickLockAxis: [.lockAxisWestEast, .lockAxisNorthSouth],
+        .simulatePierSide: [.simulateYes, .simulateNo]
+    ]
+
     public func expectedValueNames(for property: INDIPropertyName) -> [INDIPropertyValueName]? {
-        switch property {
-        case .connection: return [.connect, .disconnect]
-        case .devicePort: return [.port]
-        case .localSideralTime: return [.localSideralTime]
-        case .universalTime: return [.universalTime, .offset]
-        case .geographicCoordinates: return [.latitude, .longitude, .elevation]
-        case .atmosphere: return [.temperature, .pressure, .humidity]
-        case .uploadMode: return [.uploadClient, .uploadLocal, .uploadBoth]
-        case .uploadSettings: return [.uploadDirectory, .uploadPrefix]
-        case .activeDevices: return [.activeTelescope, .activeCamera, .activeFilterWheel, .activeFocuser, .activeDome, .activeGPS]
-        case .equatorialCoordinatesJ2000: return [.rightAscension, .declination]
-        case .equatorialCoordinatesEpoch: return [.rightAscension, .declination]
-        case .targetEquatorialCoordinatesEpoch: return [.rightAscension, .declination]
-        case .horizontalCoordinates: return [.azimuth, .altitude]
-        case .telescopeActionOnCoordinatesSet: return [.slew, .track, .synchronize]
-        case .telescopeMotionNorthSouth: return [.motionNorth, .motionSouth]
-        case .telescopeMotionWestEast: return [.motionWest, .motionEast]
-        case .telescopeTimedGuideNorthSouth: return [.timedGuideNorth, .timedGuideSouth]
-        case .telescopeTimedGuideWestEast: return [.timedGuideWest, .timedGuideEast]
-        case .telescopeSlewRate: return [.slewRateGuide, .slewRateCentering, .slewRateFind, .slewRateMaximum]
-        case .telescopePark: return [.park, .unpark]
-        case .telescopeParkPosition: return [.parkRightAscension, .parkDeclination, .parkAzimuth, .parkAltitude]
-        case .telescopeParkOption: return [.parkCurrentPosition, .parkDefaultPosition, .parkWriteData, .parkPurgeData]
-        case .telescopeAbortMotion: return [.abortMotion]
-        case .telescopeTrackRate: return [.trackRateRightAscension, .trackRateDeclination]
-        case .telescopeInfo: return [.telescopeAperture, .telescopeFocalLength, .guiderScopeAperture, .guiderScopeFocalLength]
-        case .telescopePierSide: return [.pierSideEast, .pierSideWest]
-        case .telescopeHome: return [.findHome, .setHome, .goHome]
-        case .domePolicy: return [.domeIgnore, .domeLocks]
-        case .periodicErrorCorrection: return [.periodicErrorCorrectionOn, .periodicErrorCorrectionOff]
-        case .telescopeTrackMode: return [.trackRateSidereal, .trackRateSolar, .trackRateLunar, .trackRateCustom]
-        case .telescopeTrackState: return [.trackStateOn, .trackStateOff]
-        case .satelliteTLE: return [.satelliteTLE]
-        case .satellitePassWindow: return [.satellitePassWindowStart, .satellitePassWindowEnd]
-        case .satelliteTrackingState: return [.satelliteTrackingActive, .satelliteTrackingHalted]
-        case .telescopeReverseMotion: return [.reverseNorthSouth, .reverseWestEast]
-        case .motionControlMode: return [.motionControlModeJoystick, .motionControlModeAxes]
-        case .joystickLockAxis: return [.lockAxisWestEast, .lockAxisNorthSouth]
-        case .simulatePierSide: return [.simulateYes, .simulateNo]
-        // TODO: Add more properties
-        default: return nil
-        }
+        Self.expectedValueNamesMap[property]
     }
 
     /// All known value name cases (excluding `.other` which has infinite possible values).

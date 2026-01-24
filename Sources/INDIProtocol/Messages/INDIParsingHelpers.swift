@@ -42,8 +42,8 @@ internal enum INDIParsingHelpers {
     ///
     /// - Parameter stateString: The state string (e.g., "Idle", "Ok", "Busy", "Alert")
     /// - Returns: An INDIState enum value
-    static func extractState(from stateString: String) -> INDIState {
-        INDIState(indiValue: stateString)
+    static func extractState(from stateString: String) -> INDIStatus {
+        INDIStatus(indiValue: stateString)
     }
     
     /// Extract timeout value from a timeout string.
@@ -123,4 +123,3 @@ internal enum INDIParsingHelpers {
         return nil
     }
 }
-

@@ -40,7 +40,7 @@ struct INDIPropertyCreationTests {
         #expect(property.group == "General Info")
         #expect(property.label == "Driver Info")
         #expect(property.permissions == INDIPropertyPermissions.readOnly)
-        #expect(property.state == INDIState.idle)
+        #expect(property.state == INDIStatus.idle)
         #expect(property.timeout == 60.0)
         
         // Check XML serialization

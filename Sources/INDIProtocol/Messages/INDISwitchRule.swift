@@ -32,4 +32,3 @@ public enum INDISwitchRule: String, Sendable, CaseIterable {
         }
     }
 }
-

@@ -5,7 +5,7 @@ import Foundation
 /// This represents a state value used in the INDI protocol.
 /// It can be used for property states or light values.
 /// In INDI protocol, this is represented as "Idle", "Busy", "Alert", or "Ok".
-public enum INDIState: Sendable, CaseIterable {
+public enum INDIStatus: Sendable, CaseIterable {
 
     /// The state is idle (not doing anything, initial state)
     case idle 
@@ -40,4 +40,3 @@ public enum INDIState: Sendable, CaseIterable {
         }
     }
 }
-

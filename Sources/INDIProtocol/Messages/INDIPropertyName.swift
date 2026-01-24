@@ -1,6 +1,7 @@
 import Foundation
 
-public enum INDIPropertyName: Sendable, CaseIterable {
+// swiftlint:disable:next type_body_length
+public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
 
     // MARK: General Properties
 
@@ -664,7 +665,6 @@ public enum INDIPropertyName: Sendable, CaseIterable {
         case .ccdStreamingFrameSize: return .number
         case .ccdStreamEncoder: return .toggle
         case .ccdStreamRecorder: return .toggle
-
 
         default: return nil
         }

@@ -24,7 +24,7 @@ public protocol INDIStateProperty: INDICommand {
     var permissions: INDIPropertyPermissions? { get }
     
     /// Property state (optional).
-    var state: INDIState? { get }
+    var state: INDIStatus? { get }
     
     /// Timeout in seconds (optional).
     var timeout: Double? { get }
@@ -41,4 +41,3 @@ public protocol INDIStateProperty: INDICommand {
     /// The parsed values contained in this property.
     var values: [INDIValue] { get }
 }
-

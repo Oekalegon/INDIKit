@@ -122,7 +122,7 @@ public enum INDIMessage: Sendable {
     }
     
     /// State (only for update and define properties).
-    public var state: INDIState? {
+    public var state: INDIStatus? {
         switch self {
         case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .ping, .pingReply: return nil
         case .updateProperty(let prop): return prop.state
@@ -202,84 +202,63 @@ public enum INDIMessage: Sendable {
     /// - Parameter xmlNode: The XML node representation to parse
     /// - Returns: A parsed `INDIMessage` if successful, nil otherwise
     init?(xmlNode: XMLNodeRepresentation) {
+        // Try special cases first (they don't follow the standard pattern)
+        if let message = Self.parseSpecialCase(xmlNode: xmlNode) {
+            self = message
+            return
+        }
+        
         // Determine operation from element name
         guard let operation = INDIOperation(elementName: xmlNode.name) else {
-            // Try to parse as getProperties or enableBLOB (they don't follow the pattern)
-            if xmlNode.name == "getProperties" {
-                if let getProps = INDIGetProperties(xmlNode: xmlNode) {
-                    self = .getProperties(getProps)
-                    return
-                }
-            } else if xmlNode.name == "enableBLOB" {
-                if let enableBlob = INDIEnableBlob(xmlNode: xmlNode) {
-                    self = .enableBlob(enableBlob)
-                    return
-                }
-            }
             return nil
         }
         
         // Parse based on operation type
+        guard let message = Self.parseOperation(operation: operation, xmlNode: xmlNode) else {
+            return nil
+        }
+        self = message
+    }
+    
+    // MARK: - Parsing Helpers
+    
+    /// Parse special case messages that don't follow the standard operation pattern.
+    private static func parseSpecialCase(xmlNode: XMLNodeRepresentation) -> INDIMessage? {
+        switch xmlNode.name {
+        case "getProperties":
+            return INDIGetProperties(xmlNode: xmlNode).map { .getProperties($0) }
+        case "enableBLOB":
+            return INDIEnableBlob(xmlNode: xmlNode).map { .enableBlob($0) }
+        default:
+            return nil
+        }
+    }
+    
+    /// Parse a message based on operation type.
+    private static func parseOperation(
+        operation: INDIOperation,
+        xmlNode: XMLNodeRepresentation
+    ) -> INDIMessage? {
         switch operation {
         case .get:
-            if let getProps = INDIGetProperties(xmlNode: xmlNode) {
-                self = .getProperties(getProps)
-            } else {
-                return nil
-            }
-            
+            return INDIGetProperties(xmlNode: xmlNode).map { .getProperties($0) }
         case .set:
-            if let setProp = INDISetProperty(xmlNode: xmlNode) {
-                self = .setProperty(setProp)
-            } else {
-                return nil
-            }
-            
+            return INDISetProperty(xmlNode: xmlNode).map { .setProperty($0) }
         case .update:
-            if let updateProp = INDIUpdateProperty(xmlNode: xmlNode) {
-                self = .updateProperty(updateProp)
-            } else {
-                return nil
-            }
-            
+            return INDIUpdateProperty(xmlNode: xmlNode).map { .updateProperty($0) }
         case .define:
-            if let defineProp = INDIDefineProperty(xmlNode: xmlNode) {
-                self = .defineProperty(defineProp)
-            } else {
-                return nil
-            }
-            
+            return INDIDefineProperty(xmlNode: xmlNode).map { .defineProperty($0) }
         case .enableBlob:
-            if let enableBlob = INDIEnableBlob(xmlNode: xmlNode) {
-                self = .enableBlob(enableBlob)
-            } else {
-                return nil
-            }
-            
+            return INDIEnableBlob(xmlNode: xmlNode).map { .enableBlob($0) }
         case .message:
-            if let serverMessage = INDIServerMessage(xmlNode: xmlNode) {
-                self = .serverMessage(serverMessage)
-            } else {
-                return nil
-            }
-            
+            return INDIServerMessage(xmlNode: xmlNode).map { .serverMessage($0) }
         case .delete:
-            if let deleteProperty = INDIDeleteProperty(xmlNode: xmlNode) {
-                self = .deleteProperty(deleteProperty)
-            } else {
-                return nil
-            }
-            
+            return INDIDeleteProperty(xmlNode: xmlNode).map { .deleteProperty($0) }
         case .ping:
             // Ping messages are send-only, cannot be parsed from XML
             return nil
-            
         case .pingReply:
-            if let pingReply = INDIPingReply(xmlNode: xmlNode) {
-                self = .pingReply(pingReply)
-            } else {
-                return nil
-            }
+            return INDIPingReply(xmlNode: xmlNode).map { .pingReply($0) }
         }
     }
     

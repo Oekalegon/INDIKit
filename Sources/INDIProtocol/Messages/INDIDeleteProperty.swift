@@ -37,7 +37,8 @@ public struct INDIDeleteProperty: INDICommand, Sendable {
     private mutating func validate(attrs: [String: String], children: [XMLNodeRepresentation]) {
         // Error if name is present but device is not
         if name != nil && device == nil {
-            let message = "delProperty has 'name' attribute but missing 'device' attribute which is required when 'name' is present."
+            let message = "delProperty has 'name' attribute but missing 'device' attribute which " +
+                "is required when 'name' is present."
             INDIDiagnostics.logError(message, logger: Self.logger, diagnostics: &diagnostics)
         }
 
@@ -57,4 +58,3 @@ public struct INDIDeleteProperty: INDICommand, Sendable {
         }
     }
 }
-

@@ -28,4 +28,3 @@ public struct INDIPing: INDICommand, Sendable {
         return xml
     }
 }
-
