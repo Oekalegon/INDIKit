@@ -1060,7 +1060,7 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .streamDelay: return "STREAM_DELAY"
         case .streamingExposureTime: return "STREAMING_EXPOSURE"
         case .framesPerSecond: return "FPS"
-        case .ccdStreamingFrameSize: return "CCD_STREAM_FRAME_SIZE"
+        case .ccdStreamingFrameSize: return "CCD_STREAM_FRAME"
         case .ccdStreamEncoder: return "CCD_STREAM_ENCODER"
         case .ccdStreamRecorder: return "CCD_STREAM_RECORDER"
         case .limits: return "LIMITS"
