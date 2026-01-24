@@ -299,6 +299,43 @@ import Foundation
 /// #### [Fast Count Properties](INDIPropertyName/ccdFastCount)' values
 /// - ``numberOfFrames``
 /// 
+/// ### Filter Wheel Properties' values
+/// #### [Filter Slot Properties](INDIPropertyName/filterSlot)' values
+/// - ``filterSlot``
+/// 
+/// #### [Filter Name Properties](INDIPropertyName/filterName)' values
+/// - ``filterName``
+/// 
+/// ### Focuser Properties' values
+/// #### [Focus Speed Properties](INDIPropertyName/focusSpeed)' values
+/// - ``focusSpeedValue``
+/// 
+/// #### [Focus Motion Properties](INDIPropertyName/focusMotion)' values
+/// - ``focusInward``
+/// - ``focusOutward``
+/// 
+/// #### [Focus Timer Properties](INDIPropertyName/focusTimer)' values
+/// - ``focusTimerValue``
+/// 
+/// #### [Relative Focus Position Properties](INDIPropertyName/relativeFocusPosition)' values
+/// - ``focusRelativePosition``
+/// 
+/// #### [Absolute Focus Position Properties](INDIPropertyName/absoluteFocusPosition)' values
+/// - ``focusAbsolutePosition``
+/// 
+/// #### [Focus Max Properties](INDIPropertyName/focusMax)' values
+/// - ``focusMaxValue``
+/// 
+/// #### [Focus Reverse Motion Properties](INDIPropertyName/focusReverseMotion)' values
+/// - ``focusReverseMotionEnabled``
+/// - ``focusReverseMotionDisabled``
+/// 
+/// #### [Focus Abort Motion Properties](INDIPropertyName/focusAbortMotion)' values
+/// - ``focusAbort``
+/// 
+/// #### [Focus Sync Properties](INDIPropertyName/focusSync)' values
+/// - ``focusSyncValue``
+/// 
 // swiftlint:disable:next type_body_length
 public enum INDIPropertyValueName: Sendable, CaseIterable {
 
@@ -1035,31 +1072,226 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
     case keywordComment
 
     // MARK: CCD Streaming Properties
+
+    /// Turn on the video stream.
+    /// 
+    /// Value of ``INDIPropertyName/ccdVideoStream``.
     case streamOn
+
+    /// Turn off the video stream.
+    /// 
+    /// Value of ``INDIPropertyName/ccdVideoStream``.
     case streamOff
+
+    // Stream Delay
+    /// Stream delay time in seconds.
+    /// 
+    /// Value of ``INDIPropertyName/streamDelay``.
     case streamDelayTime
+
+    // Streaming Exposure Time
+    /// Streaming exposure time in seconds.
+    /// 
+    /// Value of ``INDIPropertyName/streamingExposureTime``.
     case streamingExposureTimeValue
+
+    // Streaming Divisor
+    /// Streaming divisor value. 
+    /// 
+    /// The divisor is used to skip frames as way to throttle the stream down
+    /// 
+    /// Value of ``INDIPropertyName/streamingExposureTime``.
     case streamingDivisorValue
+
+    // Instant Frame Rate
+    /// Instant frame rate in frames per second.
+    /// 
+    /// Value of ``INDIPropertyName/framesPerSecond``.
     case instantFrameRate
+
+    // Average Frames Per Second over one Second
+    /// Average frame rate in frames per second over 1 second.
+    /// 
+    /// Value of ``INDIPropertyName/framesPerSecond``.
     case averageFramesPerSecondOneSecond
+
     // ccdFrameX, ccdFrameY, ccdFrameWidth, ccdFrameHeight are also used for ccd properties
+
+    // Streaming Encoder
+    /// Raw stream encoder.
+    /// 
+    /// Value of ``INDIPropertyName/ccdStreamEncoder``.
     case rawStreamEncoder
+
+    /// MJPEG stream encoder.
+    /// 
+    /// Value of ``INDIPropertyName/ccdStreamEncoder``.
     case mjpegStreamEncoder
+
+    // SER Stream Recorder
+    /// SER stream recorder.
+    /// 
+    /// Value of ``INDIPropertyName/ccdStreamRecorder``.
     case serStreamRecorder
+
+    /// OGV stream recorder.
+    /// 
+    /// Value of ``INDIPropertyName/ccdStreamRecorder``.
     case ogvStreamRecorder
+
+    // Limits
+    /// Maximum buffer size in MB.
+    /// 
+    /// Value of ``INDIPropertyName/limits``.
     case maximumBufferSize
+
+    /// Maximum preview frames per second.
+    /// 
+    /// Value of ``INDIPropertyName/limits``.
     case maximumPreviewFramesPerSecond
+
+    // Record File Directory
+    /// Record file directory.
+    /// 
+    /// Value of ``INDIPropertyName/recordFile``.
     case recordFileDirectory
+
+    // Record File Name
+    /// Record file name.
+    /// 
+    /// Value of ``INDIPropertyName/recordFile``.
     case recordFileName
+
+    // Record Duration
+    /// Record duration in seconds.
+    /// 
+    /// Value of ``INDIPropertyName/recordOptions``.
     case recordDuration
+
+    // Record Frame Total
+    /// Total number of frames required for the recording.
+    /// 
+    /// Value of ``INDIPropertyName/recordOptions``.
     case recordFrameTotal
+
+    // Record Stream
+    /// Start recording. Do not stop unless asked to
+    /// 
+    /// Value of ``INDIPropertyName/recordStream``.
     case recordOn
+
+    /// Start recording until the duration set in ``INDIPropertyName/recordOptions`` has elapsed
+    /// 
+    /// Value of ``INDIPropertyName/recordStream``.
     case recordDurationOn
+
+    /// Start recording until the number of frames set in ``INDIPropertyName/recordOptions`` has been captured
+    /// 
+    /// Value of ``INDIPropertyName/recordStream``.
     case recordFrameOn
+
+    /// Stop recording.
+    /// 
+    /// Value of ``INDIPropertyName/recordStream``.
     case recordOff
-    // fastToggleEnabled and fastToggleDisabled are also used for ccd properties
+
+    // Fast count
+    /// Number of fast exposure captured to take once capture begins.
+    /// 
+    /// Value of ``INDIPropertyName/ccdFastCount``.
     case numberOfFrames
 
+    // Filter Wheel Properties
+    /// Filter wheel slot number.
+    /// 
+    /// Value of ``INDIPropertyName/filterSlot``.
+    case filterSlot
+
+    /// Filter wheel name.
+    /// 
+    /// Value of ``INDIPropertyName/filterName``.
+    case filterName
+
+    // MARK: Focuser Properties
+
+    // Focus Speed
+    /// Focus speed value.
+    /// 
+    /// Set focuser speed. Select focus speed from 0 to N where 0 maps to no motion, and N maps to the fastest speed possible.
+    /// 
+    /// Value of ``INDIPropertyName/focusSpeed``.
+    case focusSpeedValue
+
+    // Focus Motion
+    /// Focus inward.
+    /// 
+    /// Value of ``INDIPropertyName/focusMotion``.
+    case focusInward
+
+    /// Focus outward.
+    /// 
+    /// Value of ``INDIPropertyName/focusMotion``.
+    case focusOutward
+
+    // Focus Timer
+    /// Focus timer value in milliseconds.
+    /// 
+    /// Focus in the direction of ``INDIPropertyName/focusMotion`` at rate ``INDIPropertyName/focusSpeed`` for this duration.
+    /// 
+    /// Value of ``INDIPropertyName/focusTimer``.
+    case focusTimerValue
+
+    // Relative Focus Position
+    /// Relative focus position in steps.
+    /// 
+    /// Move this number of steps in the direction specified by ``INDIPropertyName/focusMotion``.
+    /// 
+    /// Value of ``INDIPropertyName/relativeFocusPosition``.
+    case focusRelativePosition
+
+    // Absolute Focus Position
+    /// Absolute focus position in steps.
+    /// 
+    /// Move to this absolute position.
+    /// 
+    /// Value of ``INDIPropertyName/absoluteFocusPosition``.
+    case focusAbsolutePosition
+
+    // Focus Max
+    /// Focus maximum travel limit in steps.
+    /// 
+    /// Value of ``INDIPropertyName/focusMax``.
+    case focusMaxValue
+
+    // Focus Reverse Motion
+    /// Reverse default motor direction.
+    /// 
+    /// Value of ``INDIPropertyName/focusReverseMotion``.
+    case focusReverseMotionEnabled
+
+    /// Do not reverse, move motor in the default direction.
+    /// 
+    /// Value of ``INDIPropertyName/focusReverseMotion``.
+    case focusReverseMotionDisabled
+
+    // Focus Abort Motion
+    /// Abort focus motion.
+    /// 
+    /// Value of ``INDIPropertyName/focusAbortMotion``.
+    case focusAbort
+
+    // Focus Sync
+    /// Focus sync value.
+    /// 
+    /// Accept this position as the new focuser absolute position.
+    /// 
+    /// Value of ``INDIPropertyName/focusSync``.
+    case focusSyncValue
+
+    // Other
+    /// Other value.
+    /// 
+    /// Value of ``INDIPropertyName/other``.
     case other(String)
 
     public var indiName: String {
@@ -1217,6 +1449,19 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
         case .recordFrameOn: return "RECORD_FRAME_ON"
         case .recordOff: return "RECORD_OFF"
         case .numberOfFrames: return "FRAMES"
+        case .filterSlot: return "FILTER_SLOT"
+        case .filterName: return "FILTER_NAME"
+        case .focusSpeedValue: return "FOCUS_SPEED_VALUE"
+        case .focusInward: return "FOCUS_INWARD"
+        case .focusOutward: return "FOCUS_OUTWARD"
+        case .focusTimerValue: return "FOCUS_TIMER_VALUE"
+        case .focusRelativePosition: return "FOCUS_RELATIVE_POSITION"
+        case .focusAbsolutePosition: return "FOCUS_ABSOLUTE_POSITION"
+        case .focusMaxValue: return "FOCUS_MAX_VALUE"
+        case .focusReverseMotionEnabled: return "ENABLED"
+        case .focusReverseMotionDisabled: return "DISABLED"
+        case .focusAbort: return "ABORT"
+        case .focusSyncValue: return "FOCUS_SYNC_VALUE"
         case .other(let name): return name
         }
     }
@@ -1294,7 +1539,18 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
         .limits: [.maximumBufferSize, .maximumPreviewFramesPerSecond],
         .recordFile: [.recordFileDirectory, .recordFileName],
         .recordOptions: [.recordDuration, .recordFrameTotal],
-        .recordStream: [.recordOn, .recordDurationOn, .recordFrameOn, .recordOff]
+        .recordStream: [.recordOn, .recordDurationOn, .recordFrameOn, .recordOff],
+        .filterSlot: [.filterSlot],
+        .filterName: [.filterName],
+        .focusSpeed: [.focusSpeedValue],
+        .focusMotion: [.focusInward, .focusOutward],
+        .focusTimer: [.focusTimerValue],
+        .relativeFocusPosition: [.focusRelativePosition],
+        .absoluteFocusPosition: [.focusAbsolutePosition],
+        .focusMax: [.focusMaxValue],
+        .focusReverseMotion: [.focusReverseMotionEnabled, .focusReverseMotionDisabled],
+        .focusAbortMotion: [.focusAbort],
+        .focusSync: [.focusSyncValue]
     ]
 
     public func expectedValueNames(for property: INDIPropertyName) -> [INDIPropertyValueName]? {
@@ -1336,7 +1592,11 @@ public enum INDIPropertyValueName: Sendable, CaseIterable {
             .instantFrameRate, .averageFramesPerSecondOneSecond, .rawStreamEncoder, .mjpegStreamEncoder,
             .serStreamRecorder, .ogvStreamRecorder, .maximumBufferSize, .maximumPreviewFramesPerSecond,
             .recordFileDirectory, .recordFileName, .recordDuration, .recordFrameTotal,
-            .recordOn, .recordDurationOn, .recordFrameOn, .recordOff, .numberOfFrames
+            .recordOn, .recordDurationOn, .recordFrameOn, .recordOff, .numberOfFrames,
+            .filterSlot, .filterName,
+            .focusSpeedValue, .focusInward, .focusOutward, .focusTimerValue,
+            .focusRelativePosition, .focusAbsolutePosition, .focusMaxValue,
+            .focusReverseMotionEnabled, .focusReverseMotionDisabled, .focusAbort, .focusSyncValue
         ]
     }
     

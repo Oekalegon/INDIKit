@@ -90,6 +90,21 @@ import Foundation
 /// - ``recordOptions``
 /// - ``recordStream``
 /// 
+/// ### Filter Wheel Properties
+/// - ``filterSlot``
+/// - ``filterName``
+/// 
+/// ### Focuser Properties
+/// - ``focusSpeed``
+/// - ``focusMotion``
+/// - ``focusTimer``
+/// - ``relativeFocusPosition``
+/// - ``absoluteFocusPosition``
+/// - ``focusMax``
+/// - ``focusReverseMotion``
+/// - ``focusAbortMotion``
+/// - ``focusSync``
+/// 
 // swiftlint:disable:next type_body_length
 public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
 
@@ -724,7 +739,75 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
     // are already defined above.
 
     // MARK: Filter wheel Properties
+    case filterSlot
+
+    case filterName
+
     // MARK: Focuser Properties
+
+    /// Focus speed selection.
+    /// 
+    /// Select focus speed from 0 to N where 0 maps to no motion, and N maps to the fastest speed possible.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusSpeedValue`` set focuser speed.
+    case focusSpeed
+
+    /// Focus motion direction.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/focusInward`` focus inward.
+    /// - ``INDIPropertyValueName/focusOutward`` focus outward.
+    case focusMotion
+
+    /// Focus timer duration.
+    /// 
+    /// Focus in the direction of ``focusMotion`` at rate ``focusSpeed`` for the specified duration.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusTimerValue`` focus timer value in milliseconds.
+    case focusTimer
+
+    /// Relative focus position.
+    /// 
+    /// Move a number of steps in the direction specified by ``focusMotion``.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusRelativePosition`` number of steps to move in the focus motion direction.
+    case relativeFocusPosition
+
+    /// Absolute focus position.
+    /// 
+    /// Move to this absolute position.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusAbsolutePosition`` absolute position in steps.
+    case absoluteFocusPosition
+
+    /// Focus maximum travel limit.
+    /// 
+    /// Focus maximum travel limit in steps.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusMaxValue`` focus maximum travel limit in steps.
+    case focusMax
+
+    /// Focus reverse motion toggle.
+    /// 
+    /// Reverse default motor direction.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/focusReverseMotionEnabled`` reverse default motor direction.
+    /// - ``INDIPropertyValueName/focusReverseMotionDisabled`` do not reverse, move motor in the default direction.
+    case focusReverseMotion
+
+    /// Abort focus motion.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/focusAbort`` abort focus motion.
+    case focusAbortMotion
+
+    /// Focus sync position.
+    /// 
+    /// Accept this position as the new focuser absolute position.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusSyncValue`` accept this position as the new focuser absolute position.
+    case focusSync
+
     // MARK: Dome Properties
     // MARK: Input Interface Properties
     // MARK: Output Interface Properties
@@ -814,6 +897,18 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         // ccdFastToggle and ccdFastCount are also used for streaming properties but
         // are already defined above.
 
+        case .filterSlot: return "FILTER_SLOT"
+        case .filterName: return "FILTER_NAME"
+        case .focusSpeed: return "FOCUS_SPEED"
+        case .focusMotion: return "FOCUS_MOTION"
+        case .focusTimer: return "FOCUS_TIMER"
+        case .relativeFocusPosition: return "REL_FOCUS_POSITION"
+        case .absoluteFocusPosition: return "ABS_FOCUS_POSITION"
+        case .focusMax: return "FOCUS_MAX"
+        case .focusReverseMotion: return "FOCUS_REVERSE_MOTION"
+        case .focusAbortMotion: return "FOCUS_ABORT_MOTION"
+        case .focusSync: return "FOCUS_SYNC"
+
         case .other(let name): return name
         }
     }
@@ -895,6 +990,18 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .recordOptions: return "Record Options"
         case .recordStream: return "Toggle Stream Recording"
 
+        case .filterSlot: return "Filter Slot"
+        case .filterName: return "Filter Name"
+        case .focusSpeed: return "Focus Speed"
+        case .focusMotion: return "Focus Motion"
+        case .focusTimer: return "Focus Timer"
+        case .relativeFocusPosition: return "Relative Focus Position"
+        case .absoluteFocusPosition: return "Absolute Focus Position"
+        case .focusMax: return "Focus Maximum"
+        case .focusReverseMotion: return "Focus Reverse Motion"
+        case .focusAbortMotion: return "Focus Abort Motion"
+        case .focusSync: return "Focus Sync"
+
         case .other(let name): return name
         }
     }
@@ -975,6 +1082,18 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .recordFile: return .text
         case .recordOptions: return .text
         case .recordStream: return .toggle
+
+        case .filterSlot: return .number
+        case .filterName: return .text
+        case .focusSpeed: return .number
+        case .focusMotion: return .toggle
+        case .focusTimer: return .number
+        case .relativeFocusPosition: return .number
+        case .absoluteFocusPosition: return .number
+        case .focusMax: return .number
+        case .focusReverseMotion: return .toggle
+        case .focusAbortMotion: return .toggle
+        case .focusSync: return .number
 
         default: return nil
         }
@@ -1067,7 +1186,9 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
             .limits,
             .recordFile,
             .recordOptions,
-            .recordStream
+            .recordStream,
+            .filterSlot,
+            .filterName
         ]
     }
 }
