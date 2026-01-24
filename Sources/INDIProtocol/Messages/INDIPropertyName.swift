@@ -105,6 +105,28 @@ import Foundation
 /// - ``focusAbortMotion``
 /// - ``focusSync``
 /// 
+/// ### Dome Properties
+/// - ``domeSpeed``
+/// - ``domeMotion``
+/// - ``domeTimer``
+/// - ``relativeDomePosition``
+/// - ``absoluteDomePosition``
+/// - ``domeAbortMotion``
+/// - ``domeShutter``
+/// - ``domeGoto``
+/// - ``domeParams``
+/// - ``domeAutosync``
+/// - ``domeMeasurements``
+/// - ``otaSide``
+/// - ``domeSync``
+/// - ``domePark``
+/// - ``domeParkPosition``
+/// - ``domeParkOption``
+/// - ``domeShutterParkPolicy``
+/// - ``mountPolicy``
+/// - ``domeBacklashToggle``
+/// - ``domeBacklashSteps``
+/// 
 // swiftlint:disable:next type_body_length
 public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
 
@@ -809,6 +831,157 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
     case focusSync
 
     // MARK: Dome Properties
+
+    /// Dome speed selection.
+    /// 
+    /// Set dome speed in RPM.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeSpeedValue`` dome speed in RPM.
+    case domeSpeed
+
+    /// Dome motion direction.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeClockwise`` move dome clockwise, looking down.
+    /// - ``INDIPropertyValueName/domeCounterClockwise`` move dome counter clockwise, looking down.
+    case domeMotion
+
+    /// Dome timer duration.
+    /// 
+    /// Move the dome in the direction of ``domeMotion`` at rate ``domeSpeed`` for the specified duration.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeTimerValue`` dome timer value in milliseconds.
+    case domeTimer
+
+    /// Relative dome position.
+    /// 
+    /// Move a number of degrees azimuth in the direction specified by ``domeMotion``.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeRelativePosition`` relative dome position in degrees azimuth.
+    case relativeDomePosition
+
+    /// Absolute dome position.
+    /// 
+    /// Move dome to this absolute azimuth angle in degrees.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeAbsolutePosition`` absolute dome position in degrees azimuth.
+    case absoluteDomePosition
+
+    /// Abort dome motion.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/domeAbort`` abort dome motion.
+    case domeAbortMotion
+
+    /// Dome shutter control.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/shutterOpen`` open dome shutter.
+    /// - ``INDIPropertyValueName/shutterClose`` close dome shutter.
+    case domeShutter
+
+    /// Dome goto positions.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeHome`` go to home position.
+    /// - ``INDIPropertyValueName/domePark`` go to park position.
+    case domeGoto
+
+    /// Dome parameters.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/homePosition`` dome home position in absolute degrees azimuth.
+    /// - ``INDIPropertyValueName/parkPosition`` dome parking position in absolute degrees azimuth.
+    /// - ``INDIPropertyValueName/autosyncThreshold`` threshold in degrees for dome auto-sync.
+    case domeParams
+
+    /// Dome autosync toggle.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeAutosyncEnable`` enable dome slaving.
+    /// - ``INDIPropertyValueName/domeAutosyncDisable`` disable dome slaving.
+    case domeAutosync
+
+    /// Dome measurements.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/domeRadius`` dome radius in meters.
+    /// - ``INDIPropertyValueName/shutterWidth`` shutter width in meters.
+    /// - ``INDIPropertyValueName/northDisplacement`` north displacement in meters.
+    /// - ``INDIPropertyValueName/eastDisplacement`` east displacement in meters.
+    /// - ``INDIPropertyValueName/upDisplacement`` up displacement in meters.
+    /// - ``INDIPropertyValueName/otaOffset`` OTA offset in meters.
+    case domeMeasurements
+
+    /// OTA (Optical Tube Assembly) side selection.
+    /// 
+    /// Meridian side selection.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/otaSideEast`` East.
+    /// - ``INDIPropertyValueName/otaSideWest`` West.
+    /// - ``INDIPropertyValueName/otaSideMount`` Mount.
+    /// - ``INDIPropertyValueName/otaSideHourAngle`` Hour Angle.
+    /// - ``INDIPropertyValueName/otaSideIgnore`` Ignore.
+    case otaSide
+
+    /// Dome sync position.
+    /// 
+    /// Sync dome to this azimuth value.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeSyncValue`` sync dome to this azimuth value.
+    case domeSync
+
+    /// Dome park control.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/park`` park the dome.
+    /// - ``INDIPropertyValueName/unpark`` unpark the dome.
+    case domePark
+
+    /// Dome park position.
+    /// 
+    /// Park position in azimuth degrees or encoder ticks.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/parkAzimuth`` park position in azimuth degrees or encoder ticks.
+    case domeParkPosition
+
+    /// Dome park option.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/parkCurrentPosition`` use current position as park position.
+    /// - ``INDIPropertyValueName/parkDefaultPosition`` use default park position.
+    /// - ``INDIPropertyValueName/parkWriteData`` write park data to file.
+    case domeParkOption
+
+    /// Dome shutter park policy.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/shutterCloseOnPark`` close shutter when parking.
+    /// - ``INDIPropertyValueName/shutterOpenOnUnpark`` open shutter when unparking.
+    case domeShutterParkPolicy
+
+    /// Mount policy.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/mountIgnored`` ignore mount status when parking/unparking.
+    /// - ``INDIPropertyValueName/mountLocks`` prevent dome from unparking when mount is parked.
+    case mountPolicy
+
+    /// Dome backlash toggle.
+    /// 
+    /// Enable or disable backlash compensation.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/fastToggleEnabled`` enable backlash compensation.
+    /// - ``INDIPropertyValueName/fastToggleDisabled`` disable backlash compensation.
+    case domeBacklashToggle
+
+    /// Dome backlash steps.
+    /// 
+    /// Backlash steps value.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeBacklashValue`` backlash steps.
+    case domeBacklashSteps
+
     // MARK: Input Interface Properties
     // MARK: Output Interface Properties
     // MARK: Light box Interface Properties
@@ -908,6 +1081,26 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .focusReverseMotion: return "FOCUS_REVERSE_MOTION"
         case .focusAbortMotion: return "FOCUS_ABORT_MOTION"
         case .focusSync: return "FOCUS_SYNC"
+        case .domeSpeed: return "DOME_SPEED"
+        case .domeMotion: return "DOME_MOTION"
+        case .domeTimer: return "DOME_TIMER"
+        case .relativeDomePosition: return "REL_DOME_POSITION"
+        case .absoluteDomePosition: return "ABS_DOME_POSITION"
+        case .domeAbortMotion: return "DOME_ABORT_MOTION"
+        case .domeShutter: return "DOME_SHUTTER"
+        case .domeGoto: return "DOME_GOTO"
+        case .domeParams: return "DOME_PARAMS"
+        case .domeAutosync: return "DOME_AUTOSYNC"
+        case .domeMeasurements: return "DOME_MEASUREMENTS"
+        case .otaSide: return "DM_OTA_SIDE"
+        case .domeSync: return "DOME_SYNC"
+        case .domePark: return "DOME_PARK"
+        case .domeParkPosition: return "DOME_PARK_POSITION"
+        case .domeParkOption: return "DOME_PARK_OPTION"
+        case .domeShutterParkPolicy: return "DOME_SHUTTER_PARK_POLICY"
+        case .mountPolicy: return "MOUNT_POLICY"
+        case .domeBacklashToggle: return "DOME_BACKLASH_TOGGLE"
+        case .domeBacklashSteps: return "DOME_BACKLASH_STEPS"
 
         case .other(let name): return name
         }
@@ -1001,6 +1194,26 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .focusReverseMotion: return "Focus Reverse Motion"
         case .focusAbortMotion: return "Focus Abort Motion"
         case .focusSync: return "Focus Sync"
+        case .domeSpeed: return "Dome Speed"
+        case .domeMotion: return "Dome Motion"
+        case .domeTimer: return "Dome Timer"
+        case .relativeDomePosition: return "Relative Dome Position"
+        case .absoluteDomePosition: return "Absolute Dome Position"
+        case .domeAbortMotion: return "Dome Abort Motion"
+        case .domeShutter: return "Dome Shutter"
+        case .domeGoto: return "Dome Goto"
+        case .domeParams: return "Dome Parameters"
+        case .domeAutosync: return "Dome Autosync"
+        case .domeMeasurements: return "Dome Measurements"
+        case .otaSide: return "OTA Side"
+        case .domeSync: return "Dome Sync"
+        case .domePark: return "Dome Park"
+        case .domeParkPosition: return "Dome Park Position"
+        case .domeParkOption: return "Dome Park Option"
+        case .domeShutterParkPolicy: return "Dome Shutter Park Policy"
+        case .mountPolicy: return "Mount Policy"
+        case .domeBacklashToggle: return "Dome Backlash Toggle"
+        case .domeBacklashSteps: return "Dome Backlash Steps"
 
         case .other(let name): return name
         }
@@ -1085,6 +1298,7 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
 
         case .filterSlot: return .number
         case .filterName: return .text
+        
         case .focusSpeed: return .number
         case .focusMotion: return .toggle
         case .focusTimer: return .number
@@ -1094,6 +1308,26 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .focusReverseMotion: return .toggle
         case .focusAbortMotion: return .toggle
         case .focusSync: return .number
+        case .domeSpeed: return .number
+        case .domeMotion: return .toggle
+        case .domeTimer: return .number
+        case .relativeDomePosition: return .number
+        case .absoluteDomePosition: return .number
+        case .domeAbortMotion: return .toggle
+        case .domeShutter: return .toggle
+        case .domeGoto: return .toggle
+        case .domeParams: return .number
+        case .domeAutosync: return .toggle
+        case .domeMeasurements: return .number
+        case .otaSide: return .toggle
+        case .domeSync: return .number
+        case .domePark: return .toggle
+        case .domeParkPosition: return .number
+        case .domeParkOption: return .toggle
+        case .domeShutterParkPolicy: return .toggle
+        case .mountPolicy: return .toggle
+        case .domeBacklashToggle: return .toggle
+        case .domeBacklashSteps: return .number
 
         default: return nil
         }
@@ -1188,7 +1422,36 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
             .recordOptions,
             .recordStream,
             .filterSlot,
-            .filterName
+            .filterName,
+            .focusSpeed,
+            .focusMotion,
+            .focusTimer,
+            .relativeFocusPosition,
+            .absoluteFocusPosition,
+            .focusMax,
+            .focusReverseMotion,
+            .focusAbortMotion,
+            .focusSync,
+            .domeSpeed,
+            .domeMotion,
+            .domeTimer,
+            .relativeDomePosition,
+            .absoluteDomePosition,
+            .domeAbortMotion,
+            .domeShutter,
+            .domeGoto,
+            .domeParams,
+            .domeAutosync,
+            .domeMeasurements,
+            .otaSide,
+            .domeSync,
+            .domePark,
+            .domeParkPosition,
+            .domeParkOption,
+            .domeShutterParkPolicy,
+            .mountPolicy,
+            .domeBacklashToggle,
+            .domeBacklashSteps
         ]
     }
 }
