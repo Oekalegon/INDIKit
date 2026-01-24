@@ -37,6 +37,9 @@ jobs:
           swift package \
             --allow-writing-to-directory ./public \
             generate-documentation \
+            --target INDIProtocol \
+            --target INDIState \
+            --target INDIStateUI \
             --target INDIKit \
             --output-path ./public \
             --transform-for-static-hosting \
@@ -125,6 +128,9 @@ jobs:
           swift package \
             --allow-writing-to-directory ./public \
             generate-documentation \
+            --target INDIProtocol \
+            --target INDIState \
+            --target INDIStateUI \
             --target INDIKit \
             --output-path ./public \
             --transform-for-static-hosting \
