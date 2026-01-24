@@ -1,5 +1,95 @@
 import Foundation
 
+// swiftlint:disable:next orphaned_doc_comment
+/// Standard INDI property names.
+/// 
+/// This enum contains the standard INDI property names as defined in the INDI protocol.
+/// Use these to identify the standard properties of an INDI device. Other properties are
+/// possible. The device driver can define additional properties.
+/// 
+/// See [INDI Property Names](https://www.indilib.org/doc/v1.8/protocol/properties.html) for more information.
+/// 
+/// ## Topics
+/// 
+/// ### General Properties
+/// - ``connection``
+/// - ``devicePort``
+/// - ``localSideralTime``
+/// - ``universalTime``
+/// - ``geographicCoordinates``
+/// - ``atmosphere``
+/// - ``uploadMode``
+/// - ``uploadSettings``
+/// - ``activeDevices``
+/// 
+/// ### Telescope Properties
+/// - ``equatorialCoordinatesJ2000``
+/// - ``equatorialCoordinatesEpoch``
+/// - ``targetEquatorialCoordinatesEpoch``
+/// - ``horizontalCoordinates``
+/// - ``telescopeActionOnCoordinatesSet``
+/// - ``telescopeMotionNorthSouth``
+/// - ``telescopeMotionWestEast``
+/// - ``telescopeTimedGuideNorthSouth``
+/// - ``telescopeTimedGuideWestEast``
+/// - ``telescopeSlewRate``
+/// - ``telescopePark``
+/// - ``telescopeParkPosition``
+/// - ``telescopeParkOption``
+/// - ``telescopeAbortMotion``
+/// - ``telescopeTrackRate``
+/// - ``telescopeInfo``
+/// - ``telescopePierSide``
+/// - ``telescopeHome``
+/// - ``domePolicy``
+/// - ``periodicErrorCorrection``
+/// - ``telescopeTrackMode``
+/// - ``telescopeTrackState``
+/// - ``satelliteTLE``
+/// - ``satellitePassWindow``
+/// - ``satelliteTrackingState``
+/// - ``telescopeReverseMotion``
+/// - ``motionControlMode``
+/// - ``joystickLockAxis``
+/// - ``simulatePierSide``
+/// 
+/// ### Camera/CCD Properties
+/// - ``ccdExposureTime``
+/// - ``ccdAbortExposure``
+/// - ``ccdFrame``
+/// - ``ccdTemperature``
+/// - ``ccdCooler``
+/// - ``ccdFrameType``
+/// - ``ccdBinning``
+/// - ``ccdCompression``
+/// - ``ccdFrameReset``
+/// - ``ccdInfo``
+/// - ``ccdColorFilterArray``
+/// - ``ccd1``
+/// - ``ccd2``
+/// - ``ccdTemperatureCoolerRampParameters``
+/// - ``worldCoordinateSystemKeywordInclusion``
+/// - ``ccdRotation``
+/// - ``ccdCaptureFormat``
+/// - ``ccdTransferFormat``
+/// - ``ccdFilePath``
+/// - ``ccdFastToggle``
+/// - ``ccdFastCount``
+/// - ``fitsHeader``
+/// 
+/// ### Camera/CCD Streaming Properties
+/// - ``ccdVideoStream``
+/// - ``streamDelay``
+/// - ``streamingExposureTime``
+/// - ``framesPerSecond``
+/// - ``ccdStreamingFrameSize``
+/// - ``ccdStreamEncoder``
+/// - ``ccdStreamRecorder``
+/// - ``limits``
+/// - ``recordFile``
+/// - ``recordOptions``
+/// - ``recordStream``
+/// 
 // swiftlint:disable:next type_body_length
 public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
 
@@ -373,46 +463,262 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
     case simulatePierSide
 
     // MARK: CCD Properties
+
+    /// The exposure time of the camera/CCD.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdExposureValue`` the exposure time of the camera/CCD in seconds.
     case ccdExposureTime
+
+    /// Abort the current exposure of the camera/CCD.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/abortExposure`` to abort the current exposure of the camera/CCD.
     case ccdAbortExposure
+
+    /// The frame size of the camera/CCD.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdFrameX`` the left most pixel position in the frame.
+    /// - ``INDIPropertyValueName/ccdFrameY`` the top most pixel position in the frame.
+    /// - ``INDIPropertyValueName/ccdFrameWidth`` the width of the frame in pixels.
+    /// - ``INDIPropertyValueName/ccdFrameHeight`` the height of the frame in pixels.
     case ccdFrame
+
+    /// The temperature of the camera/CCD in °C.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdTemperatureValue`` the temperature of the camera/CCD in °C.
     case ccdTemperature
+
+    /// The cooler status of the camera/CCD.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/ccdCoolerOn`` to turn on the cooler.
+    /// - ``INDIPropertyValueName/ccdCoolerOff`` to turn off the cooler.
     case ccdCooler
+
+    /// The type of the frame of the camera/CCD.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/lightFrame`` the type of the frame of the camera/CCD is a light frame.
+    /// - ``INDIPropertyValueName/biasFrame`` the type of the frame of the camera/CCD is a bias frame.
+    /// - ``INDIPropertyValueName/darkFrame`` the type of the frame of the camera/CCD is a dark frame.
+    /// - ``INDIPropertyValueName/flatFrame`` the type of the frame of the camera/CCD is a flat frame.
     case ccdFrameType
+
+    /// Camera binning settings.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/horizontalBinning`` horizontal binning factor.
+    /// - ``INDIPropertyValueName/verticalBinning`` vertical binning factor.
     case ccdBinning
+
+    /// Camera frame compression settings.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/ccdCompress`` compress camera frame (If FITS, it uses fpack to send a .fz file).
+    /// - ``INDIPropertyValueName/ccdRaw`` send raw camera sensor data.
     case ccdCompression
+
+    /// Reset Camera frame to default settings.
+    /// 
+    /// This sets the frame size and binning to the default values.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/reset`` reset CCD frame to default X, Y, W, and H settings. Set binning to 1x1.
     case ccdFrameReset
+
+    /// Camera sensor information.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdMaximumXResolution`` maximum X resolution.
+    /// - ``INDIPropertyValueName/ccdMaximumYResolution`` maximum Y resolution.
+    /// - ``INDIPropertyValueName/ccdPixelSize`` Camera sensor pixel size in microns.
+    /// - ``INDIPropertyValueName/ccdPixelSizeX`` Camera sensor pixel size X in microns.
+    /// - ``INDIPropertyValueName/ccdPixelSizeY`` Camera sensor pixel size Y in microns.
+    /// - ``INDIPropertyValueName/ccdBitsPerPixel`` bits per pixel.
     case ccdInfo
+
+    /// Camera sensor color filter array information.
+    /// 
+    /// This is used if the camera sensor creates a bayer pattern image.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/cfaOffsetX`` color filter array X offset.
+    /// - ``INDIPropertyValueName/cfaOffsetY`` color filter array Y offset.
+    /// - ``INDIPropertyValueName/cfaType`` color filter array filter type (e.g. RGGB).
     case ccdColorFilterArray
 
-    /// Primary CCD sensor data.
+    /// Primary Camera sensor data.
+    /// 
+    /// This is the main camera sensor. Binary fits data encoded in base64. 
+    /// The CCD1.format is used to indicate the data type (e.g. “.fits”)
+    /// 
+    /// This is a BLOB property with the following values:
+    /// - ``INDIPropertyValueName/ccd1`` the main camera sensor data.
     case ccd1
 
     /// Secondary CCD (Guider) sensor data. This is the sensor in a dual-CCD camera
     /// where a small off-axis CCD is used for guiding.
+    /// 
+    /// Binary fits data encoded in base64. The CCD2.format is used to indicate the data type (e.g. “.fits”)
+    /// 
+    /// This is a BLOB property with the following values:
+    /// - ``INDIPropertyValueName/ccd2`` the secondary camera sensor data.
     case ccd2
 
+    /// Camera cooler temperature ramp parameters.
+    /// 
+    /// Set TEC cooler ramp parameters. The ramp is software controlled inside INDI.
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/rampSlope`` maximum temperature change in degrees Celsius per minute.
+    /// - ``INDIPropertyValueName/rampThreshold`` threshold in degrees celsius. If the absolute difference
+    ///   of target and current temperature equals to or below this threshold, then the cooling operation is complete.
     case ccdTemperatureCoolerRampParameters
+
+    /// World Coordinate System keyword inclusion in FITS header.
+    /// 
+    /// Toggle World Coordinate System keyword inclusion in FITS Header.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/worldCoordinateSystemEnabled`` enable WCS keywords.
+    /// - ``INDIPropertyValueName/worldCoordinateSystemDisabled`` disable WCS keywords.
     case worldCoordinateSystemKeywordInclusion
+
+    /// Camera field of view rotation.
+    /// 
+    /// Camera field of view rotation measured as East of North in degrees.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/ccdRotationValue`` the rotation angle in degrees.
     case ccdRotation
+
+    /// Raw capture format as supported by the driver or hardware.
+    /// 
+    /// For example, Bayer 16bit or RGB. This is a switch property.
+    /// **NB. No standard values are defined for this property.**
     case ccdCaptureFormat
+
+    /// Transfer format of the raw captured data.
+    /// 
+    /// Transfer format of the raw captured format before sending the image back to the client or saving to disk.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/formatFits`` encode captured image as FITS.
+    /// - ``INDIPropertyValueName/formatNative`` send image as-is without encoding.
+    /// - ``INDIPropertyValueName/formatXisf`` encode captured images as XISF (eXtensible Image Serialization Format).
     case ccdTransferFormat
+
+    /// Absolute path where images are saved on disk.
+    /// 
+    /// This is a text property with the following value:
+    /// - ``INDIPropertyValueName/filePath`` the directory path where images are saved.
     case ccdFilePath
+
+    /// Fast exposure mode toggle.
+    /// 
+    /// Fast Exposure is used to enable camera to immediately begin capturing the next frames.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/fastToggleEnabled`` enable fast exposure.
+    /// - ``INDIPropertyValueName/fastToggleDisabled`` disable fast exposure.
     case ccdFastToggle
+
+    /// Number of fast exposure frames to capture.
+    /// 
+    /// Number of fast exposure frames to capture once exposure begins.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/frames`` the number of frames to capture.
     case ccdFastCount
+
+    /// FITS header keywords to append.
+    /// 
+    /// Name, value, and comment row to be appended to the fits header on the next capture. The row needs to be
+    /// set once for any subsequent captures. It is not retained on driver restart.
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/keywordName`` the FITS keyword name.
+    /// - ``INDIPropertyValueName/keywordValue`` the FITS keyword value.
+    /// - ``INDIPropertyValueName/keywordComment`` the FITS keyword comment.
     case fitsHeader
 
     // MARK: CCD Streaming Properties
+
+    /// Camera video stream toggle.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/streamOn`` turn on video stream.
+    /// - ``INDIPropertyValueName/streamOff`` turn off video stream.
     case ccdVideoStream
+
+    /// Delay between streaming frames.
+    /// 
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/streamDelayTime`` delay in seconds between frames.
     case streamDelay
+
+    /// Streaming frame exposure and divisor settings.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/streamingExposureTimeValue`` frame exposure values in seconds when streaming.
+    /// - ``INDIPropertyValueName/streamingDivisorValue`` the divisor is used to skip frames as way to throttle the stream down.
     case streamingExposureTime
+
+    /// Frames per second information.
+    /// 
+    /// Read-only frame rate information. This is a number property with the following values:
+    /// - ``INDIPropertyValueName/instantFrameRate`` instant frame rate (EST_FPS).
+    /// - ``INDIPropertyValueName/averageFramesPerSecondOneSecond`` average FPS over 1 second (AVG_FPS).
     case framesPerSecond
+
+    /// Streaming frame size settings.
+    /// 
+    /// This is a number property with frame coordinates and dimensions. Uses the same value names as ``ccdFrame``:
+    /// - ``INDIPropertyValueName/ccdFrameX`` left-most pixel position.
+    /// - ``INDIPropertyValueName/ccdFrameY`` top-most pixel position.
+    /// - ``INDIPropertyValueName/ccdFrameWidth`` frame width in pixels.
+    /// - ``INDIPropertyValueName/ccdFrameHeight`` frame height in pixels.
     case ccdStreamingFrameSize
+
+    /// Streaming encoder selection.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/rawStreamEncoder`` raw encoder.
+    /// - ``INDIPropertyValueName/mjpegStreamEncoder`` MJPEG encoder.
     case ccdStreamEncoder
+
+    /// Stream recording format selection.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/serStreamRecorder`` SER recorder.
+    /// - ``INDIPropertyValueName/ogvStreamRecorder`` OGV recorder.
     case ccdStreamRecorder
+
+    /// Streaming buffer and frame rate limits.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/maximumBufferSize`` maximum buffer size in MB.
+    /// - ``INDIPropertyValueName/maximumPreviewFramesPerSecond`` maximum preview FPS.
     case limits
+
+    /// Recording file path settings.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/recordFileDirectory`` directory to save the file. It defaults to $HOME/indi_D.
+    /// - ``INDIPropertyValueName/recordFileName`` recording file name. It defaults to indirecord__T.
     case recordFile
+
+    /// Recording duration and frame count settings.
+    /// 
+    /// Set the desired duration in seconds or total frames required for the recording.
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/recordDuration`` duration in seconds.
+    /// - ``INDIPropertyValueName/recordFrameTotal`` total number of frames required.
     case recordOptions
+
+    /// Stream recording control.
+    /// 
+    /// Start or stop the stream recording to a file. This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/recordOn`` start recording. Do not stop unless asked to.
+    /// - ``INDIPropertyValueName/recordDurationOn`` start recording until the duration set in recordOptions has elapsed.
+    /// - ``INDIPropertyValueName/recordFrameOn`` start recording until the number of frames set in recordOptions has been captured.
+    /// - ``INDIPropertyValueName/recordOff`` stops recording.
     case recordStream
     // ccdFastToggle and ccdFastCount are also used for streaming properties but
     // are already defined above.
@@ -636,7 +942,7 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .simulatePierSide: return .toggle
 
         case .ccdExposureTime: return .number
-        case .ccdAbortExposure: return .number
+        case .ccdAbortExposure: return .toggle
         case .ccdFrame: return .number
         case .ccdTemperature: return .number
         case .ccdCooler: return .toggle
@@ -665,6 +971,10 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
         case .ccdStreamingFrameSize: return .number
         case .ccdStreamEncoder: return .toggle
         case .ccdStreamRecorder: return .toggle
+        case .limits: return .number
+        case .recordFile: return .text
+        case .recordOptions: return .text
+        case .recordStream: return .toggle
 
         default: return nil
         }
@@ -724,7 +1034,40 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable {
             .telescopeReverseMotion,
             .motionControlMode,
             .joystickLockAxis,
-            .simulatePierSide
+            .simulatePierSide,
+            .ccdExposureTime,
+            .ccdAbortExposure,
+            .ccdFrame,
+            .ccdTemperature,
+            .ccdCooler,
+            .ccdFrameType,
+            .ccdBinning,
+            .ccdCompression,
+            .ccdFrameReset,
+            .ccdInfo,
+            .ccdColorFilterArray,
+            .ccd1,
+            .ccd2,
+            .ccdTemperatureCoolerRampParameters,
+            .worldCoordinateSystemKeywordInclusion,
+            .ccdRotation,
+            .ccdCaptureFormat,
+            .ccdTransferFormat,
+            .ccdFilePath,
+            .ccdFastToggle,
+            .ccdFastCount,
+            .fitsHeader,
+            .ccdVideoStream,
+            .streamDelay,
+            .streamingExposureTime,
+            .framesPerSecond,
+            .ccdStreamingFrameSize,
+            .ccdStreamEncoder,
+            .ccdStreamRecorder,
+            .limits,
+            .recordFile,
+            .recordOptions,
+            .recordStream
         ]
     }
 }
