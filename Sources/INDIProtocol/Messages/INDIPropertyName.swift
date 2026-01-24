@@ -3,49 +3,419 @@ import Foundation
 public enum INDIPropertyName: Sendable, CaseIterable {
 
     // MARK: General Properties
+
+    /// A switch to toggle the connection to the device on or off.
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/connect`` to connect to the device
+    /// - ``INDIPropertyValueName/disconnect`` to disconnect from the device
     case connection
+
+    /// The device connection port.
+    /// 
+    /// The supported value is:
+    /// - ``INDIPropertyValueName/port`` the port of the device.
     case devicePort
+
+    /// The local sidereal time (LST).
+    /// 
+    /// The supported value is:
+    /// - ``INDIPropertyValueName/localSideralTime`` the local sidereal time.
     case localSideralTime
+
+    /// The universal time (UTC).
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/universalTime`` the universal time.
+    /// - ``INDIPropertyValueName/offset`` the offset from the universal time in 
+    /// hours (positive for east of Greenwich, negative for west of Greenwich).
     case universalTime
+
+    /// The geographic coordinates (latitude, longitude, and elevation).
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/latitude`` the latitude of the site in degrees 
+    /// (positive for north of the equator, negative for south of the equator).
+    /// - ``INDIPropertyValueName/longitude`` the longitude of the site in degrees
+    /// (positive for east of Greenwich, negative for west of Greenwich).
+    /// - ``INDIPropertyValueName/elevation`` the elevation of the site in meters 
+    /// above sea level.
     case geographicCoordinates
+
+    /// The atmospheric conditions (temperature, pressure, and humidity).
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/temperature`` the temperature of the atmosphere in Kelvin.
+    /// - ``INDIPropertyValueName/pressure`` the pressure of the atmosphere in hectopascals.
+    /// - ``INDIPropertyValueName/humidity`` the humidity of the atmosphere in percent.
     case atmosphere
+
+    /// A switch to toggle the upload mode on or off.
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/uploadClient`` to upload data to the client
+    /// - ``INDIPropertyValueName/uploadLocal`` to save data locally to the server
+    /// - ``INDIPropertyValueName/uploadBoth`` to send the data to the client and save it locally to the server.
     case uploadMode
+
+    /// The upload settings.
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/uploadDirectory`` upload directory if the data is saved locally.
+    /// - ``INDIPropertyValueName/uploadPrefix`` to set the upload prefix to the file name.
     case uploadSettings
+
+    /// The active devices.
+    /// 
+    /// It is used to provide the user with a list of the connecter devices
+    /// (whose connection status is ``INDIPropertyValueName/connect``). For example,
+    /// for a Camera, the client may set this property to the name of the 
+    /// telescope. Once set, the Camera (CCD driver) may automatically fill in
+    /// the telescope information (including postioning) in the frame header.
+    /// 
+    /// The allowed values are:
+    /// - ``INDIPropertyValueName/activeTelescope`` the name of the active telescope
+    /// - ``INDIPropertyValueName/activeCamera`` the name of the active camera
+    /// - ``INDIPropertyValueName/activeFilterWheel`` the name of the active filter wheel
+    /// - ``INDIPropertyValueName/activeFocuser`` the name of the active focuser
+    /// - ``INDIPropertyValueName/activeDome`` the name of the active dome
+    /// - ``INDIPropertyValueName/activeGPS`` the name of the active GPS device
     case activeDevices
 
     // MARK: Telescope Properties
+
+    /// The equatorial coordinates (J2000).
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/rightAscension`` the Right Ascension of the target in hours.
+    /// - ``INDIPropertyValueName/declination`` the Declination of the target in degrees.
     case equatorialCoordinatesJ2000
+
+    /// The equatorial coordinates (epoch of the date).
+    /// 
+    /// This property can be set by the client to slew the telescope to this position.
+    /// The action is determined by the property 
+    /// ``INDIPropertyName/telescopeActionOnCoordinatesSet``.
+    /// The telescope position can also be set by inputting the horizontal coordinates
+    /// on the property ``INDIPropertyName/horizontalCoordinates``.
+    /// 
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/rightAscension`` the Right Ascension of the target in hours.
+    /// - ``INDIPropertyValueName/declination`` the Declination of the target in degrees.
     case equatorialCoordinatesEpoch
+
+    /// The slew target equatorial coordinates (epoch of the date).
+    /// 
+    /// Property set once ``equatorialCoordinatesEpoch`` is accepted by the driver.
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/rightAscension`` the Right Ascension of the target in hours.
+    /// - ``INDIPropertyValueName/declination`` the Declination of the target in degrees.
     case targetEquatorialCoordinatesEpoch
+
+    /// The horizontal/topocentric coordinates (altitude and azimuth).
+    /// 
+    /// This property can be set by the client to slew the telescope to this position.
+    /// The action is determined by the property 
+    /// ``INDIPropertyName/telescopeActionOnCoordinatesSet``.
+    /// The telescope position can also be set by inputting the equatorial coordinates
+    /// on the property ``INDIPropertyName/equatorialCoordinatesEpoch``.
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/altitude`` the altitude of the target in degrees.
+    /// - ``INDIPropertyValueName/azimuth`` the azimuth of the target in degrees.
     case horizontalCoordinates
+
+    /// The telescope action on coordinates set.
+    /// 
+    /// This property is set by the client to indicate the action to take
+    /// when the coordinates are set. 
+    /// 
+    /// - If this property is set to 
+    /// ``INDIPropertyValueName/slew``, the telescope will slew to the 
+    /// coordinates it recieves from the client after this property is set
+    /// and stop upon reaching the target coordinates.
+    /// - If this property is set to ``INDIPropertyValueName/track``, the telescope 
+    /// will slew to the coordinates it recieves from the client after this property
+    /// is set and continue tracking the target.
+    ///     
+    /// - If this property is set to ``INDIPropertyValueName/synchronize``, the telescope 
+    /// will synchronize the coordinates it thinks it is at to the coordinates it recieves 
+    /// from the client after this property is set.
+    /// This is useful when the client needs to correct the telescope's position,
+    /// probably after plate solving determined the telescope's exact position.
+    /// 
+    /// The coordinates are set by the ciient on the property
+    /// ``INDIPropertyName/targetEquatorialCoordinatesEpoch``.
     case telescopeActionOnCoordinatesSet
+
+    /// Move the telescope north or south.
+    /// *Note: This property is solely used as a command, it is not a state property.*
+    /// 
+    /// Setting this property will cause the telescope to move north or south
+    /// at a constant speed. The speed is set by the client on the property
+    /// ``INDIPropertyName/telescopeSlewRate``.
+    /// 
+    /// This can be used to move the telescope manually by the user.
+    /// 
+    /// Supported values are:
+    /// - ``INDIPropertyValueName/motionNorth`` to move the telescope north.
+    /// - ``INDIPropertyValueName/motionSouth`` to move the telescope south.
     case telescopeMotionNorthSouth
+
+    /// Move the telescope west or east.
+    /// *Note: This property is solely used as a command, it is not a state property.*
+    /// 
+    /// Setting this property will cause the telescope to move west or east
+    /// at a constant speed. The speed is set by the client on the property
+    /// ``INDIPropertyName/telescopeSlewRate``.
+    /// 
+    /// This can be used to move the telescope manually by the user.
+    /// 
+    /// Supported values are:
+    /// - ``INDIPropertyValueName/motionWest`` to move the telescope west.
+    /// - ``INDIPropertyValueName/motionEast`` to move the telescope east.
     case telescopeMotionWestEast
+
+    /// Move the telescope north or south for the specified number of 
+    /// milliseconds.
+    /// 
+    /// This is useful for automatic guiding. When the autoguiding 
+    /// algorithm detects a guiding error, it will give the telescope
+    /// a guide command to move the telescope north or south for the specified
+    /// number of milliseconds.
+    /// 
+    /// Supported values are:
+    /// - ``INDIPropertyValueName/timedGuideNorth`` to move the telescope north.
+    /// - ``INDIPropertyValueName/timedGuideSouth`` to move the telescope south.
     case telescopeTimedGuideNorthSouth
+
+    /// Move the telescope west or east for the specified number of 
+    /// milliseconds.
+    /// 
+    /// This is useful for automatic guiding. When the autoguiding 
+    /// algorithm detects a guiding error, it will give the telescope
+    /// a guide command to move the telescope west or east for the specified
+    /// number of milliseconds.
+    /// 
+    /// Supported values are:
+    /// - ``INDIPropertyValueName/timedGuideWest`` to move the telescope west.
+    /// - ``INDIPropertyValueName/timedGuideEast`` to move the telescope east.
     case telescopeTimedGuideWestEast
+
+    /// The slew rate of the telescope.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/slewRateGuide`` the slowest slew rate of the telescope, 0.5x to 1.0x the sidereal speed.
+    /// - ``INDIPropertyValueName/slewRateCentering`` the slow slew rate. Often used for centering the field of view.
+    /// - ``INDIPropertyValueName/slewRateFind`` the medium slew rate. Often used for finding the desired field of view.
+    /// - ``INDIPropertyValueName/slewRateMaximum`` the maximum slew rate of the telescope.
     case telescopeSlewRate
+
+    /// Park or unpark the telescope.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/park`` to park the telescope.
+    /// - ``INDIPropertyValueName/unpark`` to unpark the telescope.
     case telescopePark
+
+    /// The home park position of the telescope.
+    /// 
+    /// This property should have a combinatoion of the following values:
+    /// ``INDIPropertyValueName/parkRightAscension`` and ``INDIPropertyValueName/parkDeclination``,
+    /// or ``INDIPropertyValueName/parkAzimuth`` and ``INDIPropertyValueName/parkAltitude``.
+    /// 
+    /// The supported values are:
+    /// - ``INDIPropertyValueName/parkRightAscension`` the right ascension of the home park position.
+    /// - ``INDIPropertyValueName/parkDeclination`` the declination of the home park position.
+    /// - ``INDIPropertyValueName/parkAzimuth`` the azimuth of the home park position.
+    /// - ``INDIPropertyValueName/parkAltitude`` the altitude of the home park position.
     case telescopeParkPosition
+
+    /// A command to set the park options of the telescope.
+    /// *Note: This property is solely used as a command, it is not a state property.*
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/parkCurrentPosition`` to set the current position of the telescope as the home park position.
+    /// - ``INDIPropertyValueName/parkDefaultPosition`` to set the default position of the telescope driver as the home park position.
+    /// - ``INDIPropertyValueName/parkWriteData`` to write the home park position to the telescope driver so that the park
+    /// position is retained after a power cycle.
+    /// - ``INDIPropertyValueName/parkPurgeData`` to purge the home park position data from the telescope driver.
     case telescopeParkOption
+
+    /// Abort the current motion of the telescope rapidly, but gracefully.
+    /// *Note: This property is solely used as a command, it is not a state property.*
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/abortMotion`` to abort the current motion of the telescope.
     case telescopeAbortMotion
+
+    /// The custom track rate of the telescope.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/trackRateRightAscension`` the track rate of the telescope in arcseconds per second for the right ascension.
+    /// - ``INDIPropertyValueName/trackRateDeclination`` the track rate of the telescope in arcseconds per second for the declination.
     case telescopeTrackRate
+
+    /// The information about the telescope and/or guide scope. 
+    /// Includes aperture and focal length.
+    /// 
+    /// This is a text property with the following values:
     case telescopeInfo
+
+    /// The side of the pier the telescope is on in the case of an equatorial mount.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/pierSideEast`` the telescope is on the east side of the pier.
+    /// - ``INDIPropertyValueName/pierSideWest`` the telescope is on the west side of the pier.
     case telescopePierSide
+
+    /// Home position operations for the telescope.
+    /// 
+    /// This is a switch property with the following values:
     case telescopeHome
+
+    /// The policy for the telescope with respect to the dome.
+    /// It is set to either ignore the dome or prevent the telescope
+    /// from moving when the dome is parked (closed).
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/domeIgnore`` to ignore the dome status.
+    /// - ``INDIPropertyValueName/domeLocks`` to prevent the telescope from moving when the dome is parked (closed).
     case domePolicy
+
+    /// The periodic error correction mode for the telescope, either on or off.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/periodicErrorCorrectionOn`` to enable the periodic error correction.
+    /// - ``INDIPropertyValueName/periodicErrorCorrectionOff`` to disable the periodic error correction.
     case periodicErrorCorrection
+
+    /// The track mode for the telescope, specifying predefined track rates for the 
+    /// right ascension. This is used to adapt the tracking rate to specific solar 
+    /// system objects.
+    /// 
+    /// It is related to the ``INDIPropertyName/telescopeTrackRate`` property.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/trackRateSidereal`` to use the default sidereal track rate.
+    /// - ``INDIPropertyValueName/trackRateSolar`` to use the solar track rate.
+    /// - ``INDIPropertyValueName/trackRateLunar`` to use the lunar track rate.
+    /// - ``INDIPropertyValueName/trackRateCustom`` to use a custom track rate, specified by the client on the property
+    /// ``INDIPropertyName/telescopeTrackRate``.
     case telescopeTrackMode
+
+    /// The state of the telescope tracking, either on or off.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/trackStateOn`` to enable the telescope tracking.
+    /// - ``INDIPropertyValueName/trackStateOff`` to disable the telescope tracking.
     case telescopeTrackState
-    case satelliteTLEText
+
+    /// The satellite TLE orbital solution for tracking earth-orbiting satellites.
+    /// 
+    /// Not supported by all drivers/mounts.
+    /// 
+    /// This is a text property with the following value:
+    /// - ``INDIPropertyValueName/satelliteTLE`` the TLE orbital solution for the satellite.
+    case satelliteTLE
+
+    /// The pass window for the satellite tracking.
+    /// 
+    /// Not supported by all drivers/mounts.
+    /// 
+    /// This is a text property with the following value:
+    /// - ``INDIPropertyValueName/satellitePassWindowStart`` the start time of the pass window.
+    /// - ``INDIPropertyValueName/satellitePassWindowEnd`` the end time of the pass window.
     case satellitePassWindow
+
+    /// The tracking state of the satellite, either tracking or not halted.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/satelliteTrackingActive`` the satellite tracking is active.
+    /// - ``INDIPropertyValueName/satelliteTrackingHalted`` the satellite tracking is halted.
     case satelliteTrackingState
+
+    /// The telescope motion can be reversed for the north-south 
+    /// and/or west-east directions.
+    /// 
+    /// This affects the effect of the ``telescopeMotionNorthSouth`` and 
+    /// ``telescopeMotionWestEast`` properties. It can be used to align the control
+    /// buttons with the actual motion of the telescope observed by the user or the
+    /// camera.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/reverseNorthSouth`` to reverse the telescope motion for the north-south direction.
+    /// - ``INDIPropertyValueName/reverseWestEast`` to reverse the telescope motion for the west-east direction.
     case telescopeReverseMotion
+
+    /// The joystick motion control mode for the telescope.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/motionControlModeJoystick`` to use the 4-Way joystick motion control mode.
+    /// - ``INDIPropertyValueName/motionControlModeAxes`` to use the 2-Axis joystick motion control mode.
     case motionControlMode
+
+    /// Select which axes of the joystick are locked.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/lockAxisWestEast`` to lock the west-east axis of the joystick.
+    /// - ``INDIPropertyValueName/lockAxisNorthSouth`` to lock the north-south axis of the joystick.
     case joystickLockAxis
+
+    /// Simulate the pier side of the telescope for mounts that do not report
+    /// the actual pier side.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/simulateYes`` to simulate the pier side of the telescope.
+    /// - ``INDIPropertyValueName/simulateNo`` to do not simulate the pier side of the telescope.
     case simulatePierSide
 
     // MARK: CCD Properties
+    case ccdExposureTime
+    case ccdAbortExposure
+    case ccdFrame
+    case ccdTemperature
+    case ccdCooler
+    case ccdFrameType
+    case ccdBinning
+    case ccdCompression
+    case ccdFrameReset
+    case ccdInfo
+    case ccdColorFilterArray
+
+    /// Primary CCD sensor data.
+    case ccd1
+
+    /// Secondary CCD (Guider) sensor data. This is the sensor in a dual-CCD camera
+    /// where a small off-axis CCD is used for guiding.
+    case ccd2
+
+    case ccdTemperatureCoolerRampParameters
+    case worldCoordinateSystemKeywordInclusion
+    case ccdRotation
+    case ccdCaptureFormat
+    case ccdTransferFormat
+    case ccdFilePath
+    case ccdFastToggle
+    case ccdFastCount
+    case fitsHeader
+
     // MARK: CCD Streaming Properties
+    case ccdVideoStream
+    case streamDelay
+    case streamingExposureTime
+    case framesPerSecond
+    case ccdStreamingFrameSize
+    case ccdStreamEncoder
+    case ccdStreamRecorder
+    case limits
+    case recordFile
+    case recordOptions
+    case recordStream
+    // ccdFastToggle and ccdFastCount are also used for streaming properties but
+    // are already defined above.
+
     // MARK: Filter wheel Properties
     // MARK: Focuser Properties
     // MARK: Dome Properties
@@ -75,8 +445,8 @@ public enum INDIPropertyName: Sendable, CaseIterable {
         case .targetEquatorialCoordinatesEpoch: return "TARGET_COORD"
         case .horizontalCoordinates: return "HORIZONTAL_COORD"
         case .telescopeActionOnCoordinatesSet: return "ON_COORD_SET"
-        case .telescopeMotionNorthSouth: return "TELESCOPE_TIMED_GUIDE_NS"
-        case .telescopeMotionWestEast: return "TELESCOPE_TIMED_GUIDE_WE"
+        case .telescopeMotionNorthSouth: return "TELESCOPE_MOTION_NS"
+        case .telescopeMotionWestEast: return "TELESCOPE_MOTION_WE"
         case .telescopeTimedGuideNorthSouth: return "TELESCOPE_TIMED_GUIDE_NS"
         case .telescopeTimedGuideWestEast: return "TELESCOPE_TIMED_GUIDE_WE"
         case .telescopeSlewRate: return "TELESCOPE_SLEW_RATE"
@@ -92,14 +462,51 @@ public enum INDIPropertyName: Sendable, CaseIterable {
         case .periodicErrorCorrection: return "PEC"
         case .telescopeTrackMode: return "TELESCOPE_TRACK_MODE"
         case .telescopeTrackState: return "TELESCOPE_TRACK_STATE"
-        case .satelliteTLEText: return "SAT_TLE_TEXT"
+        case .satelliteTLE: return "SAT_TLE_TEXT"
         case .satellitePassWindow: return "SAT_PASS_WINDOW"
         case .satelliteTrackingState: return "SAT_TRACKING_STAT"
         case .telescopeReverseMotion: return "TELESCOPE_REVERSE_MOTION"
         case .motionControlMode: return "MOTION_CONTROL_MODE"
         case .joystickLockAxis: return "JOYSTICK_LOCK_AXIS"
         case .simulatePierSide: return "SIMULATE_PIER_SIDE"
-        
+
+        case .ccdExposureTime: return "CCD_EXPOSURE"
+        case .ccdAbortExposure: return "CCD_ABORT_EXPOSURE"
+        case .ccdFrame: return "CCD_FRAME"
+        case .ccdTemperature: return "CCD_TEMPERATURE"
+        case .ccdCooler: return "CCD_COOLER"
+        case .ccdFrameType: return "CCD_FRAME_TYPE"
+        case .ccdBinning: return "CCD_BINNING"
+        case .ccdCompression: return "CCD_COMPRESSION"
+        case .ccdFrameReset: return "CCD_FRAME_RESET"
+        case .ccdInfo: return "CCD_INFO"
+        case .ccdColorFilterArray: return "CCD_CFA"
+        case .ccd1: return "CCD1"
+        case .ccd2: return "CCD2"
+        case .ccdTemperatureCoolerRampParameters: return "CCD_TEMP_RAMP"
+        case .worldCoordinateSystemKeywordInclusion: return "WCS_CONTROL"
+        case .ccdRotation: return "CCD_ROTATION"
+        case .ccdCaptureFormat: return "CCD_CAPTURE_FORMAT"
+        case .ccdTransferFormat: return "CCD_TRANSFER_FORMAT"
+        case .ccdFilePath: return "CCD_FILE_PATH"
+        case .ccdFastToggle: return "CCD_FAST_TOGGLE"
+        case .ccdFastCount: return "CCD_FAST_COUNT"
+        case .fitsHeader: return "FITS_HEADER"
+
+        case .ccdVideoStream: return "CCD_VIDEO_STREAM"
+        case .streamDelay: return "STREAM_DELAY"
+        case .streamingExposureTime: return "STREAMING_EXPOSURE"
+        case .framesPerSecond: return "FPS"
+        case .ccdStreamingFrameSize: return "CCD_STREAM_FRAME_SIZE"
+        case .ccdStreamEncoder: return "CCD_STREAM_ENCODER"
+        case .ccdStreamRecorder: return "CCD_STREAM_RECORDER"
+        case .limits: return "LIMITS"
+        case .recordFile: return "RECORD_FILE"
+        case .recordOptions: return "RECORD_OPTIONS"
+        case .recordStream: return "RECORD_STREAM"
+        // ccdFastToggle and ccdFastCount are also used for streaming properties but
+        // are already defined above.
+
         case .other(let name): return name
         }
     }
@@ -138,13 +545,49 @@ public enum INDIPropertyName: Sendable, CaseIterable {
         case .periodicErrorCorrection: return "Periodic Error Correction"
         case .telescopeTrackMode: return "Telescope Track Mode"
         case .telescopeTrackState: return "Telescope Track State"
-        case .satelliteTLEText: return "Satellite TLE Text"
+        case .satelliteTLE: return "Satellite TLE Text"
         case .satellitePassWindow: return "Satellite Pass Window"
         case .satelliteTrackingState: return "Satellite Tracking State"
         case .telescopeReverseMotion: return "Telescope Reverse Motion"
         case .motionControlMode: return "Motion Control Mode"
         case .joystickLockAxis: return "Joystick Lock Axis"
         case .simulatePierSide: return "Simulate Pier Side"
+
+        case .ccdExposureTime: return "Camera Exposure Time"
+        case .ccdAbortExposure: return "Abort Camera Exposure"
+        case .ccdFrame: return "Frame Size"
+        case .ccdTemperature: return "Camera Chip Temperature"
+        case .ccdCooler: return "Camera Cooler Temperature"
+        case .ccdFrameType: return "Frame type"
+        case .ccdBinning: return "Binning"
+        case .ccdCompression: return "Compression"
+        case .ccdFrameReset: return "Reset Frame to default size and binning settings"
+        case .ccdInfo: return "Camera Info"
+        case .ccdColorFilterArray: return "Color Filter Array Information"
+        case .ccd1: return "Camera Sensor 1"
+        case .ccd2: return "Camera Sensor 2 (Guider)"
+        case .ccdTemperatureCoolerRampParameters: return "Temperature Cooler Ramp Parameters"
+        case .worldCoordinateSystemKeywordInclusion: return "World Coordinate System Keyword Inclusion"
+        case .ccdRotation: return "Camera Field of View Rotation"
+        case .ccdCaptureFormat: return "Raw Capture Format"
+        case .ccdTransferFormat: return "Transfer Format"
+        case .ccdFilePath: return "File Path"
+        case .ccdFastToggle: return "Fast Exposure Toggle"
+        case .ccdFastCount: return "Fast Exposure Count"
+        case .fitsHeader: return "FITS Header Information"
+
+        case .ccdVideoStream: return "Camera Video Stream Toggle"
+        case .streamDelay: return "Delay between frames"
+        case .streamingExposureTime: return "Streaming Exposure Time"
+        case .framesPerSecond: return "Frames Per Second"
+        case .ccdStreamingFrameSize: return "Streaming Frame Size"
+        case .ccdStreamEncoder: return "Stream Encoder"
+        case .ccdStreamRecorder: return "Stream Recorder"
+        case .limits: return "StreamingLimits"
+        case .recordFile: return "Record File Directory"
+        case .recordOptions: return "Record Options"
+        case .recordStream: return "Toggle Stream Recording"
+
         case .other(let name): return name
         }
     }
@@ -183,13 +626,45 @@ public enum INDIPropertyName: Sendable, CaseIterable {
         case .periodicErrorCorrection: return .toggle
         case .telescopeTrackMode: return .toggle
         case .telescopeTrackState: return .toggle
-        case .satelliteTLEText: return .text
+        case .satelliteTLE: return .text
         case .satellitePassWindow: return .text
         case .satelliteTrackingState: return .toggle
         case .telescopeReverseMotion: return .toggle
         case .motionControlMode: return .toggle
         case .joystickLockAxis: return .toggle
         case .simulatePierSide: return .toggle
+
+        case .ccdExposureTime: return .number
+        case .ccdAbortExposure: return .number
+        case .ccdFrame: return .number
+        case .ccdTemperature: return .number
+        case .ccdCooler: return .toggle
+        case .ccdFrameType: return .toggle
+        case .ccdBinning: return .number
+        case .ccdCompression: return .toggle
+        case .ccdFrameReset: return .toggle
+        case .ccdInfo: return .number
+        case .ccdColorFilterArray: return .text
+        case .ccd1: return .blob
+        case .ccd2: return .blob
+        case .ccdTemperatureCoolerRampParameters: return .number
+        case .worldCoordinateSystemKeywordInclusion: return .toggle
+        case .ccdRotation: return .number
+        case .ccdCaptureFormat: return .toggle
+        case .ccdTransferFormat: return .toggle
+        case .ccdFilePath: return .text
+        case .ccdFastToggle: return .toggle
+        case .ccdFastCount: return .number
+        case .fitsHeader: return .text
+
+        case .ccdVideoStream: return .toggle
+        case .streamDelay: return .number
+        case .streamingExposureTime: return .number
+        case .framesPerSecond: return .number
+        case .ccdStreamingFrameSize: return .number
+        case .ccdStreamEncoder: return .toggle
+        case .ccdStreamRecorder: return .toggle
+
 
         default: return nil
         }
@@ -243,7 +718,7 @@ public enum INDIPropertyName: Sendable, CaseIterable {
             .periodicErrorCorrection,
             .telescopeTrackMode,
             .telescopeTrackState,
-            .satelliteTLEText,
+            .satelliteTLE,
             .satellitePassWindow,
             .satelliteTrackingState,
             .telescopeReverseMotion,
