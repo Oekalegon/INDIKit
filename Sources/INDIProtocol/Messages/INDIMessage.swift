@@ -97,7 +97,8 @@ public enum INDIMessage: Sendable {
     /// Group (only for update and define properties).
     public var group: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty,
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.group
         case .defineProperty(let prop): return prop.group
         }
@@ -106,7 +107,8 @@ public enum INDIMessage: Sendable {
     /// Label (only for update and define properties).
     public var label: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty,
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.label
         case .defineProperty(let prop): return prop.label
         }
@@ -115,7 +117,8 @@ public enum INDIMessage: Sendable {
     /// Permissions (only for update and define properties).
     public var permissions: INDIPropertyPermissions? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, 
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.permissions
         case .defineProperty(let prop): return prop.permissions
         }
@@ -124,7 +127,8 @@ public enum INDIMessage: Sendable {
     /// State (only for update and define properties).
     public var state: INDIStatus? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, 
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.state
         case .defineProperty(let prop): return prop.state
         }
@@ -133,7 +137,8 @@ public enum INDIMessage: Sendable {
     /// Timeout (only for update and define properties).
     public var timeout: Double? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, 
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.timeout
         case .defineProperty(let prop): return prop.timeout
         }
@@ -142,7 +147,8 @@ public enum INDIMessage: Sendable {
     /// Timestamp (only for update and define properties).
     public var timeStamp: Date? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .deleteProperty, .pingRequest, 
+            .pingReply: return nil
         case .updateProperty(let prop): return prop.timeStamp
         case .defineProperty(let prop): return prop.timeStamp
         case .serverMessage(let msg): return msg.timeStamp
@@ -152,7 +158,8 @@ public enum INDIMessage: Sendable {
     /// Rule for switch properties (only for update and define toggle properties).
     public var rule: INDISwitchRule? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty,
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.rule
         case .defineProperty(let prop): return prop.rule
         }
@@ -161,7 +168,8 @@ public enum INDIMessage: Sendable {
     /// Format for blob properties (only for update and define blob properties).
     public var format: String? {
         switch self {
-        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty, .pingRequest, .pingReply: return nil
+        case .getProperties, .setProperty, .enableBlob, .serverMessage, .deleteProperty,
+             .pingRequest, .pingReply: return nil
         case .updateProperty(let prop): return prop.format
         case .defineProperty(let prop): return prop.format
         }

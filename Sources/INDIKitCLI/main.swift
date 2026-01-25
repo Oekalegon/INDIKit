@@ -4,18 +4,24 @@ import INDIState
 
 @main
 struct INDIKitCLI {
+    private struct ParsedArguments {
+        let host: String
+        let port: UInt16
+        let testState: Bool
+    }
+    
     static func main() async {
         let arguments = CommandLine.arguments
 
-        guard let (host, port, testState) = parseArguments(arguments) else {
+        guard let parsed = parseArguments(arguments) else {
             exit(1)
         }
 
-        let endpoint = INDIServerEndpoint(host: host, port: port)
+        let endpoint = INDIServerEndpoint(host: parsed.host, port: parsed.port)
         let server = INDIServer(endpoint: endpoint)
 
-        print("Connecting to INDI server at \(host):\(port)...")
-        if testState {
+        print("Connecting to INDI server at \(parsed.host):\(parsed.port)...")
+        if parsed.testState {
             print("INDIState testing mode enabled - will log device and property updates")
         }
 
@@ -26,22 +32,20 @@ struct INDIKitCLI {
 
             sendHandshake(server: server)
             setupStdinReader(server: server)
-            if !testState {
+            if !parsed.testState {
                 setupRawDataPrinter(server: server)
             }
             
             // Set up INDIState registry if test mode is enabled
-            if testState {
+            if parsed.testState {
                 await setupStateRegistry(endpoint: endpoint)
             }
             
             let propertyStream = try await server.messages()
-            for try await property in propertyStream {
+            for try await property in propertyStream where !parsed.testState {
                 // Only print protocol messages if not in test-state mode
-                if !testState {
-                    print("Parsed INDI Message:")
-                    printMessage(property)
-                }
+                print("Parsed INDI Message:")
+                printMessage(property)
             }
 
             print("\nConnection closed.")
@@ -53,7 +57,7 @@ struct INDIKitCLI {
     
     // MARK: - Setup Helpers
     
-    private static func parseArguments(_ arguments: [String]) -> (host: String, port: UInt16, testState: Bool)? {
+    private static func parseArguments(_ arguments: [String]) -> ParsedArguments? {
         var host: String?
         var port: UInt16?
         var testState = false
@@ -88,7 +92,7 @@ struct INDIKitCLI {
             return nil
         }
         
-        return (host, port, testState)
+        return ParsedArguments(host: host, port: port, testState: testState)
     }
     
     private static func setupStateRegistry(endpoint: INDIServerEndpoint) async {

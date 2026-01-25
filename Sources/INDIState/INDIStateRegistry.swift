@@ -153,103 +153,123 @@ public actor INDIStateRegistry {
     private func createINDIProperty(stateProperty: INDIStateProperty) -> INDIProperty {
         switch stateProperty.propertyType {
         case .text:
-            return TextProperty(
-                name: stateProperty.name, 
-                group: stateProperty.group, 
-                label: stateProperty.label, 
-                permissions: stateProperty.permissions, 
-                state: stateProperty.state, 
-                timeout: stateProperty.timeout, 
-                values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
-                    guard case .text(let stringValue) = value.value else {
-                        return nil
-                    }
-                    return TextValue(name: value.name, label: value.label, textValue: stringValue)
-                }, 
-                timeStamp: stateProperty.timeStamp ?? Date()
-            )
+            return createTextProperty(from: stateProperty)
         case .number:
-            return NumberProperty(
-                name: stateProperty.name,
-                group: stateProperty.group, 
-                label: stateProperty.label, 
-                permissions: stateProperty.permissions, 
-                state: stateProperty.state, 
-                timeout: stateProperty.timeout, 
-                values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
-                    guard case .number(let numberValue) = value.value else {
-                        return nil
-                    }
-                    return NumberValue(
-                        name: value.name,
-                        label: value.label,
-                        format: value.format,
-                        min: value.min,
-                        max: value.max,
-                        step: value.step,
-                        unit: value.unit,
-                        numberValue: numberValue
-                    )
-                }, 
-                timeStamp: stateProperty.timeStamp ?? Date()
-            )
+            return createNumberProperty(from: stateProperty)
         case .toggle:
-            return SwitchProperty(
-                name: stateProperty.name,
-                group: stateProperty.group, 
-                label: stateProperty.label, 
-                permissions: stateProperty.permissions, 
-                state: stateProperty.state, 
-                timeout: stateProperty.timeout, 
-                rule: stateProperty.rule, 
-                values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
-                    guard case .boolean(let booleanValue) = value.value else {
-                        return nil
-                    }
-                    return SwitchValue(name: value.name, label: value.label, switchValue: booleanValue)
-                }, 
-                timeStamp: stateProperty.timeStamp ?? Date()
-            )
+            return createSwitchProperty(from: stateProperty)
         case .light:
-            return LightProperty(
-                name: stateProperty.name, 
-                group: stateProperty.group, 
-                label: stateProperty.label, 
-                permissions: stateProperty.permissions, 
-                state: stateProperty.state, 
-                timeout: stateProperty.timeout, 
-                values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
-                    guard case .state(let stateValue) = value.value else {
-                        return nil
-                    }
-                    return LightValue(name: value.name, label: value.label, lightValue: stateValue)
-                }, 
-                timeStamp: stateProperty.timeStamp ?? Date()
-            )   
+            return createLightProperty(from: stateProperty)
         case .blob:
-            return BLOBProperty(
-                name: stateProperty.name, 
-                group: stateProperty.group, 
-                label: stateProperty.label, 
-                permissions: stateProperty.permissions, 
-                state: stateProperty.state, 
-                timeout: stateProperty.timeout, 
-                values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
-                    guard case .blob(let blobValue) = value.value else {
-                        return nil
-                    }
-                    return BLOBValue(
-                        name: value.name,
-                        label: value.label,
-                        format: value.format,
-                        size: value.size,
-                        compressed: value.compressed,
-                        blobValue: blobValue
-                    )
-                }, 
-                timeStamp: stateProperty.timeStamp ?? Date()
-            )
+            return createBLOBProperty(from: stateProperty)
         }
+    }
+    
+    private func createTextProperty(from stateProperty: INDIStateProperty) -> TextProperty {
+        return TextProperty(
+            name: stateProperty.name,
+            group: stateProperty.group,
+            label: stateProperty.label,
+            permissions: stateProperty.permissions,
+            state: stateProperty.state,
+            timeout: stateProperty.timeout,
+            values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
+                guard case .text(let stringValue) = value.value else {
+                    return nil
+                }
+                return TextValue(name: value.name, label: value.label, textValue: stringValue)
+            },
+            timeStamp: stateProperty.timeStamp ?? Date()
+        )
+    }
+    
+    private func createNumberProperty(from stateProperty: INDIStateProperty) -> NumberProperty {
+        return NumberProperty(
+            name: stateProperty.name,
+            group: stateProperty.group,
+            label: stateProperty.label,
+            permissions: stateProperty.permissions,
+            state: stateProperty.state,
+            timeout: stateProperty.timeout,
+            values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
+                guard case .number(let numberValue) = value.value else {
+                    return nil
+                }
+                return NumberValue(
+                    name: value.name,
+                    label: value.label,
+                    format: value.format,
+                    min: value.min,
+                    max: value.max,
+                    step: value.step,
+                    unit: value.unit,
+                    numberValue: numberValue
+                )
+            },
+            timeStamp: stateProperty.timeStamp ?? Date()
+        )
+    }
+    
+    private func createSwitchProperty(from stateProperty: INDIStateProperty) -> SwitchProperty {
+        return SwitchProperty(
+            name: stateProperty.name,
+            group: stateProperty.group,
+            label: stateProperty.label,
+            permissions: stateProperty.permissions,
+            state: stateProperty.state,
+            timeout: stateProperty.timeout,
+            rule: stateProperty.rule,
+            values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
+                guard case .boolean(let booleanValue) = value.value else {
+                    return nil
+                }
+                return SwitchValue(name: value.name, label: value.label, switchValue: booleanValue)
+            },
+            timeStamp: stateProperty.timeStamp ?? Date()
+        )
+    }
+    
+    private func createLightProperty(from stateProperty: INDIStateProperty) -> LightProperty {
+        return LightProperty(
+            name: stateProperty.name,
+            group: stateProperty.group,
+            label: stateProperty.label,
+            permissions: stateProperty.permissions,
+            state: stateProperty.state,
+            timeout: stateProperty.timeout,
+            values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
+                guard case .state(let stateValue) = value.value else {
+                    return nil
+                }
+                return LightValue(name: value.name, label: value.label, lightValue: stateValue)
+            },
+            timeStamp: stateProperty.timeStamp ?? Date()
+        )
+    }
+    
+    private func createBLOBProperty(from stateProperty: INDIStateProperty) -> BLOBProperty {
+        return BLOBProperty(
+            name: stateProperty.name,
+            group: stateProperty.group,
+            label: stateProperty.label,
+            permissions: stateProperty.permissions,
+            state: stateProperty.state,
+            timeout: stateProperty.timeout,
+            values: stateProperty.values.compactMap { (value: INDIValue) -> (any PropertyValue)? in
+                guard case .blob(let blobValue) = value.value else {
+                    return nil
+                }
+                return BLOBValue(
+                    name: value.name,
+                    label: value.label,
+                    format: value.format,
+                    size: value.size,
+                    compressed: value.compressed,
+                    blobValue: blobValue
+                )
+            },
+            timeStamp: stateProperty.timeStamp ?? Date()
+        )
     }
 
     func createAndSendSetPropertyMessage(device: INDIDevice, property: INDIProperty) async throws {
