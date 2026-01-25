@@ -41,7 +41,7 @@ public struct INDIValue: Sendable {
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// The type of value stored.
-    public enum Value: Sendable {
+    public enum Value: Sendable, Equatable {
         case text(String)
         case number(Double)
         case boolean(Bool)
