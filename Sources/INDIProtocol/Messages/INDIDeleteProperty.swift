@@ -6,7 +6,7 @@ import os
 /// This message is sent by the server to the client to indicate that a property has been deleted.
 /// Delete property messages can only be received, not sent.
 public struct INDIDeleteProperty: INDICommand, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
 
     public let operation: INDIOperation = .delete
     public let device: String?

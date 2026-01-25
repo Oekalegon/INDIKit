@@ -25,17 +25,46 @@ public struct BLOBProperty: INDIProperty {
 
     public var timeStamp: Date
     public var targetTimeStamp: Date? 
+
+    public mutating func setTargetBlobValue(
+        name: INDIPropertyValueName,
+        format: String?,
+        size: Int?,
+        compressed: Bool?,
+        blobValue: Data
+    ) throws {
+        var newTargetValues: [BLOBValue] = self.targetBlobValues ?? blobValues
+        for value in newTargetValues {
+            var newValue = value
+            if value.name == name {
+                newValue.format = format
+                newValue.size = size
+                newValue.compressed = compressed
+                newValue.blobValue = blobValue
+            }
+            newTargetValues.append(newValue)
+        }
+        self.targetValues = newTargetValues
+        self.targetTimeStamp = Date()
+    }
 }
 
 public struct BLOBValue: PropertyValue {
 
     public let name: INDIPropertyValueName
     public let label: String?
-    public let format: String?
-    public let size: Int?
-    public let compressed: Bool?
-    public let blobValue: Data
+    public var format: String?
+    public var size: Int?
+    public var compressed: Bool?
+    public var blobValue: Data
     public var value: INDIValue.Value {
-        return .blob(blobValue)
+        get {
+            return .blob(blobValue)
+        }
+        set {
+            if case .blob(let blobValue) = newValue {
+                self.blobValue = blobValue
+            }
+        }
     }
 }

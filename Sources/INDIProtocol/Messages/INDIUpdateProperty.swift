@@ -6,7 +6,7 @@ import os
 /// This message is sent by the server to the client when a property value is updated.
 /// Update operations support all optional attributes like group, label, permissions, state, etc.
 public struct INDIUpdateProperty: INDIStateProperty, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
     /// Known INDI property attributes.
     private static let knownAttributes = [

@@ -1,5 +1,6 @@
 import Foundation
 import INDIProtocol
+import os
 
 public struct LightProperty: INDIProperty {
 
@@ -29,11 +30,21 @@ public struct LightProperty: INDIProperty {
 
 public struct LightValue: PropertyValue {
 
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIState", category: "properties")
+
     public let name: INDIPropertyValueName
     public let label: String?
     
-    public let lightValue: INDIStatus
+    public var lightValue: INDIStatus
+
     public var value: INDIValue.Value {
-        return .state(lightValue)
+        get {
+            return .state(lightValue)
+        }
+        set {
+            if case .state(let lightValue) = newValue {
+                self.lightValue = lightValue
+            }
+        }
     }
 }

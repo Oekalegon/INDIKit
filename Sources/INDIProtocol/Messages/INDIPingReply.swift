@@ -6,7 +6,7 @@ import os
 /// This message is sent by the server to the client in response to a ping message.
 /// PingReply messages can only be received, not sent.
 public struct INDIPingReply: INDICommand, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
 
     public let operation: INDIOperation = .pingReply
     public let uid: String?

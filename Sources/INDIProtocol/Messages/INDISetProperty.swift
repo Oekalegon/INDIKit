@@ -6,7 +6,7 @@ import os
 /// This message is sent by the client to the server to change the value of a property.
 /// Set operations only support device, name, and values - no other attributes.
 public struct INDISetProperty: INDICommand, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
     public let operation: INDIOperation = .set
     public let device: String

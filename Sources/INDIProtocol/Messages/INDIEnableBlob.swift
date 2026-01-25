@@ -6,7 +6,7 @@ import os
 /// This message is sent by the client to the server to control BLOB data transmission
 /// for a specific property.
 public struct INDIEnableBlob: INDICommand, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
     public let operation: INDIOperation = .enableBlob
     public let device: String

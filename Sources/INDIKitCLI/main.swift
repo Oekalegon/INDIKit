@@ -1,12 +1,13 @@
 import Foundation
 import INDIProtocol
+import INDIState
 
 @main
 struct INDIKitCLI {
     static func main() async {
         let arguments = CommandLine.arguments
 
-        guard let (host, port) = parseArguments(arguments) else {
+        guard let (host, port, testState) = parseArguments(arguments) else {
             exit(1)
         }
 
@@ -14,6 +15,9 @@ struct INDIKitCLI {
         let server = INDIServer(endpoint: endpoint)
 
         print("Connecting to INDI server at \(host):\(port)...")
+        if testState {
+            print("INDIState testing mode enabled - will log device and property updates")
+        }
 
         do {
             _ = try await server.connect()
@@ -22,12 +26,22 @@ struct INDIKitCLI {
 
             sendHandshake(server: server)
             setupStdinReader(server: server)
-            setupRawDataPrinter(server: server)
+            if !testState {
+                setupRawDataPrinter(server: server)
+            }
+            
+            // Set up INDIState registry if test mode is enabled
+            if testState {
+                await setupStateRegistry(endpoint: endpoint)
+            }
             
             let propertyStream = try await server.messages()
             for try await property in propertyStream {
-                print("Parsed INDI Message:")
-                printMessage(property)
+                // Only print protocol messages if not in test-state mode
+                if !testState {
+                    print("Parsed INDI Message:")
+                    printMessage(property)
+                }
             }
 
             print("\nConnection closed.")
@@ -39,20 +53,99 @@ struct INDIKitCLI {
     
     // MARK: - Setup Helpers
     
-    private static func parseArguments(_ arguments: [String]) -> (host: String, port: UInt16)? {
-        guard arguments.count == 3 else {
-            print("Usage: \(arguments[0]) <host> <port>")
-            print("Example: \(arguments[0]) localhost 7624")
-            return nil
+    private static func parseArguments(_ arguments: [String]) -> (host: String, port: UInt16, testState: Bool)? {
+        var host: String?
+        var port: UInt16?
+        var testState = false
+        
+        var i = 1
+        while i < arguments.count {
+            let arg = arguments[i]
+            if arg == "--test-state" || arg == "-t" {
+                testState = true
+                i += 1
+            } else if host == nil {
+                host = arg
+                i += 1
+            } else if port == nil {
+                if let parsedPort = UInt16(arg) {
+                    port = parsedPort
+                    i += 1
+                } else {
+                    print("Error: Invalid port number '\(arg)'")
+                    return nil
+                }
+            } else {
+                print("Error: Unexpected argument '\(arg)'")
+                return nil
+            }
         }
-
-        let host = arguments[1]
-        guard let port = UInt16(arguments[2]) else {
-            print("Error: Invalid port number '\(arguments[2])'")
+        
+        guard let host = host, let port = port else {
+            print("Usage: \(arguments[0]) [--test-state|-t] <host> <port>")
+            print("Example: \(arguments[0]) localhost 7624")
+            print("Example: \(arguments[0]) --test-state localhost 7624")
             return nil
         }
         
-        return (host, port)
+        return (host, port, testState)
+    }
+    
+    private static func setupStateRegistry(endpoint: INDIServerEndpoint) async {
+        let registry = INDIStateRegistry(endpoint: endpoint)
+        
+        // Set up callbacks for device and property updates
+        await registry.setOnDeviceUpdate { (deviceName: String, device: INDIDevice) in
+            print("\n[INDIState] Device Updated: \(deviceName)")
+            print("  Properties: \(device.properties.count)")
+            for property in device.properties {
+                print("    - \(property.name.displayName) (\(property.type))")
+            }
+        }
+        
+        await registry.setOnPropertyUpdate { (deviceName: String, property: any INDIProperty) in
+            print("\n[INDIState] Property Updated: \(deviceName).\(property.name.displayName)")
+            print("  Type: \(property.type)")
+            if let group = property.group {
+                print("  Group: \(group)")
+            }
+            print("  Values: \(property.values.count)")
+            for value in property.values {
+                print("    - \(value.name.indiName): ", terminator: "")
+                printPropertyValue(value.value)
+            }
+            if let targetValues = property.targetValues {
+                print("  Target Values: \(targetValues.count)")
+                for value in targetValues {
+                    print("    - \(value.name.indiName): ", terminator: "")
+                    printPropertyValue(value.value)
+                }
+            }
+        }
+        
+        // Start the state registry's own connection and message stream in a background task
+        Task.detached(priority: .userInitiated) {
+            do {
+                try await registry.connect()
+            } catch {
+                print("[INDIState] Error in state registry connection: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private static func printPropertyValue(_ value: INDIValue.Value) {
+        switch value {
+        case .text(let text):
+            print("\"\(text)\"")
+        case .number(let num):
+            print("\(num)")
+        case .boolean(let bool):
+            print(bool ? "ON" : "OFF")
+        case .state(let state):
+            print(state.indiValue)
+        case .blob(let data):
+            print("<\(data.count) bytes>")
+        }
     }
     
     private static func sendHandshake(server: INDIServer) {

@@ -1,9 +1,12 @@
 import Foundation
 import INDIProtocol
+import os
 
 public struct INDIDevice: Sendable {
 
-    public let stateRegistry: INDIServerStateRegistry
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIState", category: "device")
+
+    public let stateRegistry: INDIStateRegistry
 
     public let name: String
 
@@ -51,14 +54,15 @@ public struct INDIDevice: Sendable {
         }
         // NB. No error should be thrown as there are only two possible values for the connect property.
         try? connectionProperty.setTargetSwitchValue(name: .connect, true)
-        // TODO: send a message to the INDI server to set the property
+        // Send a message to the INDI server to set the property
+        self.sendTargetPropertyValues(property: connectionProperty)
     }
 
     /// Disconnect from the device.
     /// 
     /// If the device is already disconnected, or,
     /// already in the process of connecting or disconnecting, this function does nothing.
-    public mutating func disconnect() {
+    public mutating func disconnect() throws {
         guard var connectionProperty = self.getProperty(name: .connection) as? SwitchProperty else {
             return
         }
@@ -69,11 +73,25 @@ public struct INDIDevice: Sendable {
             // already in the process of connecting or disconnecting, should not change the target value
             return
         }
-        connectionProperty.setTargetSwitchValue(name: .connect, value: false)
-        // TODO: send a message to the INDI server to set the property
+        try connectionProperty.setTargetSwitchValue(name: .connect, false)
+        // Send a message to the INDI server to set the property
+        self.sendTargetPropertyValues(property: connectionProperty)
+    }
+
+    /// Send the target property values to the INDI server.
+    /// - Parameter property: The property to send the target values for.
+    private func sendTargetPropertyValues(property: any INDIProperty) {
+        Task.detached {
+            do {
+                try await self.stateRegistry.sendTargetPropertyValues(device: self, property: property)
+            } catch {
+                Self.logger.error("Error sending target property values: \(error)")
+            }
+        }
     }
 
     mutating func updateProperty(property: INDIProperty, isTarget: Bool = false) {
+        Self.logger.debug("Updating property: \(property.name.displayName, privacy: .public) isTarget: \(isTarget)")
         // If the property already exists, update it
         if let index = properties.firstIndex(where: { $0.name == property.name }) {
             // If the property is a target property, i.e. was set by the client
@@ -117,7 +135,7 @@ public struct INDIDevice: Sendable {
             ])
         }
         self.updateProperty(property: property, isTarget: true)
-        try await stateRegistry.createAndSendSetPropertyMessage(device: self, property: property)
+        self.sendTargetPropertyValues(property: property)
     }
 
     /// Delete a property by name.

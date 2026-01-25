@@ -1,5 +1,6 @@
 import Foundation
 import Network
+import os
 
 /// A description of an INDI server endpoint.
 public struct INDIServerEndpoint: Sendable, Hashable {
@@ -16,6 +17,9 @@ public struct INDIServerEndpoint: Sendable, Hashable {
 ///
 /// You can create multiple instances of this actor to talk to multiple servers concurrently.
 public actor INDIServer {
+
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "INDIServer")
+    
     public let endpoint: INDIServerEndpoint
 
     private var connection: NWConnection?
@@ -77,6 +81,7 @@ public actor INDIServer {
                 }
             }
 
+            Self.logger.info("Starting connection to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
             nwConnection.start(queue: queue)
         }
 
@@ -85,6 +90,7 @@ public actor INDIServer {
 
     /// Close the connection to the server.
     public func disconnect() {
+        Self.logger.info("Disconnecting from \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
         guard let connection else { return }
         connection.cancel()
         self.connection = nil
@@ -96,6 +102,7 @@ public actor INDIServer {
 
     /// Send raw data to the server.
     public func send(_ data: Data) async throws {
+        Self.logger.info("Sending data to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
         guard let connection, isConnected else {
             throw NSError(domain: "INDIServerConnection", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Connection is not open"
@@ -115,15 +122,15 @@ public actor INDIServer {
     
     /// Send an INDI message to the server.
     ///
-    /// Only messages with `.set`, `.get` (getProperties), or `.enableBlob` operations can be sent to the server.
+    /// Only messages with `.set`, `.get` (getProperties), `.ping`, or `.enableBlob` operations can be sent to the server.
     /// This method serializes the message to XML and sends it to the server.
     ///
     /// - Parameter message: The INDI message to send (must have `.set`, `.get`, or `.enableBlob` operation)
     /// - Throws: An error if not connected, if the message operation is not supported, or if serialization fails
     public func send(_ message: INDIMessage) async throws {
-        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob]
+        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob, .ping]
         guard allowedOperations.contains(message.operation) else {
-            let errorMessage = "Only messages with .set, .get, or .enableBlob operations can be sent to the server. " +
+            let errorMessage = "Only messages with .set, .get, .ping, or .enableBlob operations can be sent to the server. " +
                 "Received message with operation: \(message.operation.rawValue)"
             throw NSError(domain: "INDIServer", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: errorMessage

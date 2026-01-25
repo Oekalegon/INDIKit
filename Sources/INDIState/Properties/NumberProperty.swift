@@ -25,6 +25,27 @@ public struct NumberProperty: INDIProperty {
 
     public var timeStamp: Date
     public var targetTimeStamp: Date? 
+
+    public mutating func setTargetNumberValues(_ targetNumberValues: [(name: INDIPropertyValueName, numberValue: Double)]) throws {
+        var newTargetValues: [NumberValue] = self.targetNumberValues ?? numberValues
+        for (name, numberValue) in targetNumberValues {
+            if let index = newTargetValues.firstIndex(where: { $0.name == name }) {
+                newTargetValues[index].numberValue = numberValue
+            } else {
+                throw INDIPropertyErrors.valueNotFound(
+                    message: "Value with name \(name) does not exist",
+                    propertyName: self.name,
+                    valueName: name
+                )
+            }
+        }
+        self.targetValues = newTargetValues
+        self.targetTimeStamp = Date()
+    }
+
+    public mutating func setTargetNumberValue(name: INDIPropertyValueName, _ numberValue: Double) throws {
+        try self.setTargetNumberValues([(name: name, numberValue: numberValue)])
+    }
 }
 
 public struct NumberValue: PropertyValue {
@@ -37,8 +58,15 @@ public struct NumberValue: PropertyValue {
     public let step: Double?
     public let unit: String?
 
-    public let numberValue: Double
+    public var numberValue: Double
     public var value: INDIValue.Value {
-        return .number(numberValue)
+        get {
+            return .number(numberValue)
+        }
+        set {
+            if case .number(let numberValue) = newValue {
+                self.numberValue = numberValue
+            }
+        }
     }
 }
