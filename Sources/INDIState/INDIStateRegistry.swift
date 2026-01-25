@@ -43,6 +43,12 @@ public actor INDIServerStateRegistry {
     }
 
     public func disconnect() async {
+        for deviceName in devices.keys {
+            if var device = devices[deviceName] {
+                device.disconnect()
+                devices[deviceName] = device
+            }
+        }
         await server.disconnect()
         connected = false
         timer?.invalidate()
@@ -136,6 +142,19 @@ public actor INDIServerStateRegistry {
         pings[uid]?.recievedReply = Date()
     }
 
+    private func sendTargetPropertyValues(device: INDIDevice, property: any INDIProperty) async throws {
+        guard let targetValues = property.targetValues else {
+            return
+        }
+        let setPropertyMessage = INDISetProperty(
+            propertyType: property.type, 
+            device: device.name, 
+            name: property.name, 
+            values: targetValues.map { $0.toINDIValue(type: property.type) }
+        )
+        try await server.send(.setProperty(setPropertyMessage))
+    }
+    
     private func createINDIProperty(stateProperty: INDIStateProperty) -> INDIProperty {
         switch stateProperty.propertyType {
         case .text:

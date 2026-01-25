@@ -22,5 +22,5 @@ public protocol PropertyValue: Sendable {
 
     var name: INDIPropertyValueName { get }
     var label: String? { get }
-    var value: INDIValue.Value { get }
+    var value: INDIValue.Value { get set }
 }

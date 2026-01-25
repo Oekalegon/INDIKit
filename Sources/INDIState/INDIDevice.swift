@@ -9,21 +9,69 @@ public struct INDIDevice: Sendable {
 
     public var properties: [INDIProperty] = []
 
-    // public var connected: Bool {
-    //     get {
-    //         // Find the connection property and the connect value. If that is true, the device is connected.
-    //         guard let connectionProperty = properties.first(where: { $0.name == .connection }) else {
-    //             return false
-    //         }
-    //         guard let value = connectionProperty.values.first(where: { $0.name == .connect }) else {
-    //             return false
-    //         }
-    //         return value.value == .boolean(true)
-    //     }
-    //     set {
+    public enum ConnectionStatus {
+        case disconnected
+        case connected
+        case connecting
+        case disconnecting
+    }
 
-    //     }
-    // }
+    public var connectionStatus: ConnectionStatus {
+        guard let connectionProperty = self.getProperty(name: .connection) as? SwitchProperty else {
+            return .disconnected
+        }
+        let currentValue = connectionProperty.switchValue(name: .connect)
+        let targetValue = connectionProperty.targetSwitchValue(name: .connect)
+        switch (currentValue, targetValue) {
+        case (true, true):
+            return .connected
+        case (false, false):
+            return .disconnected
+        case (true, false):
+            return .disconnecting
+        case (false, true):
+            return .connecting
+        }
+    }
+
+    /// Connect to the device.
+    /// 
+    /// If the device is already connected, or,
+    /// already in the process of connecting or disconnecting, this function does nothing.
+    public mutating func connect() throws {
+        guard var connectionProperty = self.getProperty(name: .connection) as? SwitchProperty else {
+            return
+        }
+        let currentValue = connectionProperty.switchValue(name: .connect)
+        let targetValue = connectionProperty.targetSwitchValue(name: .connect)
+        if currentValue || currentValue != targetValue {
+            // Already connected, or,
+            // already in the process of connecting or disconnecting, should not change the target value
+            return
+        }
+        // NB. No error should be thrown as there are only two possible values for the connect property.
+        try? connectionProperty.setTargetSwitchValue(name: .connect, true)
+        // TODO: send a message to the INDI server to set the property
+    }
+
+    /// Disconnect from the device.
+    /// 
+    /// If the device is already disconnected, or,
+    /// already in the process of connecting or disconnecting, this function does nothing.
+    public mutating func disconnect() {
+        guard var connectionProperty = self.getProperty(name: .connection) as? SwitchProperty else {
+            return
+        }
+        let currentValue = connectionProperty.switchValue(name: .connect)
+        let targetValue = connectionProperty.targetSwitchValue(name: .connect)
+        if !currentValue || currentValue != targetValue {
+            // Already disconnected, or,
+            // already in the process of connecting or disconnecting, should not change the target value
+            return
+        }
+        connectionProperty.setTargetSwitchValue(name: .connect, value: false)
+        // TODO: send a message to the INDI server to set the property
+    }
 
     mutating func updateProperty(property: INDIProperty, isTarget: Bool = false) {
         // If the property already exists, update it
@@ -53,7 +101,7 @@ public struct INDIDevice: Sendable {
     /// Get a property by name.
     /// - Parameter name: The name of the property to get.
     /// - Returns: The property if it exists, otherwise nil.
-    public func getProperty(name: INDIPropertyName) -> INDIProperty? {
+    public func getProperty(name: INDIPropertyName) -> (any INDIProperty)? {
         return properties.first(where: { $0.name == name })
     }
 
