@@ -3,14 +3,22 @@ import os
 
 /// An INDI pingReply message.
 ///
-/// This message is sent by the server to the client in response to a ping message.
-/// PingReply messages can only be received, not sent.
+/// This message is sent by the client to the server in response to a pingRequest message.
+/// PingReply messages can only be sent, not received.
 public struct INDIPingReply: INDICommand, Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
 
     public let operation: INDIOperation = .pingReply
     public let uid: String?
     public private(set) var diagnostics: [INDIDiagnostics]
+
+    /// Create a pingReply message programmatically.
+    ///
+    /// - Parameter uid: Optional unique identifier for this pingReply (should match the pingRequest uid)
+    public init(uid: String? = nil) {
+        self.uid = uid
+        self.diagnostics = []
+    }
 
     /// Parse a pingReply message from XML.
     init?(xmlNode: XMLNodeRepresentation) {
@@ -42,5 +50,16 @@ public struct INDIPingReply: INDICommand, Sendable {
                 "but pingReply should not have any child elements."
             INDIDiagnostics.logWarning(message, logger: Self.logger, diagnostics: &diagnostics)
         }
+    }
+
+    // MARK: - XML Serialization
+
+    internal func toXML() throws -> String {
+        var xml = "<pingReply"
+        if let uid = uid, !uid.isEmpty {
+            xml += " uid=\"\(escapeXML(uid))\""
+        }
+        xml += "/>"
+        return xml
     }
 }

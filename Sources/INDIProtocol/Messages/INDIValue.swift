@@ -6,7 +6,7 @@ import os
 /// INDI values contain both the actual value data and metadata about that value
 /// such as name, label, format, min/max, step, and unit.
 public struct INDIValue: Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     /// Required: The element name of this value.
     public let name: INDIPropertyValueName
     
@@ -41,7 +41,7 @@ public struct INDIValue: Sendable {
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// The type of value stored.
-    public enum Value: Sendable {
+    public enum Value: Sendable, Equatable {
         case text(String)
         case number(Double)
         case boolean(Bool)

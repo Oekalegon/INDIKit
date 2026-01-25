@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import INDIProtocol
 
-@Suite("INDI Ping and PingReply Parsing Tests")
+@Suite("INDI PingRequest and PingReply Parsing Tests")
 struct INDIPingParsingTests {
     
     // MARK: - Helper Functions
@@ -26,6 +26,58 @@ struct INDIPingParsingTests {
             messages.append(message)
         }
         return messages
+    }
+    
+    // MARK: - PingRequest Parsing Tests
+    
+    @Test("Parse pingRequest with uid")
+    func testParsePingRequestWithUid() async throws {
+        let xml = """
+        <pingRequest uid="12345"/>
+        """
+        
+        let messages = try await parseXML(xml)
+        
+        #expect(messages.count == 1)
+        let message = messages[0]
+        
+        #expect(message.operation == .pingRequest)
+        #expect(message.device == nil)
+        #expect(message.name == nil)
+        #expect(message.propertyType == nil)
+        #expect(message.values.isEmpty)
+        
+        if case .pingRequest(let pingRequest) = message {
+            #expect(pingRequest.uid == "12345")
+            #expect(!INDIDiagnosticsTestHelpers.hasAnyError(pingRequest.diagnostics))
+            #expect(!INDIDiagnosticsTestHelpers.hasAnyWarning(pingRequest.diagnostics))
+        } else {
+            Issue.record("Expected pingRequest case")
+        }
+    }
+    
+    @Test("Parse pingRequest without uid")
+    func testParsePingRequestWithoutUid() async throws {
+        let xml = """
+        <pingRequest/>
+        """
+        
+        let messages = try await parseXML(xml)
+        
+        #expect(messages.count == 1)
+        let message = messages[0]
+        
+        #expect(message.operation == .pingRequest)
+        #expect(message.device == nil)
+        #expect(message.name == nil)
+        
+        if case .pingRequest(let pingRequest) = message {
+            #expect(pingRequest.uid == nil)
+            #expect(!INDIDiagnosticsTestHelpers.hasAnyError(pingRequest.diagnostics))
+            #expect(!INDIDiagnosticsTestHelpers.hasAnyWarning(pingRequest.diagnostics))
+        } else {
+            Issue.record("Expected pingRequest case")
+        }
     }
     
     // MARK: - PingReply Parsing Tests
@@ -82,6 +134,50 @@ struct INDIPingParsingTests {
     
     // MARK: - Validation Tests
     
+    @Test("PingRequest with unexpected attribute generates warning")
+    func testPingRequestWithUnexpectedAttribute() async throws {
+        let xml = """
+        <pingRequest uid="12345" unexpected="value"/>
+        """
+        
+        let messages = try await parseXML(xml)
+        
+        #expect(messages.count == 1)
+        let message = messages[0]
+        
+        if case .pingRequest(let pingRequest) = message {
+            #expect(INDIDiagnosticsTestHelpers.hasWarning(
+                pingRequest.diagnostics,
+                containing: "pingRequest element contains unexpected attribute 'unexpected'"
+            ))
+        } else {
+            Issue.record("Expected pingRequest case")
+        }
+    }
+    
+    @Test("PingRequest with child elements generates warning")
+    func testPingRequestWithChildElements() async throws {
+        let xml = """
+        <pingRequest uid="12345">
+            <child>Should not be here</child>
+        </pingRequest>
+        """
+        
+        let messages = try await parseXML(xml)
+        
+        #expect(messages.count == 1)
+        let message = messages[0]
+        
+        if case .pingRequest(let pingRequest) = message {
+            #expect(INDIDiagnosticsTestHelpers.hasWarning(
+                pingRequest.diagnostics,
+                containing: "pingRequest element contains 1 child element(s)"
+            ))
+        } else {
+            Issue.record("Expected pingRequest case")
+        }
+    }
+    
     @Test("PingReply with unexpected attribute generates warning")
     func testPingReplyWithUnexpectedAttribute() async throws {
         let xml = """
@@ -128,6 +224,33 @@ struct INDIPingParsingTests {
     
     // MARK: - Enum Wrapper Property Tests
     
+    @Test("INDIMessage enum wrapper properties for pingRequest")
+    func testINDIMessageEnumWrapperPropertiesForPingRequest() async throws {
+        let xml = """
+        <pingRequest uid="12345"/>
+        """
+        
+        let messages = try await parseXML(xml)
+        let message = messages[0]
+        
+        #expect(message.operation == .pingRequest)
+        #expect(message.device == nil)
+        #expect(message.name == nil)
+        #expect(message.propertyType == nil)
+        #expect(message.values.isEmpty)
+        #expect(message.group == nil)
+        #expect(message.label == nil)
+        #expect(message.permissions == nil)
+        #expect(message.state == nil)
+        #expect(message.timeout == nil)
+        #expect(message.timeStamp == nil)
+        #expect(message.rule == nil)
+        #expect(message.format == nil)
+        #expect(message.blobSendingState == nil)
+        #expect(message.version == nil)
+        #expect(message.messageText == nil)
+    }
+    
     @Test("INDIMessage enum wrapper properties for pingReply")
     func testINDIMessageEnumWrapperPropertiesForPingReply() async throws {
         let xml = """
@@ -155,76 +278,76 @@ struct INDIPingParsingTests {
         #expect(message.messageText == nil)
     }
     
-    // MARK: - Ping Creation and Serialization Tests
+    // MARK: - PingReply Creation and Serialization Tests
     
-    @Test("Create ping programmatically without uid")
-    func testCreatePingWithoutUid() {
-        let ping = INDIPing(uid: nil)
+    @Test("Create pingReply programmatically without uid")
+    func testCreatePingReplyWithoutUid() {
+        let pingReply = INDIPingReply(uid: nil)
         
-        #expect(ping.operation == .ping)
-        #expect(ping.uid == nil)
-        #expect(ping.diagnostics.isEmpty)
+        #expect(pingReply.operation == .pingReply)
+        #expect(pingReply.uid == nil)
+        #expect(pingReply.diagnostics.isEmpty)
         
         do {
-            let xml = try ping.toXML()
-            #expect(xml == "<ping/>")
+            let xml = try pingReply.toXML()
+            #expect(xml == "<pingReply/>")
         } catch {
-            Issue.record("Failed to serialize ping: \(error)")
+            Issue.record("Failed to serialize pingReply: \(error)")
         }
     }
     
-    @Test("Create ping programmatically with uid")
-    func testCreatePingWithUid() {
-        let ping = INDIPing(uid: "12345")
+    @Test("Create pingReply programmatically with uid")
+    func testCreatePingReplyWithUid() {
+        let pingReply = INDIPingReply(uid: "12345")
         
-        #expect(ping.operation == .ping)
-        #expect(ping.uid == "12345")
-        #expect(ping.diagnostics.isEmpty)
+        #expect(pingReply.operation == .pingReply)
+        #expect(pingReply.uid == "12345")
+        #expect(pingReply.diagnostics.isEmpty)
         
         do {
-            let xml = try ping.toXML()
-            #expect(xml.contains("<ping"))
+            let xml = try pingReply.toXML()
+            #expect(xml.contains("<pingReply"))
             #expect(xml.contains("uid=\"12345\""))
             #expect(xml.contains("/>"))
         } catch {
-            Issue.record("Failed to serialize ping: \(error)")
+            Issue.record("Failed to serialize pingReply: \(error)")
         }
     }
     
-    @Test("Create ping programmatically with empty uid")
-    func testCreatePingWithEmptyUid() {
-        let ping = INDIPing(uid: "")
+    @Test("Create pingReply programmatically with empty uid")
+    func testCreatePingReplyWithEmptyUid() {
+        let pingReply = INDIPingReply(uid: "")
         
-        #expect(ping.operation == .ping)
-        #expect(ping.uid == "")
+        #expect(pingReply.operation == .pingReply)
+        #expect(pingReply.uid == "")
         
         do {
-            let xml = try ping.toXML()
+            let xml = try pingReply.toXML()
             // Empty uid should not be included in XML
-            #expect(xml == "<ping/>")
+            #expect(xml == "<pingReply/>")
         } catch {
-            Issue.record("Failed to serialize ping: \(error)")
+            Issue.record("Failed to serialize pingReply: \(error)")
         }
     }
     
-    @Test("Serialize ping with escaped uid to XML")
-    func testSerializePingWithEscapedUid() {
-        let ping = INDIPing(uid: "test&uid<value>")
+    @Test("Serialize pingReply with escaped uid to XML")
+    func testSerializePingReplyWithEscapedUid() {
+        let pingReply = INDIPingReply(uid: "test&uid<value>")
         
         do {
-            let xml = try ping.toXML()
+            let xml = try pingReply.toXML()
             #expect(xml.contains("uid=\"test&amp;uid&lt;value&gt;\""))
         } catch {
-            Issue.record("Failed to serialize ping: \(error)")
+            Issue.record("Failed to serialize pingReply: \(error)")
         }
     }
     
-    @Test("INDIMessage enum wrapper for ping")
-    func testINDIMessageEnumWrapperForPing() {
-        let ping = INDIPing(uid: "12345")
-        let message = INDIMessage.ping(ping)
+    @Test("INDIMessage enum wrapper for pingReply")
+    func testINDIMessageEnumWrapperForPingReply() {
+        let pingReply = INDIPingReply(uid: "12345")
+        let message = INDIMessage.pingReply(pingReply)
         
-        #expect(message.operation == .ping)
+        #expect(message.operation == .pingReply)
         #expect(message.device == nil)
         #expect(message.name == nil)
         #expect(message.propertyType == nil)
@@ -243,30 +366,30 @@ struct INDIPingParsingTests {
         
         do {
             let xml = try message.toXML()
-            #expect(xml.contains("<ping"))
+            #expect(xml.contains("<pingReply"))
             #expect(xml.contains("uid=\"12345\""))
         } catch {
             Issue.record("Failed to serialize message: \(error)")
         }
     }
     
-    @Test("PingReply cannot be serialized")
-    func testPingReplyCannotBeSerialized() async throws {
+    @Test("PingRequest cannot be serialized")
+    func testPingRequestCannotBeSerialized() async throws {
         let xml = """
-        <pingReply uid="12345"/>
+        <pingRequest uid="12345"/>
         """
         
         let messages = try await parseXML(xml)
         let message = messages[0]
         
-        #expect(message.operation == .pingReply)
+        #expect(message.operation == .pingRequest)
         
         do {
             _ = try message.toXML()
-            Issue.record("Expected toXML() to throw an error for pingReply")
+            Issue.record("Expected toXML() to throw an error for pingRequest")
         } catch {
-            // Expected - pingReply is receive-only and cannot be serialized
-            #expect(error.localizedDescription.contains("pingReply") || 
+            // Expected - pingRequest is receive-only and cannot be serialized
+            #expect(error.localizedDescription.contains("pingRequest") || 
                     error.localizedDescription.contains("cannot be serialized"))
         }
     }

@@ -419,7 +419,7 @@ import Foundation
 /// - ``domeBacklashValue``
 /// 
 // swiftlint:disable:next type_body_length
-public enum INDIPropertyValueName: Sendable, CaseIterable {
+public enum INDIPropertyValueName: Sendable, CaseIterable, Equatable {
 
     // MARK: General Properties' values
 
