@@ -1,6 +1,6 @@
 import Foundation
 
-public enum INDIPropertyValueName: Sendable, CaseIterable {
+public enum INDIPropertyValueName: Sendable, CaseIterable, Equatable {
 
     // MARK: General Properties' values
 
