@@ -6,21 +6,11 @@ public actor INDIStateRegistry {
 
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIState", category: "INDIServerStateRegistry")
 
-    private static let timerInterval: TimeInterval = 60
-
     public var server: INDIServer
 
     public private(set) var connected: Bool = false
 
     public var devices: [String: INDIDevice] = [:]
-
-    private var pings: [String: (send: Date, recievedReply: Date?)] = [:]
-
-    public var lastPing: (send: Date, recievedReply: Date?)? {
-        return pings.values.max(by: { $0.send < $1.send })
-    }
-
-    private var pingTask: Task<Void, Never>?
     
     /// Callback invoked when a device is created or updated
     private var onDeviceUpdate: ((String, INDIDevice) -> Void)?
@@ -46,7 +36,6 @@ public actor INDIStateRegistry {
         try await server.connect()
         Self.logger.info("Connected to INDI server")
         connected = true
-        startPingTimer(interval: Self.timerInterval)
         
         Self.logger.info("Sending INDI handshake to establish connection")
         // Send handshake to establish connection
@@ -77,48 +66,6 @@ public actor INDIStateRegistry {
         await server.disconnect()
         Self.logger.info("Disconnected from INDI server")
         connected = false
-        pingTask?.cancel()
-        pingTask = nil
-    }
-
-    public func startPingTimer(interval: TimeInterval) {
-        Self.logger.info("Starting ping timer with interval: \(interval)s")
-        pingTask = Task {
-            while !Task.isCancelled {
-                do {
-                    try await Task.sleep(nanoseconds: UInt64(interval * 1_000_000_000))
-                    guard !Task.isCancelled else { break }
-                    
-                    let lastPing = await self.lastPing
-                    if let lastPing = lastPing, lastPing.recievedReply == nil {
-                        // No reply to the last ping has been received yet - so we are probably not connected
-                        // to the server anymore. We should disconnect.
-                        let message = "No reply to the last ping has been received yet - " +
-                            "so we are probably not connected to the server anymore. Disconnecting..."
-                        Self.logger.warning("\(message, privacy: .public)")
-                        try await self.disconnect()
-                        return
-                    }
-                    Self.logger.info("Timer fired, sending ping...")
-                    try await self.ping()
-                } catch {
-                    if error is CancellationError {
-                        break
-                    }
-                    Self.logger.error("Error in ping timer: \(error, privacy: .public)")
-                }
-            }
-        }
-    }
-
-    public func ping() async throws {
-        let pingMessage = INDIPing(uid: UUID().uuidString)
-        Self.logger.info("Ping: \(pingMessage.uid ?? "no uuid", privacy: .public)")
-        try await server.send(.ping(pingMessage))
-        guard let uid = pingMessage.uid else {
-            return
-        }
-        pings[uid] = (send: Date(), recievedReply: nil)
     }
 
     public func registerDevice(device: INDIDevice) {
@@ -135,10 +82,9 @@ public actor INDIStateRegistry {
             handleStateProperty(defineProperty)
         case .deleteProperty(let deleteProperty):
             handleDeleteProperty(deleteProperty)
-        case .pingReply(let pingReply):
-            handlePingReply(pingReply)
         default:
             // The others are messages sent (not received) by the client
+            // Note: pingRequest is automatically handled by INDIServer
             break
         }
     }
@@ -189,15 +135,6 @@ public actor INDIStateRegistry {
     /// Process a message and update state (for use when not using the built-in message stream)
     public func processMessage(_ message: INDIMessage) {
         handleMessage(message: message)
-    }
-
-    private func handlePingReply(_ pingReply: INDIPingReply) {
-        guard let uid = pingReply.uid else {
-            Self.logger.warning("Received ping reply with no uid")
-            return
-        }
-        Self.logger.info("Pong: \(uid, privacy: .public)")
-        pings[uid]?.recievedReply = Date()
     }
 
     public func sendTargetPropertyValues(device: INDIDevice, property: any INDIProperty) async throws {

@@ -122,15 +122,16 @@ public actor INDIServer {
     
     /// Send an INDI message to the server.
     ///
-    /// Only messages with `.set`, `.get` (getProperties), `.ping`, or `.enableBlob` operations can be sent to the server.
+    /// Only messages with `.set`, `.get` (getProperties), `.pingReply`, or `.enableBlob` operations can be sent to the server.
     /// This method serializes the message to XML and sends it to the server.
     ///
-    /// - Parameter message: The INDI message to send (must have `.set`, `.get`, or `.enableBlob` operation)
+    /// - Parameter message: The INDI message to send (must have `.set`, `.get`, `.pingReply`, or `.enableBlob` operation)
     /// - Throws: An error if not connected, if the message operation is not supported, or if serialization fails
     public func send(_ message: INDIMessage) async throws {
-        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob, .ping]
+        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob, .pingReply]
         guard allowedOperations.contains(message.operation) else {
-            let errorMessage = "Only messages with .set, .get, .ping, or .enableBlob operations can be sent to the server. " +
+            let errorMessage = "Only messages with .set, .get, .pingReply, or .enableBlob " +
+                "operations can be sent to the server. " +
                 "Received message with operation: \(message.operation.rawValue)"
             throw NSError(domain: "INDIServer", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: errorMessage
@@ -183,7 +184,38 @@ public actor INDIServer {
             ])
         }
         
-        return await parser.parse(dataStream)
+        let parsedStream = await parser.parse(dataStream)
+        
+        // Wrap the stream to automatically respond to pingRequest messages
+        return AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    for try await message in parsedStream {
+                        // Automatically respond to pingRequest messages
+                        if case .pingRequest(let pingRequest) = message {
+                            let pingReply = INDIPingReply(uid: pingRequest.uid)
+                            Task.detached { [weak self] in
+                                guard let self = self else { return }
+                                do {
+                                    try await self.send(.pingReply(pingReply))
+                                    let uid = pingReply.uid ?? "no uid"
+                                    Self.logger.debug("Automatically sent pingReply: \(uid, privacy: .public)")
+                                } catch {
+                                    Self.logger.error(
+                                        "Error automatically sending pingReply: \(error, privacy: .public)"
+                                    )
+                                }
+                            }
+                        }
+                        // Yield the message to the client (including pingRequest)
+                        continuation.yield(message)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
     }
 
     // MARK: - Private

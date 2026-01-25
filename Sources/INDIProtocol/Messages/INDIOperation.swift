@@ -42,15 +42,15 @@ public enum INDIOperation: String, Sendable, CaseIterable {
     /// In the INDI protocol the associated XML element is `del**`.
     case delete = "del"
 
-    /// A ping message.
+    /// A pingRequest message sent by the server to the client during binary transfers.
     /// 
-    /// For liveness detection, the reply should be a `pingReply` message.
-    /// In the INDI protocol the associated XML element is `ping`.
-    case ping = "ping"
+    /// The client should reply with a `pingReply` message.
+    /// In the INDI protocol the associated XML element is `pingRequest`.
+    case pingRequest = "pingRequest"
 
-    /// A pong message.
+    /// A pingReply message.
     /// 
-    /// The reply to a `ping` message.
+    /// The reply to a `pingRequest` message, sent by the client to the server.
     /// In the INDI protocol the associated XML element is `pingReply`.
     case pingReply = "pingReply"
 
