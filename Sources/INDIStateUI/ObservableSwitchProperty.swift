@@ -46,12 +46,12 @@ public class ObservableSwitchProperty: ObservableINDIProperty {
     }
     
     /// Get names of target switches that are on
-    public var targetOn: [INDIPropertyValueName] {
+    public var targetOn: [INDIPropertyValueName]? {
         return _property.targetOn
     }
     
     /// Get names of target switches that are off
-    public var targetOff: [INDIPropertyValueName] {
+    public var targetOff: [INDIPropertyValueName]? {
         return _property.targetOff
     }
     
@@ -89,21 +89,21 @@ public class ObservableSwitchProperty: ObservableINDIProperty {
     /// Check if a target switch is on.
     /// - Parameter name: The name of the switch
     /// - Returns: True if the target switch is on, false otherwise
-    public func isTargetOn(name: INDIPropertyValueName) -> Bool {
+    public func isTargetOn(name: INDIPropertyValueName) -> Bool? {
         return _property.isTargetOn(name: name)
     }
     
     /// Check if a target switch is off.
     /// - Parameter name: The name of the switch
     /// - Returns: True if the target switch is off, false otherwise
-    public func isTargetOff(name: INDIPropertyValueName) -> Bool {
+    public func isTargetOff(name: INDIPropertyValueName) -> Bool? {
         return _property.isTargetOff(name: name)
     }
     
     /// Get the target switch value for a given name.
     /// - Parameter name: The name of the switch
-    /// - Returns: True if the target switch is on, false otherwise
-    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool {
+    /// - Returns: True if the target switch is on, false if off, nil if no target value is set
+    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool? {
         return _property.targetSwitchValue(name: name)
     }
     

@@ -38,24 +38,24 @@ public struct SwitchProperty: INDIProperty {
 
     public var values: [any PropertyValue]
 
-    public var targetOn: [INDIPropertyValueName] {
-        return targetSwitchValues?.filter { $0.switchValue }.map { $0.name } ?? []
+    public var targetOn: [INDIPropertyValueName]? {
+        return targetSwitchValues?.filter { $0.switchValue }.map { $0.name }
     }
 
-    public func isTargetOn(name: INDIPropertyValueName) -> Bool {
-        return targetOn.contains(name)
+    public func isTargetOn(name: INDIPropertyValueName) -> Bool? {
+        return targetOn?.contains(name)
     }
 
-    public var targetOff: [INDIPropertyValueName] {
-        return targetSwitchValues?.filter { !$0.switchValue }.map { $0.name } ?? []
+    public var targetOff: [INDIPropertyValueName]? {
+        return targetSwitchValues?.filter { !$0.switchValue }.map { $0.name }
     }
 
-    public func isTargetOff(name: INDIPropertyValueName) -> Bool {
-        return targetOff.contains(name)
+    public func isTargetOff(name: INDIPropertyValueName) -> Bool? {
+        return targetOff?.contains(name)
     }
 
-    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool {
-        return targetSwitchValues?.first(where: { $0.name == name })?.switchValue ?? false
+    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool? {
+        return targetSwitchValues?.first(where: { $0.name == name })?.switchValue
     }
 
     public var targetSwitchValues: [SwitchValue]? {

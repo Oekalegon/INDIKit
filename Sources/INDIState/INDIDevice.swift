@@ -24,7 +24,10 @@ public struct INDIDevice: Sendable {
             return .disconnected
         }
         let currentValue = connectionProperty.switchValue(name: .connect)
-        let targetValue = connectionProperty.targetSwitchValue(name: .connect)
+        guard let targetValue = connectionProperty.targetSwitchValue(name: .connect) else {
+            // No target value set - use current value to determine status
+            return currentValue ? .connected : .disconnected
+        }
         switch (currentValue, targetValue) {
         case (true, true):
             return .connected
@@ -47,7 +50,8 @@ public struct INDIDevice: Sendable {
         }
         let currentValue = connectionProperty.switchValue(name: .connect)
         let targetValue = connectionProperty.targetSwitchValue(name: .connect)
-        if currentValue || currentValue != targetValue {
+        // If already connected, or if there's a target value that differs from current (transitioning)
+        if currentValue || (targetValue != nil && currentValue != targetValue) {
             // Already connected, or,
             // already in the process of connecting or disconnecting, should not change the target value
             return
@@ -68,7 +72,8 @@ public struct INDIDevice: Sendable {
         }
         let currentValue = connectionProperty.switchValue(name: .connect)
         let targetValue = connectionProperty.targetSwitchValue(name: .connect)
-        if !currentValue || currentValue != targetValue {
+        // If already disconnected, or if there's a target value that differs from current (transitioning)
+        if !currentValue || (targetValue != nil && currentValue != targetValue) {
             // Already disconnected, or,
             // already in the process of connecting or disconnecting, should not change the target value
             return
