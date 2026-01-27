@@ -69,4 +69,10 @@ public struct NumberValue: PropertyValue {
             }
         }
     }
+
+    /// Parsed representation of the `format` string, if available and valid.
+    public var parsedFormat: INDIFormat? {
+        guard let format = format else { return nil }
+        return INDIFormat(raw: format)
+    }
 }
