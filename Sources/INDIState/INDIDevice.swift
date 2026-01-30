@@ -102,10 +102,16 @@ public struct INDIDevice: Sendable {
             // If the property is a target property, i.e. was set by the client
             // then we need to update the target value and time stamp
             if isTarget {
-                properties[index].targetValues = property.values
+                properties[index].targetValues = mergePropertyValues(
+                    newValues: property.values,
+                    existingValues: properties[index].targetValues ?? properties[index].values
+                )
                 properties[index].targetTimeStamp = property.timeStamp
             } else {
-                properties[index].values = property.values
+                properties[index].values = mergePropertyValues(
+                    newValues: property.values,
+                    existingValues: properties[index].values
+                )
                 properties[index].timeStamp = property.timeStamp
                 properties[index].targetValues = nil
                 properties[index].targetTimeStamp = nil
@@ -118,6 +124,46 @@ public struct INDIDevice: Sendable {
                 newProperty.targetTimeStamp = property.timeStamp
             }
             properties.append(newProperty)
+        }
+    }
+
+    /// Merges new property values with existing ones, preserving attributes from
+    /// existing values that may not be present in update messages.
+    ///
+    /// When an update message arrives, it typically only contains the new value
+    /// but not the full attribute set (format, min, max, step, unit, label) that
+    /// was provided in the original define message. This function preserves those
+    /// attributes by merging from existing values.
+    /// - Parameters:
+    ///   - newValues: The new values from the update message
+    ///   - existingValues: The existing values with full attribute metadata
+    /// - Returns: An array of values with attributes merged from existing values
+    private func mergePropertyValues(
+        newValues: [any PropertyValue],
+        existingValues: [any PropertyValue]
+    ) -> [any PropertyValue] {
+        return newValues.map { newValue in
+            // Find existing value with same name
+            guard let existingValue = existingValues.first(where: { $0.name == newValue.name }) else {
+                return newValue
+            }
+
+            // Merge based on value type
+            switch (newValue, existingValue) {
+            case (let newNumber as NumberValue, let existingNumber as NumberValue):
+                return newNumber.mergingAttributes(from: existingNumber)
+            case (let newText as TextValue, let existingText as TextValue):
+                return newText.mergingAttributes(from: existingText)
+            case (let newSwitch as SwitchValue, let existingSwitch as SwitchValue):
+                return newSwitch.mergingAttributes(from: existingSwitch)
+            case (let newLight as LightValue, let existingLight as LightValue):
+                return newLight.mergingAttributes(from: existingLight)
+            case (let newBlob as BLOBValue, let existingBlob as BLOBValue):
+                return newBlob.mergingAttributes(from: existingBlob)
+            default:
+                // Types don't match or unknown type, return new value as-is
+                return newValue
+            }
         }
     }
 

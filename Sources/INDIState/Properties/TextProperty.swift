@@ -69,4 +69,20 @@ public struct TextValue: PropertyValue {
             }
         }
     }
+
+    /// Creates a new TextValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new TextValue with merged attributes
+    public func mergingAttributes(from existing: TextValue) -> TextValue {
+        return TextValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            textValue: self.textValue
+        )
+    }
 }

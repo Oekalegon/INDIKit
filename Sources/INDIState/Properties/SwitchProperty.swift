@@ -172,4 +172,20 @@ public struct SwitchValue: PropertyValue {
             }
         }
     }
+
+    /// Creates a new SwitchValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new SwitchValue with merged attributes
+    public func mergingAttributes(from existing: SwitchValue) -> SwitchValue {
+        return SwitchValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            switchValue: self.switchValue
+        )
+    }
 }

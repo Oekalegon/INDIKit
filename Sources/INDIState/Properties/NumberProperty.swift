@@ -59,6 +59,37 @@ public struct NumberValue: PropertyValue {
     public let unit: String?
 
     public var numberValue: Double
+
+    /// Creates a new NumberValue.
+    ///
+    /// - Parameters:
+    ///   - name: The value name
+    ///   - label: Optional human-readable label
+    ///   - format: Optional printf-style format string
+    ///   - min: Optional minimum value
+    ///   - max: Optional maximum value
+    ///   - step: Optional step size
+    ///   - unit: Optional unit string
+    ///   - numberValue: The numeric value
+    public init(
+        name: INDIPropertyValueName,
+        label: String?,
+        format: String?,
+        min: Double?,
+        max: Double?,
+        step: Double?,
+        unit: String?,
+        numberValue: Double
+    ) {
+        self.name = name
+        self.label = label
+        self.format = format
+        self.min = min
+        self.max = max
+        self.step = step
+        self.unit = unit
+        self.numberValue = numberValue
+    }
     public var value: INDIValue.Value {
         get {
             return .number(numberValue)
@@ -74,5 +105,26 @@ public struct NumberValue: PropertyValue {
     public var parsedFormat: INDIFormat? {
         guard let format = format else { return nil }
         return INDIFormat(raw: format)
+    }
+
+    /// Creates a new NumberValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new NumberValue with merged attributes
+    public func mergingAttributes(from existing: NumberValue) -> NumberValue {
+        return NumberValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            format: self.format ?? existing.format,
+            min: self.min ?? existing.min,
+            max: self.max ?? existing.max,
+            step: self.step ?? existing.step,
+            unit: self.unit ?? existing.unit,
+            numberValue: self.numberValue
+        )
     }
 }
