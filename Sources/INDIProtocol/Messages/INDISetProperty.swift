@@ -1,18 +1,30 @@
 import Foundation
 import os
 
-/// An INDI set property message (new* operations).
+/// An INDI set property message (new* operations in the INDI protocol).
 ///
 /// This message is sent by the client to the server to change the value of a property.
 /// Set operations only support device, name, and values - no other attributes.
 public struct INDISetProperty: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
+    /// The operation type of this message. This is always `.set`.
     public let operation: INDIOperation = .set
+
+    /// The device name to which the property belongs.
     public let device: String
+
+    /// The name of the property.
     public let name: INDIPropertyName
+
+    /// The type of the property.
     public let propertyType: INDIPropertyType
+
+    /// The values of the property.
     public let values: [INDIValue]
+
+    /// The diagnostics for the message. This is used to store any errors or warnings that occur when parsing the message.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// Create a set property message programmatically.

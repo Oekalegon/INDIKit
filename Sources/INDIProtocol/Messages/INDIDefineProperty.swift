@@ -5,6 +5,18 @@ import os
 ///
 /// This message is sent by the server to the client to define a property of a device or driver.
 /// Define operations support all optional attributes like group, label, permissions, state, etc.
+/// 
+/// It is usually sent by the server to the client when the client connects to the server and 
+/// sends a `<getProperties version='1.7'/>` message. The server will then send all properties for
+/// all devices connected to the server. 
+/// 
+/// The ``INDIServer.sendHandshake()`` method sends this message 
+/// to the server, which will then send back a (large) number of define property messages. 
+/// 
+/// Alternatively, you
+/// you can send a ``INDIGetProperties`` message to the server, which will send the same message, but
+/// you can control the device and name of the properties to get. This is useful if you only want 
+/// to get information for a specific device and property name.
 public struct INDIDefineProperty: INDIStateProperty, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
@@ -13,31 +25,63 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         "device", "group", "label", "name", "perm", "state", "timeout", "timestamp", "rule", "format"
     ]
     
+    /// The operation type of this message. This is always `.define`.
     public let operation: INDIOperation = .define
+
+    /// The device name to which the property belongs.
     public let device: String
+
+    /// The name of the property.
     public let name: INDIPropertyName
+
+    /// The type of the property.
     public let propertyType: INDIPropertyType
+
+    /// The UI grouping hint for the property. This is defined by the device's driver and can be used to
+    /// group properties in the UI.
     public let group: String?
+
+    /// The human-readable label for the property.
     public let label: String?
+
+    /// The permissions for the property, either read, write, or read and write.
     public let permissions: INDIPropertyPermissions?
+
+    /// The state of the property. This is defined by the device's driver and can be used to
+    /// indicate the state of the property.
     public let state: INDIStatus?
+
+    /// The timeout for the property in seconds.
     public let timeout: Double?
+
+    /// The timestamp of the property message.
     public let timeStamp: Date?
+
+    /// The rule for the property, only for toggle properties.
     public let rule: INDISwitchRule?
+
+    /// The format for the property, only for blob properties.
     public let format: String?
+
+    /// The values of the property.
     public let values: [INDIValue]
+
+    /// The diagnostics for the property. This is used to store any errors or warnings that occur when parsing the property.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// The parsed XML node representation containing the property structure.
     private let xmlNode: XMLNodeRepresentation
+
+    /// The INDI protocol version.
+    public let version: String
     
-    /// Create a define property message programmatically.
+    /// Create a define property message programmatically with all optional attributes.
     ///
     /// - Parameters:
     ///   - propertyType: The type of property (e.g., `.text`, `.number`, `.toggle`)
     ///   - device: The device name (required)
     ///   - name: The property name (required)
-    ///   - values: The property values (required)
     ///   - group: Optional UI grouping hint
     ///   - label: Optional human-readable label
     ///   - permissions: Optional property permissions
@@ -46,6 +90,8 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
     ///   - timeStamp: Optional timestamp
     ///   - rule: Optional switch rule (only for toggle properties)
     ///   - format: Optional format string (only for blob properties)
+    ///   - values: The property values (required)
+    ///   - version: The INDI protocol version (defaults to "1.7")
     public init(
         propertyType: INDIPropertyType,
         device: String,
@@ -58,7 +104,8 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         timeStamp: Date? = nil,
         rule: INDISwitchRule? = nil,
         format: String? = nil,
-        values: [INDIValue]
+        values: [INDIValue],
+        version: String = "1.7"
     ) {
         self.propertyType = propertyType
         self.device = device
@@ -72,13 +119,15 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         self.rule = rule
         self.format = format
         self.values = values
+        self.version = version
         self.diagnostics = []
         
         // Create XMLNodeRepresentation for internal use
         let elementName = "\(operation.rawValue)\(propertyType.rawValue)Vector"
         var attrs: [String: String] = [
             "device": device,
-            "name": name.indiName
+            "name": name.indiName,
+            "version": version
         ]
         
         if let group = group { attrs["group"] = group }
@@ -131,7 +180,8 @@ public struct INDIDefineProperty: INDIStateProperty, Sendable {
         self.timeStamp = INDIParsingHelpers.extractTimestamp(from: attrs["timestamp"])
         self.rule = attrs["rule"].flatMap { INDISwitchRule(indiValue: $0) }
         self.format = attrs["format"]
-        
+        self.version = attrs["version"] ?? "1.7"
+
         // Parse child elements into INDIValue objects
         var parsedValues: [INDIValue] = []
         for child in xmlNode.children {

@@ -1,5 +1,12 @@
 import Foundation
 
+/// The operation type of an INDI message.
+///
+/// This enum represents the operation type of an INDI message.
+/// It is used to identify the type of message that is being sent or received.
+/// The operation type is the prefix of the XML element name.
+/// For example, the operation type of a `defTextVector` message is `.define` and
+/// the operation type of a `setNumberVector` message is `.set`.
 public enum INDIOperation: String, Sendable, CaseIterable {
 
     /// Defines a property of a device or driver.
