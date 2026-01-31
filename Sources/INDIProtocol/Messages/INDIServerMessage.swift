@@ -8,10 +8,20 @@ import os
 public struct INDIServerMessage: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
 
+    /// The operation type of this message. This is always `.message`.
     public let operation: INDIOperation = .message
+
+    /// The device name to which the message belongs.
     public let device: String?
+
+    /// The timestamp of the message.
     public let timeStamp: Date?
+
+    /// The message text.
     public let message: String
+
+    /// The diagnostics for the message. This is used to store any errors or warnings that occur when parsing the message.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
 
     /// Create a server message programmatically.
