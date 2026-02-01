@@ -67,4 +67,23 @@ public struct BLOBValue: PropertyValue {
             }
         }
     }
+
+    /// Creates a new BLOBValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new BLOBValue with merged attributes
+    public func mergingAttributes(from existing: BLOBValue) -> BLOBValue {
+        return BLOBValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            format: self.format ?? existing.format,
+            size: self.size ?? existing.size,
+            compressed: self.compressed ?? existing.compressed,
+            blobValue: self.blobValue
+        )
+    }
 }

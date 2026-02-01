@@ -34,7 +34,7 @@ public struct LightValue: PropertyValue {
 
     public let name: INDIPropertyValueName
     public let label: String?
-    
+
     public var lightValue: INDIStatus
 
     public var value: INDIValue.Value {
@@ -46,5 +46,21 @@ public struct LightValue: PropertyValue {
                 self.lightValue = lightValue
             }
         }
+    }
+
+    /// Creates a new LightValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new LightValue with merged attributes
+    public func mergingAttributes(from existing: LightValue) -> LightValue {
+        return LightValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            lightValue: self.lightValue
+        )
     }
 }

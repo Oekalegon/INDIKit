@@ -14,6 +14,7 @@ public struct INDIValue: Sendable {
     public let label: String?
     
     /// Optional: printf-style format string.
+    /// Nb. It has INDI specific syntax for sexagesimal values.
     public let format: String?
     
     /// Optional: Minimum value (for number types).
@@ -39,6 +40,12 @@ public struct INDIValue: Sendable {
     
     /// Diagnostic messages for the value.
     public private(set) var diagnostics: [INDIDiagnostics]
+
+    /// Parsed representation of the `format` string, if available and valid.
+    public var parsedFormat: INDIFormat? {
+        guard let format = format else { return nil }
+        return INDIFormat(raw: format)
+    }
     
     /// The type of value stored.
     public enum Value: Sendable, Equatable {

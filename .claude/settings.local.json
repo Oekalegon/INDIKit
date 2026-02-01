@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(swift build:*)",
+      "Bash(swift test:*)",
+      "Bash(find:*)",
+      "Bash(xargs ls:*)",
+      "Bash(head:*)"
+    ]
+  }
+}

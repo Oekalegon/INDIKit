@@ -1004,9 +1004,9 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .uploadSettings: return "UPLOAD_SETTINGS"
         case .activeDevices: return "ACTIVE_DEVICES"
         
-        case .equatorialCoordinatesJ2000: return "EQUATORIAL_EOD_COORD"
-        case .equatorialCoordinatesEpoch: return "EQUATORIAL_COORD"
-        case .targetEquatorialCoordinatesEpoch: return "TARGET_COORD"
+        case .equatorialCoordinatesJ2000: return "EQUATORIAL_COORD"
+        case .equatorialCoordinatesEpoch: return "EQUATORIAL_EOD_COORD"
+        case .targetEquatorialCoordinatesEpoch: return "TARGET_EOD_COORD"
         case .horizontalCoordinates: return "HORIZONTAL_COORD"
         case .telescopeActionOnCoordinatesSet: return "ON_COORD_SET"
         case .telescopeMotionNorthSouth: return "TELESCOPE_MOTION_NS"

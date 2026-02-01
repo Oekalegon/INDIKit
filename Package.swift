@@ -59,7 +59,7 @@ let package = Package(
         ),
         .testTarget(
             name: "INDIKitTests",
-            dependencies: ["INDIProtocol"]
+            dependencies: ["INDIProtocol", "INDIState"]
         )
     ],
     swiftLanguageModes: [

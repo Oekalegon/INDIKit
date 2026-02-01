@@ -38,24 +38,24 @@ public struct SwitchProperty: INDIProperty {
 
     public var values: [any PropertyValue]
 
-    public var targetOn: [INDIPropertyValueName] {
-        return targetSwitchValues?.filter { $0.switchValue }.map { $0.name } ?? []
+    public var targetOn: [INDIPropertyValueName]? {
+        return targetSwitchValues?.filter { $0.switchValue }.map { $0.name }
     }
 
-    public func isTargetOn(name: INDIPropertyValueName) -> Bool {
-        return targetOn.contains(name)
+    public func isTargetOn(name: INDIPropertyValueName) -> Bool? {
+        return targetOn?.contains(name)
     }
 
-    public var targetOff: [INDIPropertyValueName] {
-        return targetSwitchValues?.filter { !$0.switchValue }.map { $0.name } ?? []
+    public var targetOff: [INDIPropertyValueName]? {
+        return targetSwitchValues?.filter { !$0.switchValue }.map { $0.name }
     }
 
-    public func isTargetOff(name: INDIPropertyValueName) -> Bool {
-        return targetOff.contains(name)
+    public func isTargetOff(name: INDIPropertyValueName) -> Bool? {
+        return targetOff?.contains(name)
     }
 
-    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool {
-        return targetSwitchValues?.first(where: { $0.name == name })?.switchValue ?? false
+    public func targetSwitchValue(name: INDIPropertyValueName) -> Bool? {
+        return targetSwitchValues?.first(where: { $0.name == name })?.switchValue
     }
 
     public var targetSwitchValues: [SwitchValue]? {
@@ -171,5 +171,21 @@ public struct SwitchValue: PropertyValue {
                 switchValue = booleanValue
             }
         }
+    }
+
+    /// Creates a new SwitchValue with the current value but preserving attributes
+    /// from the existing value if they are nil in this value.
+    ///
+    /// This is used when updating property values from update messages that may
+    /// not include all the attribute metadata that was provided in the original
+    /// define message.
+    /// - Parameter existing: The existing value to take attributes from if not present in self
+    /// - Returns: A new SwitchValue with merged attributes
+    public func mergingAttributes(from existing: SwitchValue) -> SwitchValue {
+        return SwitchValue(
+            name: self.name,
+            label: self.label ?? existing.label,
+            switchValue: self.switchValue
+        )
     }
 }
