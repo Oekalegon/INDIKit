@@ -1,11 +1,21 @@
 import Foundation
 import Network
+import os
 
 /// A description of an INDI server endpoint.
 public struct INDIServerEndpoint: Sendable, Hashable {
+
+    /// The host name or IP address of the INDI server.
     public let host: String
+
+    /// The port number of the INDI server.
     public let port: UInt16
 
+    /// Initialize a new INDI server endpoint.
+    ///
+    /// - Parameters:
+    ///   - host: The host name or IP address of the INDI server.
+    ///   - port: The port number of the INDI server.
     public init(host: String, port: UInt16) {
         self.host = host
         self.port = port
@@ -16,24 +26,47 @@ public struct INDIServerEndpoint: Sendable, Hashable {
 ///
 /// You can create multiple instances of this actor to talk to multiple servers concurrently.
 public actor INDIServer {
+
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "INDIServer")
+    
+    /// The endpoint of the INDI server.
     public let endpoint: INDIServerEndpoint
 
+    /// The connection to the INDI server.
     private var connection: NWConnection?
+
+    /// The queue for the connection.
     private var connectionQueue: DispatchQueue?
+
+    /// The continuation for the raw data stream.
     private var rawDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+
+    /// The continuation for the parsed data stream.
     private var parsedDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+
+    /// The raw data stream.
     private var rawDataStream: AsyncThrowingStream<Data, Error>?
+
+    /// The parsed data stream.
     private var parsedDataStream: AsyncThrowingStream<Data, Error>?
+
+    /// The parser for the INDI messages.
     private let parser = INDIXMLParser()
 
+    /// The connection state of the INDI server.
     public private(set) var isConnected: Bool = false
 
+    /// Initialize a new INDI server.
+    ///
+    /// - Parameters:
+    ///   - endpoint: The endpoint of the INDI server.
     public init(endpoint: INDIServerEndpoint) {
         self.endpoint = endpoint
     }
 
     /// Establish a TCP connection to the INDI server.
     ///
+    /// - Returns: A stream of raw data from the INDI server.
     /// - Throws: An error if the connection could not be established.
     @discardableResult
     public func connect() async throws -> AsyncThrowingStream<Data, Error> {
@@ -77,14 +110,16 @@ public actor INDIServer {
                 }
             }
 
+            Self.logger.info("Starting connection to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
             nwConnection.start(queue: queue)
         }
 
         return rawStream
     }
 
-    /// Close the connection to the server.
+    /// Closex the connection to the server.
     public func disconnect() {
+        Self.logger.info("Disconnecting from \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
         guard let connection else { return }
         connection.cancel()
         self.connection = nil
@@ -96,6 +131,7 @@ public actor INDIServer {
 
     /// Send raw data to the server.
     public func send(_ data: Data) async throws {
+        Self.logger.info("Sending data to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
         guard let connection, isConnected else {
             throw NSError(domain: "INDIServerConnection", code: 1, userInfo: [
                 NSLocalizedDescriptionKey: "Connection is not open"
@@ -115,15 +151,16 @@ public actor INDIServer {
     
     /// Send an INDI message to the server.
     ///
-    /// Only messages with `.set`, `.get` (getProperties), or `.enableBlob` operations can be sent to the server.
+    /// Only messages with `.set`, `.get` (getProperties), `.pingReply`, or `.enableBlob` operations can be sent to the server.
     /// This method serializes the message to XML and sends it to the server.
     ///
-    /// - Parameter message: The INDI message to send (must have `.set`, `.get`, or `.enableBlob` operation)
+    /// - Parameter message: The INDI message to send (must have `.set`, `.get`, `.pingReply`, or `.enableBlob` operation)
     /// - Throws: An error if not connected, if the message operation is not supported, or if serialization fails
     public func send(_ message: INDIMessage) async throws {
-        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob]
+        let allowedOperations: [INDIOperation] = [.set, .get, .enableBlob, .pingReply]
         guard allowedOperations.contains(message.operation) else {
-            let errorMessage = "Only messages with .set, .get, or .enableBlob operations can be sent to the server. " +
+            let errorMessage = "Only messages with .set, .get, .pingReply, or .enableBlob " +
+                "operations can be sent to the server. " +
                 "Received message with operation: \(message.operation.rawValue)"
             throw NSError(domain: "INDIServer", code: 2, userInfo: [
                 NSLocalizedDescriptionKey: errorMessage
@@ -147,6 +184,18 @@ public actor INDIServer {
     /// Returns a stream of raw message payloads received from the server.
     ///
     /// Call `connect()` first to establish the connection and start the receive loop.
+    /// 
+    /// ## Example
+    ///
+    /// ```swift
+    /// let rawDataStream = try await server.rawDataMessages()
+    ///
+    /// for try await data in rawDataStream {
+    ///     // Process each raw data chunk as it arrives
+    ///     print("Received raw data: \(data.count) bytes")
+    /// }
+    /// 
+    /// - Returns: A stream of raw data from the INDI server.
     public func rawDataMessages() -> AsyncThrowingStream<Data, Error>? {
         rawDataStream
     }
@@ -155,9 +204,9 @@ public actor INDIServer {
     ///
     /// Returns an asynchronous stream of parsed INDI messages from the connected server.
     /// Messages are parsed from incoming XML data and yielded as they become available.
-    ///
-    /// - Returns: An `AsyncThrowingStream` that yields `INDIMessage` objects as they are parsed
-    /// - Throws: An error if not connected (call `connect()` first)
+    /// 
+    /// NB. You will need to call ``connect()`` first to establish the connection and start 
+    /// the receive loop.
     ///
     /// ## Example
     ///
@@ -169,6 +218,9 @@ public actor INDIServer {
     ///     print("Received message: \(message.name?.displayName ?? "unknown")")
     /// }
     /// ```
+    ///
+    /// - Returns: An `AsyncThrowingStream` that yields `INDIMessage` objects as they are parsed
+    /// - Throws: An error if not connected (call `connect()` first)
     public func messages() async throws -> AsyncThrowingStream<INDIMessage, Error> {
         guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [
@@ -176,7 +228,38 @@ public actor INDIServer {
             ])
         }
         
-        return await parser.parse(dataStream)
+        let parsedStream = await parser.parse(dataStream)
+        
+        // Wrap the stream to automatically respond to pingRequest messages
+        return AsyncThrowingStream { continuation in
+            Task {
+                do {
+                    for try await message in parsedStream {
+                        // Automatically respond to pingRequest messages
+                        if case .pingRequest(let pingRequest) = message {
+                            let pingReply = INDIPingReply(uid: pingRequest.uid)
+                            Task.detached { [weak self] in
+                                guard let self = self else { return }
+                                do {
+                                    try await self.send(.pingReply(pingReply))
+                                    let uid = pingReply.uid ?? "no uid"
+                                    Self.logger.debug("Automatically sent pingReply: \(uid, privacy: .public)")
+                                } catch {
+                                    Self.logger.error(
+                                        "Error automatically sending pingReply: \(error, privacy: .public)"
+                                    )
+                                }
+                            }
+                        }
+                        // Yield the message to the client (including pingRequest)
+                        continuation.yield(message)
+                    }
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
+            }
+        }
     }
 
     // MARK: - Private

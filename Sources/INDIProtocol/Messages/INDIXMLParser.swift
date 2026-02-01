@@ -25,7 +25,7 @@ struct XMLNodeRepresentation: Sendable {
 /// The parser can handle properties larger than the 64KB chunk size from INDIServer
 /// by accumulating chunks until a complete XML element is detected.
 actor INDIXMLParser {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     private var buffer = Data()
     
     /// Maximum buffer size in bytes before throwing an error.
