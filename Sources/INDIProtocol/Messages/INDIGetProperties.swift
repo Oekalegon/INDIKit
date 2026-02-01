@@ -8,10 +8,20 @@ import os
 public struct INDIGetProperties: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
+    /// The operation type of this message. This is always `.getProperties`.
     public let operation: INDIOperation = .get
+
+    /// The device name to which the property belongs.
     public let device: String?
+
+    /// The name of the property.
     public let name: INDIPropertyName?
+
+    /// The INDI protocol version.
     public let version: String
+
+    /// The diagnostics for the property. This is used to store any errors or warnings that occur when parsing the property.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// Create a getProperties message programmatically.

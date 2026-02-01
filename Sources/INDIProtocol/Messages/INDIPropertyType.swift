@@ -1,5 +1,13 @@
 import Foundation
 
+/// The type of a property.
+///
+/// This enum represents the type of a property such as text, number, toggle (switch), 
+/// light, and blob.
+/// It is used to identify the type of property that is being sent or received.
+/// The property type is the suffix of the XML element name.
+/// For example, the property type of a `defTextVector` message is `.text` and
+/// the property type of a `setNumberVector` message is `.number`.
 public enum INDIPropertyType: String, Sendable, CaseIterable {
 
     /// A text property type.

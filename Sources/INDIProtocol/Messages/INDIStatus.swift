@@ -19,6 +19,11 @@ public enum INDIStatus: Sendable, CaseIterable, Equatable {
     /// The state is alert (error, warning, etc.)
     case alert
 
+    /// The INDI value for the state.
+    ///
+    /// This is the value that is sent in the INDI protocol.
+    /// It is used to indicate the state of the property.
+    /// It is represented as "Idle", "Ok", "Busy", or "Alert".
     public var indiValue: String {
         switch self {
         case .idle: return "Idle"

@@ -7,14 +7,32 @@ import Foundation
 /// to the wrapped type, allowing code to work with `INDIMessage` without needing to know the
 /// specific type.
 public enum INDIMessage: Sendable {
+
+    /// A getProperties message.
     case getProperties(INDIGetProperties)
+
+    /// A setProperty message.
     case setProperty(INDISetProperty)
+
+    /// A updateProperty message.
     case updateProperty(INDIUpdateProperty)
+
+    /// A defineProperty message.
     case defineProperty(INDIDefineProperty)
+
+    /// A enableBLOB message.
     case enableBlob(INDIEnableBlob)
+
+    /// A serverMessage message.
     case serverMessage(INDIServerMessage)
+
+    /// A deleteProperty message.
     case deleteProperty(INDIDeleteProperty)
+
+    /// A pingRequest message.
     case pingRequest(INDIPingRequest)
+    
+    /// A pingReply message.
     case pingReply(INDIPingReply)
     
     /// The operation type of this message.

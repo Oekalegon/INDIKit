@@ -4,9 +4,18 @@ import os
 
 /// A description of an INDI server endpoint.
 public struct INDIServerEndpoint: Sendable, Hashable {
+
+    /// The host name or IP address of the INDI server.
     public let host: String
+
+    /// The port number of the INDI server.
     public let port: UInt16
 
+    /// Initialize a new INDI server endpoint.
+    ///
+    /// - Parameters:
+    ///   - host: The host name or IP address of the INDI server.
+    ///   - port: The port number of the INDI server.
     public init(host: String, port: UInt16) {
         self.host = host
         self.port = port
@@ -20,24 +29,44 @@ public actor INDIServer {
 
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "INDIServer")
     
+    /// The endpoint of the INDI server.
     public let endpoint: INDIServerEndpoint
 
+    /// The connection to the INDI server.
     private var connection: NWConnection?
+
+    /// The queue for the connection.
     private var connectionQueue: DispatchQueue?
+
+    /// The continuation for the raw data stream.
     private var rawDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+
+    /// The continuation for the parsed data stream.
     private var parsedDataContinuation: AsyncThrowingStream<Data, Error>.Continuation?
+
+    /// The raw data stream.
     private var rawDataStream: AsyncThrowingStream<Data, Error>?
+
+    /// The parsed data stream.
     private var parsedDataStream: AsyncThrowingStream<Data, Error>?
+
+    /// The parser for the INDI messages.
     private let parser = INDIXMLParser()
 
+    /// The connection state of the INDI server.
     public private(set) var isConnected: Bool = false
 
+    /// Initialize a new INDI server.
+    ///
+    /// - Parameters:
+    ///   - endpoint: The endpoint of the INDI server.
     public init(endpoint: INDIServerEndpoint) {
         self.endpoint = endpoint
     }
 
     /// Establish a TCP connection to the INDI server.
     ///
+    /// - Returns: A stream of raw data from the INDI server.
     /// - Throws: An error if the connection could not be established.
     @discardableResult
     public func connect() async throws -> AsyncThrowingStream<Data, Error> {
@@ -88,7 +117,7 @@ public actor INDIServer {
         return rawStream
     }
 
-    /// Close the connection to the server.
+    /// Closex the connection to the server.
     public func disconnect() {
         Self.logger.info("Disconnecting from \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
         guard let connection else { return }
@@ -155,6 +184,18 @@ public actor INDIServer {
     /// Returns a stream of raw message payloads received from the server.
     ///
     /// Call `connect()` first to establish the connection and start the receive loop.
+    /// 
+    /// ## Example
+    ///
+    /// ```swift
+    /// let rawDataStream = try await server.rawDataMessages()
+    ///
+    /// for try await data in rawDataStream {
+    ///     // Process each raw data chunk as it arrives
+    ///     print("Received raw data: \(data.count) bytes")
+    /// }
+    /// 
+    /// - Returns: A stream of raw data from the INDI server.
     public func rawDataMessages() -> AsyncThrowingStream<Data, Error>? {
         rawDataStream
     }
@@ -163,9 +204,9 @@ public actor INDIServer {
     ///
     /// Returns an asynchronous stream of parsed INDI messages from the connected server.
     /// Messages are parsed from incoming XML data and yielded as they become available.
-    ///
-    /// - Returns: An `AsyncThrowingStream` that yields `INDIMessage` objects as they are parsed
-    /// - Throws: An error if not connected (call `connect()` first)
+    /// 
+    /// NB. You will need to call ``connect()`` first to establish the connection and start 
+    /// the receive loop.
     ///
     /// ## Example
     ///
@@ -177,6 +218,9 @@ public actor INDIServer {
     ///     print("Received message: \(message.name?.displayName ?? "unknown")")
     /// }
     /// ```
+    ///
+    /// - Returns: An `AsyncThrowingStream` that yields `INDIMessage` objects as they are parsed
+    /// - Throws: An error if not connected (call `connect()` first)
     public func messages() async throws -> AsyncThrowingStream<INDIMessage, Error> {
         guard let dataStream = parsedDataStream else {
             throw NSError(domain: "INDIServer", code: 1, userInfo: [

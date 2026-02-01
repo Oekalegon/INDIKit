@@ -8,8 +8,14 @@ import os
 public struct INDIPingReply: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
 
+    /// The operation type of this message. This is always `.pingReply`.
     public let operation: INDIOperation = .pingReply
+
+    /// The unique identifier for this pingReply.
     public let uid: String?
+
+    /// The diagnostics for the message. This is used to store any errors or warnings that occur when parsing the message.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
 
     /// Create a pingReply message programmatically.

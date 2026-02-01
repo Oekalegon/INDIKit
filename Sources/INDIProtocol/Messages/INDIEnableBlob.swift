@@ -1,17 +1,39 @@
 import Foundation
 import os
 
-/// An INDI enableBLOB message.
+/// An INDI enableBLOB message. 
+/// 
+/// You will need to enable BLOB data transmission for a property
+/// before you can receive BLOB data from the server. BLOB data is usually used for image and video
+/// data.
 ///
 /// This message is sent by the client to the server to control BLOB data transmission
 /// for a specific property.
+/// 
+/// It is used by the client to control the BLOB data transmission for a specific property.
+/// EnableBLOB messages have three required attributes: `device`, `name`, and `state`.
+/// - `device`: The device name to which the property belongs.
+/// - `name`: The name of the property.
+/// - `state`: The BLOB sending state.
+/// 
+/// If the `state` is not present, the message is invalid.
 public struct INDIEnableBlob: INDICommand, Sendable {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     
+    /// The operation type of this message. This is always `.enableBlob`.
     public let operation: INDIOperation = .enableBlob
+
+    /// The device name to which the property belongs.
     public let device: String
+
+    /// The name of the property.
     public let name: INDIPropertyName
+
+    /// The BLOB sending state.
     public let blobSendingState: BLOBSendingState?
+
+    /// The diagnostics for the property. This is used to store any errors or warnings that occur when parsing the property.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// Create an enableBLOB message programmatically.
@@ -19,7 +41,7 @@ public struct INDIEnableBlob: INDICommand, Sendable {
     /// - Parameters:
     ///   - device: The device name (required)
     ///   - name: The property name (required)
-    ///   - blobSendingState: Optional BLOB sending state. If nil, the state attribute is omitted.
+    ///   - blobSendingState: The BLOB sending state. If nil, the state attribute is omitted.
     public init(
         device: String,
         name: INDIPropertyName,

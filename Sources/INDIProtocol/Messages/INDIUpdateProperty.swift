@@ -13,19 +13,49 @@ public struct INDIUpdateProperty: INDIStateProperty, Sendable {
         "device", "group", "label", "name", "perm", "state", "timeout", "timestamp", "rule", "format"
     ]
     
+    /// The operation type of this message. This is always `.update`.
     public let operation: INDIOperation = .update
+
+    /// The device name to which the property belongs.
     public let device: String
+
+    /// The name of the property.
     public let name: INDIPropertyName
+
+    /// The type of the property.
     public let propertyType: INDIPropertyType
+
+    /// The UI grouping hint for the property. This is defined by the device's driver and can be used to
+    /// group properties in the UI.
     public let group: String?
+
+    /// The human-readable label for the property.
     public let label: String?
+
+    /// The permissions for the property, either read, write, or read and write.
     public let permissions: INDIPropertyPermissions?
+
+    /// The state of the property. This is defined by the device's driver and can be used to
+    /// indicate the state of the property.
     public let state: INDIStatus?
+
+    /// The timeout for the property in seconds.
     public let timeout: Double?
+
+    /// The timestamp of the property message.
     public let timeStamp: Date?
+
+    /// The rule for the property, only for toggle properties.
     public let rule: INDISwitchRule?
+
+    /// The format for the property, only for blob properties.
     public let format: String?
+
+    /// The values of the property.
     public let values: [INDIValue]
+
+    /// The diagnostics for the property. This is used to store any errors or warnings that occur when parsing the property.
+    /// This is set by the parser and can be accessed by the client to get the errors or warnings.
     public private(set) var diagnostics: [INDIDiagnostics]
     
     /// The parsed XML node representation containing the property structure.
