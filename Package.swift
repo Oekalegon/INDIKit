@@ -55,11 +55,11 @@ let package = Package(
         ),
         .executableTarget(
             name: "INDIKitCLI",
-            dependencies: ["INDIProtocol"]
+            dependencies: ["INDIProtocol", "INDIState"]
         ),
         .testTarget(
             name: "INDIKitTests",
-            dependencies: ["INDIProtocol"]
+            dependencies: ["INDIProtocol", "INDIState"]
         )
     ],
     swiftLanguageModes: [

@@ -6,7 +6,7 @@ import os
 /// INDI values contain both the actual value data and metadata about that value
 /// such as name, label, format, min/max, step, and unit.
 public struct INDIValue: Sendable {
-    private static let logger = Logger(subsystem: "com.indikit", category: "parsing")
+    private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIProtocol", category: "parsing")
     /// Required: The element name of this value.
     public let name: INDIPropertyValueName
     
@@ -14,6 +14,7 @@ public struct INDIValue: Sendable {
     public let label: String?
     
     /// Optional: printf-style format string.
+    /// Nb. It has INDI specific syntax for sexagesimal values.
     public let format: String?
     
     /// Optional: Minimum value (for number types).
@@ -39,9 +40,15 @@ public struct INDIValue: Sendable {
     
     /// Diagnostic messages for the value.
     public private(set) var diagnostics: [INDIDiagnostics]
+
+    /// Parsed representation of the `format` string, if available and valid.
+    public var parsedFormat: INDIFormat? {
+        guard let format = format else { return nil }
+        return INDIFormat(raw: format)
+    }
     
     /// The type of value stored.
-    public enum Value: Sendable {
+    public enum Value: Sendable, Equatable {
         case text(String)
         case number(Double)
         case boolean(Bool)

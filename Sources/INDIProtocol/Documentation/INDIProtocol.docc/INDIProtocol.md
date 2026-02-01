@@ -28,8 +28,8 @@ INDIProtocol provides the core implementation of the INDI protocol for communica
 - ``INDIProtocol/INDIEnableBlob`` - Enable/disable BLOB transfers
 - ``INDIProtocol/INDIServerMessage`` - Server informational messages
 - ``INDIProtocol/INDIDeleteProperty`` - Property deletion notifications
-- ``INDIProtocol/INDIPing`` - Liveness detection (client to server)
-- ``INDIProtocol/INDIPingReply`` - Liveness detection reply (server to client)
+- ``INDIProtocol/INDIPingRequest`` - Ping request from server (during binary transfers)
+- ``INDIProtocol/INDIPingReply`` - Ping reply from client (response to pingRequest)
 
 ### Core Types
 
