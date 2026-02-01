@@ -1,5 +1,133 @@
 import Foundation
 
+// swiftlint:disable file_length
+// swiftlint:disable:next orphaned_doc_comment
+/// Standard INDI property names.
+/// 
+/// This enum contains the standard INDI property names as defined in the INDI protocol.
+/// Use these to identify the standard properties of an INDI device. Other properties are
+/// possible. The device driver can define additional properties.
+/// 
+/// See [INDI Property Names](https://www.indilib.org/doc/v1.8/protocol/properties.html) for more information.
+/// 
+/// ## Topics
+/// 
+/// ### General Properties
+/// - ``connection``
+/// - ``devicePort``
+/// - ``localSideralTime``
+/// - ``universalTime``
+/// - ``geographicCoordinates``
+/// - ``atmosphere``
+/// - ``uploadMode``
+/// - ``uploadSettings``
+/// - ``activeDevices``
+/// 
+/// ### Telescope Properties
+/// - ``equatorialCoordinatesJ2000``
+/// - ``equatorialCoordinatesEpoch``
+/// - ``targetEquatorialCoordinatesEpoch``
+/// - ``horizontalCoordinates``
+/// - ``telescopeActionOnCoordinatesSet``
+/// - ``telescopeMotionNorthSouth``
+/// - ``telescopeMotionWestEast``
+/// - ``telescopeTimedGuideNorthSouth``
+/// - ``telescopeTimedGuideWestEast``
+/// - ``telescopeSlewRate``
+/// - ``telescopePark``
+/// - ``telescopeParkPosition``
+/// - ``telescopeParkOption``
+/// - ``telescopeAbortMotion``
+/// - ``telescopeTrackRate``
+/// - ``telescopeInfo``
+/// - ``telescopePierSide``
+/// - ``telescopeHome``
+/// - ``domePolicy``
+/// - ``periodicErrorCorrection``
+/// - ``telescopeTrackMode``
+/// - ``telescopeTrackState``
+/// - ``satelliteTLE``
+/// - ``satellitePassWindow``
+/// - ``satelliteTrackingState``
+/// - ``telescopeReverseMotion``
+/// - ``motionControlMode``
+/// - ``joystickLockAxis``
+/// - ``simulatePierSide``
+/// 
+/// ### Camera/CCD Properties
+/// - ``ccdExposureTime``
+/// - ``ccdAbortExposure``
+/// - ``ccdFrame``
+/// - ``ccdTemperature``
+/// - ``ccdCooler``
+/// - ``ccdFrameType``
+/// - ``ccdBinning``
+/// - ``ccdCompression``
+/// - ``ccdFrameReset``
+/// - ``ccdInfo``
+/// - ``ccdColorFilterArray``
+/// - ``ccd1``
+/// - ``ccd2``
+/// - ``ccdTemperatureCoolerRampParameters``
+/// - ``worldCoordinateSystemKeywordInclusion``
+/// - ``ccdRotation``
+/// - ``ccdCaptureFormat``
+/// - ``ccdTransferFormat``
+/// - ``ccdFilePath``
+/// - ``ccdFastToggle``
+/// - ``ccdFastCount``
+/// - ``fitsHeader``
+/// 
+/// ### Camera/CCD Streaming Properties
+/// - ``ccdVideoStream``
+/// - ``streamDelay``
+/// - ``streamingExposureTime``
+/// - ``framesPerSecond``
+/// - ``ccdStreamingFrameSize``
+/// - ``ccdStreamEncoder``
+/// - ``ccdStreamRecorder``
+/// - ``limits``
+/// - ``recordFile``
+/// - ``recordOptions``
+/// - ``recordStream``
+/// 
+/// ### Filter Wheel Properties
+/// - ``filterSlot``
+/// - ``filterName``
+/// 
+/// ### Focuser Properties
+/// - ``focusSpeed``
+/// - ``focusMotion``
+/// - ``focusTimer``
+/// - ``relativeFocusPosition``
+/// - ``absoluteFocusPosition``
+/// - ``focusMax``
+/// - ``focusReverseMotion``
+/// - ``focusAbortMotion``
+/// - ``focusSync``
+/// 
+/// ### Dome Properties
+/// - ``domeSpeed``
+/// - ``domeMotion``
+/// - ``domeTimer``
+/// - ``relativeDomePosition``
+/// - ``absoluteDomePosition``
+/// - ``domeAbortMotion``
+/// - ``domeShutter``
+/// - ``domeGoto``
+/// - ``domeParams``
+/// - ``domeAutosync``
+/// - ``domeMeasurements``
+/// - ``otaSide``
+/// - ``domeSync``
+/// - ``domePark``
+/// - ``domeParkPosition``
+/// - ``domeParkOption``
+/// - ``domeShutterParkPolicy``
+/// - ``mountPolicy``
+/// - ``domeBacklashToggle``
+/// - ``domeBacklashSteps``
+/// 
 // swiftlint:disable:next type_body_length
 public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
 
@@ -373,53 +501,488 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
     case simulatePierSide
 
     // MARK: CCD Properties
+
+    /// The exposure time of the camera/CCD.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdExposureValue`` the exposure time of the camera/CCD in seconds.
     case ccdExposureTime
+
+    /// Abort the current exposure of the camera/CCD.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/abortExposure`` to abort the current exposure of the camera/CCD.
     case ccdAbortExposure
+
+    /// The frame size of the camera/CCD.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdFrameX`` the left most pixel position in the frame.
+    /// - ``INDIPropertyValueName/ccdFrameY`` the top most pixel position in the frame.
+    /// - ``INDIPropertyValueName/ccdFrameWidth`` the width of the frame in pixels.
+    /// - ``INDIPropertyValueName/ccdFrameHeight`` the height of the frame in pixels.
     case ccdFrame
+
+    /// The temperature of the camera/CCD in °C.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdTemperatureValue`` the temperature of the camera/CCD in °C.
     case ccdTemperature
+
+    /// The cooler status of the camera/CCD.
+    /// 
+    /// This is a switch with the following values:
+    /// - ``INDIPropertyValueName/ccdCoolerOn`` to turn on the cooler.
+    /// - ``INDIPropertyValueName/ccdCoolerOff`` to turn off the cooler.
     case ccdCooler
+
+    /// The type of the frame of the camera/CCD.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/lightFrame`` the type of the frame of the camera/CCD is a light frame.
+    /// - ``INDIPropertyValueName/biasFrame`` the type of the frame of the camera/CCD is a bias frame.
+    /// - ``INDIPropertyValueName/darkFrame`` the type of the frame of the camera/CCD is a dark frame.
+    /// - ``INDIPropertyValueName/flatFrame`` the type of the frame of the camera/CCD is a flat frame.
     case ccdFrameType
+
+    /// Camera binning settings.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/horizontalBinning`` horizontal binning factor.
+    /// - ``INDIPropertyValueName/verticalBinning`` vertical binning factor.
     case ccdBinning
+
+    /// Camera frame compression settings.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/ccdCompress`` compress camera frame (If FITS, it uses fpack to send a .fz file).
+    /// - ``INDIPropertyValueName/ccdRaw`` send raw camera sensor data.
     case ccdCompression
+
+    /// Reset Camera frame to default settings.
+    /// 
+    /// This sets the frame size and binning to the default values.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/reset`` reset CCD frame to default X, Y, W, and H settings. Set binning to 1x1.
     case ccdFrameReset
+
+    /// Camera sensor information.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/ccdMaximumXResolution`` maximum X resolution.
+    /// - ``INDIPropertyValueName/ccdMaximumYResolution`` maximum Y resolution.
+    /// - ``INDIPropertyValueName/ccdPixelSize`` Camera sensor pixel size in microns.
+    /// - ``INDIPropertyValueName/ccdPixelSizeX`` Camera sensor pixel size X in microns.
+    /// - ``INDIPropertyValueName/ccdPixelSizeY`` Camera sensor pixel size Y in microns.
+    /// - ``INDIPropertyValueName/ccdBitsPerPixel`` bits per pixel.
     case ccdInfo
+
+    /// Camera sensor color filter array information.
+    /// 
+    /// This is used if the camera sensor creates a bayer pattern image.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/cfaOffsetX`` color filter array X offset.
+    /// - ``INDIPropertyValueName/cfaOffsetY`` color filter array Y offset.
+    /// - ``INDIPropertyValueName/cfaType`` color filter array filter type (e.g. RGGB).
     case ccdColorFilterArray
 
-    /// Primary CCD sensor data.
+    /// Primary Camera sensor data.
+    /// 
+    /// This is the main camera sensor. Binary fits data encoded in base64. 
+    /// The CCD1.format is used to indicate the data type (e.g. “.fits”)
+    /// 
+    /// This is a BLOB property with the following values:
+    /// - ``INDIPropertyValueName/ccd1`` the main camera sensor data.
     case ccd1
 
     /// Secondary CCD (Guider) sensor data. This is the sensor in a dual-CCD camera
     /// where a small off-axis CCD is used for guiding.
+    /// 
+    /// Binary fits data encoded in base64. The CCD2.format is used to indicate the data type (e.g. “.fits”)
+    /// 
+    /// This is a BLOB property with the following values:
+    /// - ``INDIPropertyValueName/ccd2`` the secondary camera sensor data.
     case ccd2
 
+    /// Camera cooler temperature ramp parameters.
+    /// 
+    /// Set TEC cooler ramp parameters. The ramp is software controlled inside INDI.
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/rampSlope`` maximum temperature change in degrees Celsius per minute.
+    /// - ``INDIPropertyValueName/rampThreshold`` threshold in degrees celsius. If the absolute difference
+    ///   of target and current temperature equals to or below this threshold, then the cooling operation is complete.
     case ccdTemperatureCoolerRampParameters
+
+    /// World Coordinate System keyword inclusion in FITS header.
+    /// 
+    /// Toggle World Coordinate System keyword inclusion in FITS Header.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/worldCoordinateSystemEnabled`` enable WCS keywords.
+    /// - ``INDIPropertyValueName/worldCoordinateSystemDisabled`` disable WCS keywords.
     case worldCoordinateSystemKeywordInclusion
+
+    /// Camera field of view rotation.
+    /// 
+    /// Camera field of view rotation measured as East of North in degrees.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/ccdRotationValue`` the rotation angle in degrees.
     case ccdRotation
+
+    /// Raw capture format as supported by the driver or hardware.
+    /// 
+    /// For example, Bayer 16bit or RGB. This is a switch property.
+    /// **NB. No standard values are defined for this property.**
     case ccdCaptureFormat
+
+    /// Transfer format of the raw captured data.
+    /// 
+    /// Transfer format of the raw captured format before sending the image back to the client or saving to disk.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/formatFits`` encode captured image as FITS.
+    /// - ``INDIPropertyValueName/formatNative`` send image as-is without encoding.
+    /// - ``INDIPropertyValueName/formatXisf`` encode captured images as XISF (eXtensible Image Serialization Format).
     case ccdTransferFormat
+
+    /// Absolute path where images are saved on disk.
+    /// 
+    /// This is a text property with the following value:
+    /// - ``INDIPropertyValueName/filePath`` the directory path where images are saved.
     case ccdFilePath
+
+    /// Fast exposure mode toggle.
+    /// 
+    /// Fast Exposure is used to enable camera to immediately begin capturing the next frames.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/fastToggleEnabled`` enable fast exposure.
+    /// - ``INDIPropertyValueName/fastToggleDisabled`` disable fast exposure.
     case ccdFastToggle
+
+    /// Number of fast exposure frames to capture.
+    /// 
+    /// Number of fast exposure frames to capture once exposure begins.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/frames`` the number of frames to capture.
     case ccdFastCount
+
+    /// FITS header keywords to append.
+    /// 
+    /// Name, value, and comment row to be appended to the fits header on the next capture. The row needs to be
+    /// set once for any subsequent captures. It is not retained on driver restart.
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/keywordName`` the FITS keyword name.
+    /// - ``INDIPropertyValueName/keywordValue`` the FITS keyword value.
+    /// - ``INDIPropertyValueName/keywordComment`` the FITS keyword comment.
     case fitsHeader
 
     // MARK: CCD Streaming Properties
+
+    /// Camera video stream toggle.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/streamOn`` turn on video stream.
+    /// - ``INDIPropertyValueName/streamOff`` turn off video stream.
     case ccdVideoStream
+
+    /// Delay between streaming frames.
+    /// 
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/streamDelayTime`` delay in seconds between frames.
     case streamDelay
+
+    /// Streaming frame exposure and divisor settings.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/streamingExposureTimeValue`` frame exposure values in seconds when streaming.
+    /// - ``INDIPropertyValueName/streamingDivisorValue`` the divisor is used to skip frames as way to throttle the stream down.
     case streamingExposureTime
+
+    /// Frames per second information.
+    /// 
+    /// Read-only frame rate information. This is a number property with the following values:
+    /// - ``INDIPropertyValueName/instantFrameRate`` instant frame rate (EST_FPS).
+    /// - ``INDIPropertyValueName/averageFramesPerSecondOneSecond`` average FPS over 1 second (AVG_FPS).
     case framesPerSecond
+
+    /// Streaming frame size settings.
+    /// 
+    /// This is a number property with frame coordinates and dimensions. Uses the same value names as ``ccdFrame``:
+    /// - ``INDIPropertyValueName/ccdFrameX`` left-most pixel position.
+    /// - ``INDIPropertyValueName/ccdFrameY`` top-most pixel position.
+    /// - ``INDIPropertyValueName/ccdFrameWidth`` frame width in pixels.
+    /// - ``INDIPropertyValueName/ccdFrameHeight`` frame height in pixels.
     case ccdStreamingFrameSize
+
+    /// Streaming encoder selection.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/rawStreamEncoder`` raw encoder.
+    /// - ``INDIPropertyValueName/mjpegStreamEncoder`` MJPEG encoder.
     case ccdStreamEncoder
+
+    /// Stream recording format selection.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/serStreamRecorder`` SER recorder.
+    /// - ``INDIPropertyValueName/ogvStreamRecorder`` OGV recorder.
     case ccdStreamRecorder
+
+    /// Streaming buffer and frame rate limits.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/maximumBufferSize`` maximum buffer size in MB.
+    /// - ``INDIPropertyValueName/maximumPreviewFramesPerSecond`` maximum preview FPS.
     case limits
+
+    /// Recording file path settings.
+    /// 
+    /// This is a text property with the following values:
+    /// - ``INDIPropertyValueName/recordFileDirectory`` directory to save the file. It defaults to $HOME/indi_D.
+    /// - ``INDIPropertyValueName/recordFileName`` recording file name. It defaults to indirecord__T.
     case recordFile
+
+    /// Recording duration and frame count settings.
+    /// 
+    /// Set the desired duration in seconds or total frames required for the recording.
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/recordDuration`` duration in seconds.
+    /// - ``INDIPropertyValueName/recordFrameTotal`` total number of frames required.
     case recordOptions
+
+    /// Stream recording control.
+    /// 
+    /// Start or stop the stream recording to a file. This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/recordOn`` start recording. Do not stop unless asked to.
+    /// - ``INDIPropertyValueName/recordDurationOn`` start recording until the duration set in recordOptions has elapsed.
+    /// - ``INDIPropertyValueName/recordFrameOn`` start recording until the number of frames set in recordOptions has been captured.
+    /// - ``INDIPropertyValueName/recordOff`` stops recording.
     case recordStream
     // ccdFastToggle and ccdFastCount are also used for streaming properties but
     // are already defined above.
 
     // MARK: Filter wheel Properties
+    case filterSlot
+
+    case filterName
+
     // MARK: Focuser Properties
+
+    /// Focus speed selection.
+    /// 
+    /// Select focus speed from 0 to N where 0 maps to no motion, and N maps to the fastest speed possible.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusSpeedValue`` set focuser speed.
+    case focusSpeed
+
+    /// Focus motion direction.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/focusInward`` focus inward.
+    /// - ``INDIPropertyValueName/focusOutward`` focus outward.
+    case focusMotion
+
+    /// Focus timer duration.
+    /// 
+    /// Focus in the direction of ``focusMotion`` at rate ``focusSpeed`` for the specified duration.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusTimerValue`` focus timer value in milliseconds.
+    case focusTimer
+
+    /// Relative focus position.
+    /// 
+    /// Move a number of steps in the direction specified by ``focusMotion``.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusRelativePosition`` number of steps to move in the focus motion direction.
+    case relativeFocusPosition
+
+    /// Absolute focus position.
+    /// 
+    /// Move to this absolute position.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusAbsolutePosition`` absolute position in steps.
+    case absoluteFocusPosition
+
+    /// Focus maximum travel limit.
+    /// 
+    /// Focus maximum travel limit in steps.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusMaxValue`` focus maximum travel limit in steps.
+    case focusMax
+
+    /// Focus reverse motion toggle.
+    /// 
+    /// Reverse default motor direction.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/focusReverseMotionEnabled`` reverse default motor direction.
+    /// - ``INDIPropertyValueName/focusReverseMotionDisabled`` do not reverse, move motor in the default direction.
+    case focusReverseMotion
+
+    /// Abort focus motion.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/focusAbort`` abort focus motion.
+    case focusAbortMotion
+
+    /// Focus sync position.
+    /// 
+    /// Accept this position as the new focuser absolute position.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/focusSyncValue`` accept this position as the new focuser absolute position.
+    case focusSync
+
     // MARK: Dome Properties
+
+    /// Dome speed selection.
+    /// 
+    /// Set dome speed in RPM.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeSpeedValue`` dome speed in RPM.
+    case domeSpeed
+
+    /// Dome motion direction.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeClockwise`` move dome clockwise, looking down.
+    /// - ``INDIPropertyValueName/domeCounterClockwise`` move dome counter clockwise, looking down.
+    case domeMotion
+
+    /// Dome timer duration.
+    /// 
+    /// Move the dome in the direction of ``domeMotion`` at rate ``domeSpeed`` for the specified duration.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeTimerValue`` dome timer value in milliseconds.
+    case domeTimer
+
+    /// Relative dome position.
+    /// 
+    /// Move a number of degrees azimuth in the direction specified by ``domeMotion``.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeRelativePosition`` relative dome position in degrees azimuth.
+    case relativeDomePosition
+
+    /// Absolute dome position.
+    /// 
+    /// Move dome to this absolute azimuth angle in degrees.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeAbsolutePosition`` absolute dome position in degrees azimuth.
+    case absoluteDomePosition
+
+    /// Abort dome motion.
+    /// 
+    /// This is a switch property with the following value:
+    /// - ``INDIPropertyValueName/domeAbort`` abort dome motion.
+    case domeAbortMotion
+
+    /// Dome shutter control.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/shutterOpen`` open dome shutter.
+    /// - ``INDIPropertyValueName/shutterClose`` close dome shutter.
+    case domeShutter
+
+    /// Dome goto positions.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeHome`` go to home position.
+    /// - ``INDIPropertyValueName/domePark`` go to park position.
+    case domeGoto
+
+    /// Dome parameters.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/homePosition`` dome home position in absolute degrees azimuth.
+    /// - ``INDIPropertyValueName/parkPosition`` dome parking position in absolute degrees azimuth.
+    /// - ``INDIPropertyValueName/autosyncThreshold`` threshold in degrees for dome auto-sync.
+    case domeParams
+
+    /// Dome autosync toggle.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/domeAutosyncEnable`` enable dome slaving.
+    /// - ``INDIPropertyValueName/domeAutosyncDisable`` disable dome slaving.
+    case domeAutosync
+
+    /// Dome measurements.
+    /// 
+    /// This is a number property with the following values:
+    /// - ``INDIPropertyValueName/domeRadius`` dome radius in meters.
+    /// - ``INDIPropertyValueName/shutterWidth`` shutter width in meters.
+    /// - ``INDIPropertyValueName/northDisplacement`` north displacement in meters.
+    /// - ``INDIPropertyValueName/eastDisplacement`` east displacement in meters.
+    /// - ``INDIPropertyValueName/upDisplacement`` up displacement in meters.
+    /// - ``INDIPropertyValueName/otaOffset`` OTA offset in meters.
+    case domeMeasurements
+
+    /// OTA (Optical Tube Assembly) side selection.
+    /// 
+    /// Meridian side selection.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/otaSideEast`` East.
+    /// - ``INDIPropertyValueName/otaSideWest`` West.
+    /// - ``INDIPropertyValueName/otaSideMount`` Mount.
+    /// - ``INDIPropertyValueName/otaSideHourAngle`` Hour Angle.
+    /// - ``INDIPropertyValueName/otaSideIgnore`` Ignore.
+    case otaSide
+
+    /// Dome sync position.
+    /// 
+    /// Sync dome to this azimuth value.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeSyncValue`` sync dome to this azimuth value.
+    case domeSync
+
+    /// Dome park control.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/park`` park the dome.
+    /// - ``INDIPropertyValueName/unpark`` unpark the dome.
+    case domePark
+
+    /// Dome park position.
+    /// 
+    /// Park position in azimuth degrees or encoder ticks.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/parkAzimuth`` park position in azimuth degrees or encoder ticks.
+    case domeParkPosition
+
+    /// Dome park option.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/parkCurrentPosition`` use current position as park position.
+    /// - ``INDIPropertyValueName/parkDefaultPosition`` use default park position.
+    /// - ``INDIPropertyValueName/parkWriteData`` write park data to file.
+    case domeParkOption
+
+    /// Dome shutter park policy.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/shutterCloseOnPark`` close shutter when parking.
+    /// - ``INDIPropertyValueName/shutterOpenOnUnpark`` open shutter when unparking.
+    case domeShutterParkPolicy
+
+    /// Mount policy.
+    /// 
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/mountIgnored`` ignore mount status when parking/unparking.
+    /// - ``INDIPropertyValueName/mountLocks`` prevent dome from unparking when mount is parked.
+    case mountPolicy
+
+    /// Dome backlash toggle.
+    /// 
+    /// Enable or disable backlash compensation.
+    /// This is a switch property with the following values:
+    /// - ``INDIPropertyValueName/fastToggleEnabled`` enable backlash compensation.
+    /// - ``INDIPropertyValueName/fastToggleDisabled`` disable backlash compensation.
+    case domeBacklashToggle
+
+    /// Dome backlash steps.
+    /// 
+    /// Backlash steps value.
+    /// This is a number property with the following value:
+    /// - ``INDIPropertyValueName/domeBacklashValue`` backlash steps.
+    case domeBacklashSteps
+
     // MARK: Input Interface Properties
     // MARK: Output Interface Properties
     // MARK: Light box Interface Properties
@@ -498,7 +1061,7 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .streamDelay: return "STREAM_DELAY"
         case .streamingExposureTime: return "STREAMING_EXPOSURE"
         case .framesPerSecond: return "FPS"
-        case .ccdStreamingFrameSize: return "CCD_STREAM_FRAME_SIZE"
+        case .ccdStreamingFrameSize: return "CCD_STREAM_FRAME"
         case .ccdStreamEncoder: return "CCD_STREAM_ENCODER"
         case .ccdStreamRecorder: return "CCD_STREAM_RECORDER"
         case .limits: return "LIMITS"
@@ -507,6 +1070,38 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .recordStream: return "RECORD_STREAM"
         // ccdFastToggle and ccdFastCount are also used for streaming properties but
         // are already defined above.
+
+        case .filterSlot: return "FILTER_SLOT"
+        case .filterName: return "FILTER_NAME"
+        case .focusSpeed: return "FOCUS_SPEED"
+        case .focusMotion: return "FOCUS_MOTION"
+        case .focusTimer: return "FOCUS_TIMER"
+        case .relativeFocusPosition: return "REL_FOCUS_POSITION"
+        case .absoluteFocusPosition: return "ABS_FOCUS_POSITION"
+        case .focusMax: return "FOCUS_MAX"
+        case .focusReverseMotion: return "FOCUS_REVERSE_MOTION"
+        case .focusAbortMotion: return "FOCUS_ABORT_MOTION"
+        case .focusSync: return "FOCUS_SYNC"
+        case .domeSpeed: return "DOME_SPEED"
+        case .domeMotion: return "DOME_MOTION"
+        case .domeTimer: return "DOME_TIMER"
+        case .relativeDomePosition: return "REL_DOME_POSITION"
+        case .absoluteDomePosition: return "ABS_DOME_POSITION"
+        case .domeAbortMotion: return "DOME_ABORT_MOTION"
+        case .domeShutter: return "DOME_SHUTTER"
+        case .domeGoto: return "DOME_GOTO"
+        case .domeParams: return "DOME_PARAMS"
+        case .domeAutosync: return "DOME_AUTOSYNC"
+        case .domeMeasurements: return "DOME_MEASUREMENTS"
+        case .otaSide: return "DM_OTA_SIDE"
+        case .domeSync: return "DOME_SYNC"
+        case .domePark: return "DOME_PARK"
+        case .domeParkPosition: return "DOME_PARK_POSITION"
+        case .domeParkOption: return "DOME_PARK_OPTION"
+        case .domeShutterParkPolicy: return "DOME_SHUTTER_PARK_POLICY"
+        case .mountPolicy: return "MOUNT_POLICY"
+        case .domeBacklashToggle: return "DOME_BACKLASH_TOGGLE"
+        case .domeBacklashSteps: return "DOME_BACKLASH_STEPS"
 
         case .other(let name): return name
         }
@@ -589,6 +1184,38 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .recordOptions: return "Record Options"
         case .recordStream: return "Toggle Stream Recording"
 
+        case .filterSlot: return "Filter Slot"
+        case .filterName: return "Filter Name"
+        case .focusSpeed: return "Focus Speed"
+        case .focusMotion: return "Focus Motion"
+        case .focusTimer: return "Focus Timer"
+        case .relativeFocusPosition: return "Relative Focus Position"
+        case .absoluteFocusPosition: return "Absolute Focus Position"
+        case .focusMax: return "Focus Maximum"
+        case .focusReverseMotion: return "Focus Reverse Motion"
+        case .focusAbortMotion: return "Focus Abort Motion"
+        case .focusSync: return "Focus Sync"
+        case .domeSpeed: return "Dome Speed"
+        case .domeMotion: return "Dome Motion"
+        case .domeTimer: return "Dome Timer"
+        case .relativeDomePosition: return "Relative Dome Position"
+        case .absoluteDomePosition: return "Absolute Dome Position"
+        case .domeAbortMotion: return "Dome Abort Motion"
+        case .domeShutter: return "Dome Shutter"
+        case .domeGoto: return "Dome Goto"
+        case .domeParams: return "Dome Parameters"
+        case .domeAutosync: return "Dome Autosync"
+        case .domeMeasurements: return "Dome Measurements"
+        case .otaSide: return "OTA Side"
+        case .domeSync: return "Dome Sync"
+        case .domePark: return "Dome Park"
+        case .domeParkPosition: return "Dome Park Position"
+        case .domeParkOption: return "Dome Park Option"
+        case .domeShutterParkPolicy: return "Dome Shutter Park Policy"
+        case .mountPolicy: return "Mount Policy"
+        case .domeBacklashToggle: return "Dome Backlash Toggle"
+        case .domeBacklashSteps: return "Dome Backlash Steps"
+
         case .other(let name): return name
         }
     }
@@ -636,7 +1263,7 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .simulatePierSide: return .toggle
 
         case .ccdExposureTime: return .number
-        case .ccdAbortExposure: return .number
+        case .ccdAbortExposure: return .toggle
         case .ccdFrame: return .number
         case .ccdTemperature: return .number
         case .ccdCooler: return .toggle
@@ -665,6 +1292,43 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
         case .ccdStreamingFrameSize: return .number
         case .ccdStreamEncoder: return .toggle
         case .ccdStreamRecorder: return .toggle
+        case .limits: return .number
+        case .recordFile: return .text
+        case .recordOptions: return .text
+        case .recordStream: return .toggle
+
+        case .filterSlot: return .number
+        case .filterName: return .text
+        
+        case .focusSpeed: return .number
+        case .focusMotion: return .toggle
+        case .focusTimer: return .number
+        case .relativeFocusPosition: return .number
+        case .absoluteFocusPosition: return .number
+        case .focusMax: return .number
+        case .focusReverseMotion: return .toggle
+        case .focusAbortMotion: return .toggle
+        case .focusSync: return .number
+        case .domeSpeed: return .number
+        case .domeMotion: return .toggle
+        case .domeTimer: return .number
+        case .relativeDomePosition: return .number
+        case .absoluteDomePosition: return .number
+        case .domeAbortMotion: return .toggle
+        case .domeShutter: return .toggle
+        case .domeGoto: return .toggle
+        case .domeParams: return .number
+        case .domeAutosync: return .toggle
+        case .domeMeasurements: return .number
+        case .otaSide: return .toggle
+        case .domeSync: return .number
+        case .domePark: return .toggle
+        case .domeParkPosition: return .number
+        case .domeParkOption: return .toggle
+        case .domeShutterParkPolicy: return .toggle
+        case .mountPolicy: return .toggle
+        case .domeBacklashToggle: return .toggle
+        case .domeBacklashSteps: return .number
 
         default: return nil
         }
@@ -724,7 +1388,71 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
             .telescopeReverseMotion,
             .motionControlMode,
             .joystickLockAxis,
-            .simulatePierSide
+            .simulatePierSide,
+            .ccdExposureTime,
+            .ccdAbortExposure,
+            .ccdFrame,
+            .ccdTemperature,
+            .ccdCooler,
+            .ccdFrameType,
+            .ccdBinning,
+            .ccdCompression,
+            .ccdFrameReset,
+            .ccdInfo,
+            .ccdColorFilterArray,
+            .ccd1,
+            .ccd2,
+            .ccdTemperatureCoolerRampParameters,
+            .worldCoordinateSystemKeywordInclusion,
+            .ccdRotation,
+            .ccdCaptureFormat,
+            .ccdTransferFormat,
+            .ccdFilePath,
+            .ccdFastToggle,
+            .ccdFastCount,
+            .fitsHeader,
+            .ccdVideoStream,
+            .streamDelay,
+            .streamingExposureTime,
+            .framesPerSecond,
+            .ccdStreamingFrameSize,
+            .ccdStreamEncoder,
+            .ccdStreamRecorder,
+            .limits,
+            .recordFile,
+            .recordOptions,
+            .recordStream,
+            .filterSlot,
+            .filterName,
+            .focusSpeed,
+            .focusMotion,
+            .focusTimer,
+            .relativeFocusPosition,
+            .absoluteFocusPosition,
+            .focusMax,
+            .focusReverseMotion,
+            .focusAbortMotion,
+            .focusSync,
+            .domeSpeed,
+            .domeMotion,
+            .domeTimer,
+            .relativeDomePosition,
+            .absoluteDomePosition,
+            .domeAbortMotion,
+            .domeShutter,
+            .domeGoto,
+            .domeParams,
+            .domeAutosync,
+            .domeMeasurements,
+            .otaSide,
+            .domeSync,
+            .domePark,
+            .domeParkPosition,
+            .domeParkOption,
+            .domeShutterParkPolicy,
+            .mountPolicy,
+            .domeBacklashToggle,
+            .domeBacklashSteps
         ]
     }
 }
