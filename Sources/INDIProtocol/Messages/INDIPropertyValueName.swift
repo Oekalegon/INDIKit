@@ -1,5 +1,6 @@
 import Foundation
 
+// swiftlint:disable file_length
 // swiftlint:disable:next orphaned_doc_comment
 /// Standard INDI property value names.
 /// 
