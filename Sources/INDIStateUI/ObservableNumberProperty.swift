@@ -67,4 +67,3 @@ public class ObservableNumberProperty: ObservableINDIProperty {
         try await setTargetNumberValues([(name: name, numberValue: numberValue)])
     }
 }
-

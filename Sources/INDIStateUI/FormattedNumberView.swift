@@ -1,6 +1,6 @@
-import SwiftUI
 import INDIProtocol
 import INDIState
+import SwiftUI
 
 /// A SwiftUI view that displays a NumberValue with proper formatting.
 ///

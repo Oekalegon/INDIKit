@@ -85,4 +85,3 @@ func createObservableProperty(from property: any INDIProperty, device: Observabl
     // Fallback: This shouldn't happen, but create a generic wrapper if needed
     fatalError("Unknown property type: \(property.type)")
 }
-

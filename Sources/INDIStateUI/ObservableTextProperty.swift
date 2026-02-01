@@ -74,4 +74,3 @@ public class ObservableTextProperty: ObservableINDIProperty {
         try await setTargetTextValues([(name: name, textValue: textValue)])
     }
 }
-

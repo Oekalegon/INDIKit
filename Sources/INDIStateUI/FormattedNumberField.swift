@@ -1,7 +1,8 @@
-import SwiftUI
 import INDIProtocol
 import INDIState
+import SwiftUI
 
+// swiftlint:disable file_length
 /// A SwiftUI view that allows editing a NumberValue with proper formatting.
 ///
 /// This view provides segmented editing for sexagesimal values (HMS/DMS),
@@ -147,7 +148,8 @@ private struct StandardField: View {
             .onAppear {
                 textValue = formatValue()
             }
-            .onChange(of: value) { _, newValue in
+            // swiftlint:disable:next unused_closure_parameter
+            .onChange(of: value) { newValue in
                 if !isFocused {
                     textValue = formatValue()
                 }
@@ -161,7 +163,7 @@ private struct StandardField: View {
                     textValue = validated
                 }
             }
-            .onChange(of: isFocused) { _, focused in
+            .onChange(of: isFocused) { focused in
                 if !focused {
                     // Parse and commit the value when focus is lost
                     commitValue()
@@ -318,7 +320,7 @@ private struct SexagesimalField: View {
         .onAppear {
             state.updateFromValue(value, precision: format.precision ?? 0, style: style)
         }
-        .onChange(of: value) { _, newValue in
+        .onChange(of: value) { newValue in
             if focusedSegment == nil {
                 state.updateFromValue(newValue, precision: format.precision ?? 0, style: style)
             }

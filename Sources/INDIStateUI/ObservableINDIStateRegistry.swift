@@ -85,6 +85,7 @@ public class ObservableINDIStateRegistry {
         }
     }
     
+    // swiftlint:disable:next orphaned_doc_comment
     /// Connect to the INDI server.
     /// 
     /// This method forwards to the underlying registry's connect method and
@@ -93,6 +94,7 @@ public class ObservableINDIStateRegistry {
     /// 
     /// If already connected or connecting, this method does nothing.
     /// - Throws: An error if the connection fails
+    // swiftlint:disable:next function_body_length
     public func connect() async throws {
         // Check if already connected
         if await registry.connected {
@@ -240,4 +242,3 @@ public class ObservableINDIStateRegistry {
         }
     }
 }
-

@@ -154,4 +154,3 @@ public class ObservableINDIDevice {
         await registry.updateDevice(device)
     }
 }
-

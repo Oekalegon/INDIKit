@@ -50,6 +50,7 @@ public struct INDIFormat: Sendable, Equatable {
     /// Whether this is a standard printf-style type or INDI sexagesimal.
     public let kind: Kind
 
+    // swiftlint:disable:next cyclomatic_complexity function_body_length
     public init?(raw: String) {
         self.raw = raw
 
@@ -193,13 +194,15 @@ public extension INDIFormat {
 
         return String(format: formatString, value)
     }
-
+    
+    // swiftlint:disable:next orphaned_doc_comment
     /// Format a value for sexagesimal display.
     ///
     /// - Parameters:
     ///   - value: The value in decimal (hours for HMS, degrees for DMS)
     ///   - style: HMS or DMS style
     /// - Returns: The formatted sexagesimal string
+    // swiftlint:disable:next function_body_length
     func formatSexagesimal(_ value: Double, style: SexagesimalStyle) -> String {
         let isNegative = value < 0
         let absValue = abs(value)

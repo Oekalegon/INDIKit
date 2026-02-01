@@ -42,4 +42,3 @@ public class ObservableLightProperty: ObservableINDIProperty {
         self._property = lightProperty
     }
 }
-

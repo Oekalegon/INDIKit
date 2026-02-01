@@ -75,4 +75,3 @@ public class ObservableBLOBProperty: ObservableINDIProperty {
         }
     }
 }
-
