@@ -1455,4 +1455,78 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
             .domeBacklashSteps
         ]
     }
+    
+    // MARK: - Device Type Mapping
+    
+    /// Returns the device types typically associated with this property name.
+    ///
+    /// A property may be associated with multiple device types. For example,
+    /// some properties are common to multiple device types (like `connection`).
+    ///
+    /// - Returns: An array of device types that typically use this property.
+    public func associatedDeviceTypes() -> [INDIDeviceType] {
+        switch self {
+        // General properties - used by all devices
+        case .connection, .devicePort:
+            return INDIDeviceType.allCases.filter { $0 != .unknown }
+        
+        // Telescope/Mount properties
+        case .equatorialCoordinatesJ2000, .equatorialCoordinatesEpoch,
+             .targetEquatorialCoordinatesEpoch, .horizontalCoordinates,
+             .telescopeActionOnCoordinatesSet, .telescopeMotionNorthSouth,
+             .telescopeMotionWestEast, .telescopeTimedGuideNorthSouth,
+             .telescopeTimedGuideWestEast, .telescopeSlewRate, .telescopePark,
+             .telescopeParkPosition, .telescopeParkOption, .telescopeAbortMotion,
+             .telescopeTrackRate, .telescopeInfo, .telescopePierSide,
+             .telescopeHome, .domePolicy, .periodicErrorCorrection,
+             .telescopeTrackMode, .telescopeTrackState, .satelliteTLE,
+             .satellitePassWindow, .satelliteTrackingState, .telescopeReverseMotion,
+             .motionControlMode, .joystickLockAxis, .simulatePierSide:
+            return [.telescope]
+        
+        // Camera/CCD properties
+        case .ccdExposureTime, .ccdAbortExposure, .ccdFrame, .ccdTemperature,
+             .ccdCooler, .ccdFrameType, .ccdBinning, .ccdCompression,
+             .ccdFrameReset, .ccdInfo, .ccdColorFilterArray, .ccd1, .ccd2,
+             .ccdTemperatureCoolerRampParameters, .worldCoordinateSystemKeywordInclusion,
+             .ccdRotation, .ccdCaptureFormat, .ccdTransferFormat, .ccdFilePath,
+             .ccdFastToggle, .ccdFastCount, .fitsHeader:
+            return [.camera]
+        
+        // Camera/CCD Streaming properties
+        case .ccdVideoStream, .streamDelay, .streamingExposureTime,
+             .framesPerSecond, .ccdStreamingFrameSize, .ccdStreamEncoder,
+             .ccdStreamRecorder, .limits, .recordFile, .recordOptions, .recordStream:
+            return [.camera]
+        
+        // Filter wheel properties
+        case .filterSlot, .filterName:
+            return [.filterWheel]
+        
+        // Focuser properties
+        case .focusSpeed, .focusMotion, .focusTimer, .relativeFocusPosition,
+             .absoluteFocusPosition, .focusMax, .focusReverseMotion,
+             .focusAbortMotion, .focusSync:
+            return [.focuser]
+        
+        // Dome properties
+        case .domeSpeed, .domeMotion, .domeTimer, .relativeDomePosition,
+             .absoluteDomePosition, .domeAbortMotion, .domeShutter, .domeGoto,
+             .domeParams, .domeAutosync, .domeMeasurements, .otaSide,
+             .domeSync, .domePark, .domeParkPosition, .domeParkOption,
+             .domeShutterParkPolicy, .mountPolicy, .domeBacklashToggle,
+             .domeBacklashSteps:
+            return [.dome]
+        
+        // General/Common properties (used by multiple device types)
+        case .localSideralTime, .universalTime, .geographicCoordinates,
+             .atmosphere, .uploadMode, .uploadSettings, .activeDevices:
+            // These are typically server-level or common to multiple devices
+            return []
+        
+        // Unknown properties
+        case .other:
+            return []
+        }
+    }
 }

@@ -196,4 +196,57 @@ public struct INDIDevice: Sendable {
     public mutating func deleteProperty(name: INDIPropertyName) {
         properties.removeAll(where: { $0.name == name })
     }
+    
+    // MARK: - Device Type Detection
+    
+    /// Predicts the device type based on the properties this device has.
+    ///
+    /// This function analyzes all properties of the device and counts how many
+    /// properties belong to each device type. The device type with the most
+    /// associated properties is returned as the predicted type.
+    ///
+    /// If multiple device types have the same count, the first one (in enum order)
+    /// is returned. If no device-specific properties are found, returns `.unknown`.
+    ///
+    /// - Returns: The predicted device type, or `.unknown` if no specific type can be determined.
+    public func predictedDeviceType() -> INDIDeviceType {
+        // Count properties for each device type
+        var typeCounts: [INDIDeviceType: Int] = [:]
+        
+        for property in properties {
+            let associatedTypes = property.name.associatedDeviceTypes()
+            for deviceType in associatedTypes {
+                typeCounts[deviceType, default: 0] += 1
+            }
+        }
+        
+        // If no device-specific properties found, return unknown
+        guard !typeCounts.isEmpty else {
+            return .unknown
+        }
+        
+        // Find the device type with the highest count
+        let maxCount = typeCounts.values.max() ?? 0
+        let topTypes = typeCounts.filter { $0.value == maxCount }
+        
+        // If there's a clear winner, return it
+        if topTypes.count == 1 {
+            return topTypes.keys.first!
+        }
+        
+        // If there's a tie, prefer telescope > camera > focuser > filterWheel > dome > others
+        let priorityOrder: [INDIDeviceType] = [
+            .telescope, .camera, .focuser, .filterWheel, .dome,
+            .rotator, .gps, .weather, .lightBox, .inputInterface, .outputInterface
+        ]
+        
+        for preferredType in priorityOrder {
+            if topTypes.keys.contains(preferredType) {
+                return preferredType
+            }
+        }
+        
+        // Fallback: return the first one alphabetically
+        return topTypes.keys.sorted(by: { $0.rawValue < $1.rawValue }).first ?? .unknown
+    }
 }
