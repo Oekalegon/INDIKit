@@ -86,11 +86,24 @@ public struct INDIDevice: Sendable {
     /// Send the target property values to the INDI server.
     /// - Parameter property: The property to send the target values for.
     private func sendTargetPropertyValues(property: any INDIProperty) {
+        let device = self
+        let registry = stateRegistry
         Task.detached {
+            // Check if registry is still connected before attempting to send
+            let isConnected = await registry.connected
+            guard isConnected else {
+                Self.logger.debug("Skipping send: registry is not connected")
+                return
+            }
+            
             do {
-                try await self.stateRegistry.sendTargetPropertyValues(device: self, property: property)
+                try await registry.sendTargetPropertyValues(device: device, property: property)
             } catch {
-                Self.logger.error("Error sending target property values: \(error)")
+                // Only log if it's not a "not connected" error (which is expected after disconnect)
+                if let nsError = error as NSError?,
+                   nsError.domain != "INDIStateRegistry" || nsError.code != 2 {
+                    Self.logger.error("Error sending target property values: \(error)")
+                }
             }
         }
     }

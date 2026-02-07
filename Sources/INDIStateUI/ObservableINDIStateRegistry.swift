@@ -40,6 +40,9 @@ public class ObservableINDIStateRegistry {
 
     /// Observable dictionary of devices, keyed by device name
     public private(set) var devices: [String: ObservableINDIDevice] = [:]
+    
+    /// Connection timeout in seconds. Default is 10 seconds.
+    public var connectionTimeout: TimeInterval = 10.0
 
     /// Task that is running the connection, if any
     private var connectionTask: Task<Void, Error>?
@@ -144,12 +147,15 @@ public class ObservableINDIStateRegistry {
             }
         }
 
+        // Set the timeout on the registry before connecting
+        await setConnectionTimeout(connectionTimeout)
+        
         // Create and store the connection task
         let connectTask = Task {
             do {
                 try await registry.connect()
             } catch {
-                // Connection failed or was lost
+                // Connection failed, timed out, or was cancelled
                 monitorTask.cancel()
                 await MainActor.run {
                     self.connected = false
@@ -237,5 +243,11 @@ public class ObservableINDIStateRegistry {
         if let device = device {
             await syncDevice(deviceName: deviceName, device: device)
         }
+    }
+    
+    /// Set the connection timeout on the registry.
+    /// - Parameter timeout: The timeout in seconds
+    private func setConnectionTimeout(_ timeout: TimeInterval) async {
+        await registry.setConnectionTimeout(timeout)
     }
 }
