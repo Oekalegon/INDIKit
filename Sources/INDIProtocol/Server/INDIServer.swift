@@ -55,6 +55,12 @@ public actor INDIServer {
 
     /// The connection state of the INDI server.
     public private(set) var isConnected: Bool = false
+    
+    /// The current connection continuation (for cancellation handling)
+    private var connectionContinuation: CheckedContinuation<Void, Error>?
+    
+    /// Flag to track if the connection continuation has been resumed
+    private var connectionContinuationResumed: Bool = false
 
     /// Initialize a new INDI server.
     ///
@@ -102,16 +108,30 @@ public actor INDIServer {
         self.parsedDataStream = parsedStream
 
         // Start the connection and wait until it becomes ready or fails.
-        try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-            nwConnection.stateUpdateHandler = { [weak self] state in
-                Task { [weak self] in
-                    guard let self else { return }
-                    await self.handleStateUpdate(state, continuation: continuation)
+        // Use withTaskCancellationHandler to ensure connection is cancelled if task is cancelled
+        try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+                // Store continuation for cancellation handling and reset resumed flag
+                self.connectionContinuation = continuation
+                self.connectionContinuationResumed = false
+                
+                nwConnection.stateUpdateHandler = { [weak self] state in
+                    Task { [weak self] in
+                        guard let self else { return }
+                        await self.handleStateUpdate(state, continuation: continuation)
+                    }
                 }
-            }
 
-            Self.logger.info("Starting connection to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
-            nwConnection.start(queue: queue)
+                Self.logger.info("Starting connection to \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
+                nwConnection.start(queue: queue)
+            }
+        } onCancel: {
+            // If the task is cancelled, cancel the connection and resume continuation
+            // Use Task.detached to ensure this runs even if the parent task is cancelled
+            Task.detached { [weak self] in
+                guard let self else { return }
+                await self.cancelConnection()
+            }
         }
 
         return rawStream
@@ -120,10 +140,31 @@ public actor INDIServer {
     /// Closex the connection to the server.
     public func disconnect() {
         Self.logger.info("Disconnecting from \(self.endpoint.host, privacy: .public):\(self.endpoint.port)")
-        guard let connection else { return }
-        connection.cancel()
-        self.connection = nil
+        
+        // Cancel the connection first - this will trigger state updates
+        // But we need to handle the continuation before cancelling to avoid race conditions
+        let continuationToResume: CheckedContinuation<Void, Error>?
+        if let continuation = connectionContinuation, !connectionContinuationResumed {
+            // Atomically claim the continuation
+            connectionContinuation = nil
+            connectionContinuationResumed = true
+            continuationToResume = continuation
+        } else {
+            continuationToResume = nil
+        }
+        
+        // Cancel the connection (this may trigger state updates)
+        if let connection = connection {
+            connection.cancel()
+            self.connection = nil
+        }
         self.isConnected = false
+        
+        // Resume the continuation AFTER cancelling to ensure state updates see the flag
+        if let continuation = continuationToResume {
+            continuation.resume(throwing: CancellationError())
+        }
+        
         Task {
             await self.finishReceiving(error: nil)
         }
@@ -268,8 +309,30 @@ public actor INDIServer {
         _ state: NWConnection.State,
         continuation: CheckedContinuation<Void, Error>
     ) async {
+        // Check if this continuation has already been resumed
+        // If it has, just handle state changes without resuming
+        guard !connectionContinuationResumed, connectionContinuation != nil else {
+            // Continuation was already resumed (connection was already established)
+            // Just handle the state change without resuming
+            switch state {
+            case .cancelled:
+                isConnected = false
+                await finishReceiving(error: nil)
+            case .failed(let error):
+                isConnected = false
+                await finishReceiving(error: error)
+            default:
+                break
+            }
+            return
+        }
+        
+        // Only mark as resumed and clear continuation when we actually resume it
         switch state {
         case .ready:
+            // Atomically claim and resume the continuation
+            connectionContinuationResumed = true
+            connectionContinuation = nil
             isConnected = true
             continuation.resume()
             // Start receive loop asynchronously to avoid blocking
@@ -278,16 +341,48 @@ public actor INDIServer {
             }
 
         case .failed(let error):
+            // Atomically claim and resume the continuation
+            connectionContinuationResumed = true
+            connectionContinuation = nil
             isConnected = false
             continuation.resume(throwing: error)
             await finishReceiving(error: error)
 
         case .cancelled:
+            // Atomically claim and resume the continuation
+            connectionContinuationResumed = true
+            connectionContinuation = nil
             isConnected = false
+            continuation.resume(throwing: CancellationError())
             await finishReceiving(error: nil)
 
         default:
+            // For other states (.waiting, .setup, etc.), don't resume yet
+            // The continuation will be resumed when we get .ready, .failed, or .cancelled
             break
+        }
+    }
+    
+    /// Cancel the current connection attempt and resume continuation if needed
+    private func cancelConnection() async {
+        // Atomically claim the continuation
+        let continuationToResume: CheckedContinuation<Void, Error>?
+        if let continuation = connectionContinuation, !connectionContinuationResumed {
+            connectionContinuation = nil
+            connectionContinuationResumed = true
+            continuationToResume = continuation
+        } else {
+            continuationToResume = nil
+        }
+        
+        // Cancel the connection
+        if let connection = connection {
+            connection.cancel()
+        }
+        
+        // Resume the continuation if we claimed it
+        if let continuation = continuationToResume {
+            continuation.resume(throwing: CancellationError())
         }
     }
 

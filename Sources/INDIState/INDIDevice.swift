@@ -86,11 +86,24 @@ public struct INDIDevice: Sendable {
     /// Send the target property values to the INDI server.
     /// - Parameter property: The property to send the target values for.
     private func sendTargetPropertyValues(property: any INDIProperty) {
+        let device = self
+        let registry = stateRegistry
         Task.detached {
+            // Check if registry is still connected before attempting to send
+            let isConnected = await registry.connected
+            guard isConnected else {
+                Self.logger.debug("Skipping send: registry is not connected")
+                return
+            }
+            
             do {
-                try await self.stateRegistry.sendTargetPropertyValues(device: self, property: property)
+                try await registry.sendTargetPropertyValues(device: device, property: property)
             } catch {
-                Self.logger.error("Error sending target property values: \(error)")
+                // Only log if it's not a "not connected" error (which is expected after disconnect)
+                if let nsError = error as NSError?,
+                   nsError.domain != "INDIStateRegistry" || nsError.code != 2 {
+                    Self.logger.error("Error sending target property values: \(error)")
+                }
             }
         }
     }
@@ -195,5 +208,70 @@ public struct INDIDevice: Sendable {
     /// - Parameter name: The name of the property to delete.
     public mutating func deleteProperty(name: INDIPropertyName) {
         properties.removeAll(where: { $0.name == name })
+    }
+    
+    // MARK: - Device Type Detection
+    
+    /// Predicts the device type based on the properties this device has.
+    ///
+    /// This function analyzes all properties of the device and counts how many
+    /// properties belong to each device type. The device type with the most
+    /// associated properties is returned as the predicted type.
+    ///
+    /// General properties (like `connection`, `devicePort`) that map to all device types
+    /// are excluded from the count, as they don't provide specific device type information.
+    ///
+    /// If multiple device types have the same count, the first one (in enum order)
+    /// is returned. If no device-specific properties are found, returns `.unknown`.
+    ///
+    /// - Returns: The predicted device type, or `.unknown` if no specific type can be determined.
+    public func predictedDeviceType() -> INDIDeviceType {
+        // General properties that map to all device types - exclude from counting
+        let generalProperties: Set<INDIPropertyName> = [
+            .connection, .devicePort, .localSideralTime, .universalTime,
+            .geographicCoordinates, .atmosphere, .uploadMode, .uploadSettings, .activeDevices
+        ]
+        
+        // Count properties for each device type (excluding general properties)
+        var typeCounts: [INDIDeviceType: Int] = [:]
+        
+        for property in properties {
+            // Skip general properties
+            guard !generalProperties.contains(property.name) else {
+                continue
+            }
+            
+            let associatedTypes = property.name.associatedDeviceTypes()
+            for deviceType in associatedTypes {
+                typeCounts[deviceType, default: 0] += 1
+            }
+        }
+        
+        // If no device-specific properties found, return unknown
+        guard !typeCounts.isEmpty else {
+            return .unknown
+        }
+        
+        // Find the device type with the highest count
+        let maxCount = typeCounts.values.max() ?? 0
+        let topTypes = typeCounts.filter { $0.value == maxCount }
+        
+        // If there's a clear winner, return it
+        if topTypes.count == 1, let winner = topTypes.keys.first {
+            return winner
+        }
+        
+        // If there's a tie, prefer telescope > camera > focuser > filterWheel > dome > others
+        let priorityOrder: [INDIDeviceType] = [
+            .telescope, .camera, .focuser, .filterWheel, .dome,
+            .rotator, .gps, .weather, .lightBox, .inputInterface, .outputInterface
+        ]
+        
+        for preferredType in priorityOrder where topTypes.keys.contains(preferredType) {
+            return preferredType
+        }
+        
+        // Fallback: return the first one alphabetically
+        return topTypes.keys.min(by: { $0.rawValue < $1.rawValue }) ?? .unknown
     }
 }

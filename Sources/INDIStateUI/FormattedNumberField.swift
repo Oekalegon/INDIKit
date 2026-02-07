@@ -148,8 +148,7 @@ private struct StandardField: View {
             .onAppear {
                 textValue = formatValue()
             }
-            // swiftlint:disable:next unused_closure_parameter
-            .onChange(of: value) { newValue in
+            .onChange(of: value) { _, _ in
                 if !isFocused {
                     textValue = formatValue()
                 }
@@ -163,7 +162,7 @@ private struct StandardField: View {
                     textValue = validated
                 }
             }
-            .onChange(of: isFocused) { focused in
+            .onChange(of: isFocused) { _, focused in
                 if !focused {
                     // Parse and commit the value when focus is lost
                     commitValue()
@@ -320,7 +319,7 @@ private struct SexagesimalField: View {
         .onAppear {
             state.updateFromValue(value, precision: format.precision ?? 0, style: style)
         }
-        .onChange(of: value) { newValue in
+        .onChange(of: value) { _, newValue in
             if focusedSegment == nil {
                 state.updateFromValue(newValue, precision: format.precision ?? 0, style: style)
             }

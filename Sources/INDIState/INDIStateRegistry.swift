@@ -12,6 +12,15 @@ public actor INDIStateRegistry {
 
     public var devices: [String: INDIDevice] = [:]
     
+    /// Connection timeout in seconds. Default is 10 seconds.
+    private var connectionTimeout: TimeInterval = 10.0
+    
+    /// Set the connection timeout.
+    /// - Parameter timeout: The timeout in seconds
+    public func setConnectionTimeout(_ timeout: TimeInterval) {
+        self.connectionTimeout = timeout
+    }
+    
     /// Callback invoked when a device is created or updated
     private var onDeviceUpdate: ((String, INDIDevice) -> Void)?
     
@@ -33,7 +42,47 @@ public actor INDIStateRegistry {
     }
 
     public func connect() async throws {
-        try await server.connect()
+        // Capture timeout value
+        let timeout = connectionTimeout
+        
+        // Use task group to race connection against timeout
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            // Start connection task
+            group.addTask {
+                _ = try await self.server.connect()
+            }
+            
+            // Start timeout task
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw NSError(
+                    domain: "INDIStateRegistry",
+                    code: 1,
+                    userInfo: [
+                        NSLocalizedDescriptionKey: "Connection timeout after \(timeout) seconds"
+                    ]
+                )
+            }
+            
+            // Wait for first task to complete
+            // If connection succeeds, we'll get here and can exit
+            // If timeout fires first, it will throw and we'll catch it
+            do {
+                try await group.next()
+                // Connection succeeded - cancel timeout task and exit immediately
+                group.cancelAll()
+                return
+            } catch let error as NSError where error.domain == "INDIStateRegistry" && error.code == 1 {
+                // Timeout error - cancel connection and throw
+                group.cancelAll()
+                throw error
+            } catch {
+                // Connection error - cancel timeout and throw
+                group.cancelAll()
+                throw error
+            }
+        }
+        
         Self.logger.info("Connected to INDI server")
         connected = true
         
@@ -138,6 +187,17 @@ public actor INDIStateRegistry {
     }
 
     public func sendTargetPropertyValues(device: INDIDevice, property: any INDIProperty) async throws {
+        // Check if we're still connected before attempting to send
+        guard connected else {
+            throw NSError(
+                domain: "INDIStateRegistry",
+                code: 2,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Cannot send property values: not connected to server"
+                ]
+            )
+        }
+        
         guard let targetValues = property.targetValues else {
             return
         }

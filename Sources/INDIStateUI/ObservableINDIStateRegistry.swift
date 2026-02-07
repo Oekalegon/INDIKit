@@ -32,12 +32,18 @@ public class ObservableINDIStateRegistry {
     
     private let registry: INDIStateRegistry
     
-    /// Observable connection status
+    /// Observable connection status - true only when actually connected
     public private(set) var connected: Bool = false
-    
+
+    /// Observable connecting status - true while connection is being established
+    public private(set) var connecting: Bool = false
+
     /// Observable dictionary of devices, keyed by device name
     public private(set) var devices: [String: ObservableINDIDevice] = [:]
     
+    /// Connection timeout in seconds. Default is 10 seconds.
+    public var connectionTimeout: TimeInterval = 10.0
+
     /// Task that is running the connection, if any
     private var connectionTask: Task<Void, Error>?
     
@@ -112,53 +118,48 @@ public class ObservableINDIStateRegistry {
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             connectionTask = nil
         }
-        
-        // Update connection status optimistically when starting
+
+        // Mark as connecting (not connected yet)
         await MainActor.run {
-            self.connected = true
+            self.connecting = true
+            self.connected = false
         }
-        
+
         // Start monitoring connection status in a separate task
         let monitorTask = Task { @MainActor in
             // Poll the connected status from the registry periodically
             // The registry's connect() method will run the message stream and block,
             // so we monitor the status in parallel to keep the observable state in sync
-            
-            // Check immediately and frequently at first, then continue polling
-            var checkCount = 0
             while !Task.isCancelled {
                 let isConnected = await registry.connected
                 if self.connected != isConnected {
                     self.connected = isConnected
-                }
-                // If we're not connected anymore, stop monitoring (connection ended or failed)
-                if !isConnected {
-                    // Give it one more chance in case it's reconnecting
-                    try? await Task.sleep(nanoseconds: 100_000_000)
-                    let stillDisconnected = await registry.connected
-                    if !stillDisconnected {
-                        // Reconnected, update status and continue monitoring
-                        self.connected = true
-                    } else {
-                        break
+                    // Once connected, we're no longer "connecting"
+                    if isConnected {
+                        self.connecting = false
                     }
                 }
-                // Check more frequently for the first few iterations to catch quick connections
-                let sleepDuration: UInt64 = checkCount < 5 ? 50_000_000 : 100_000_000 // 0.05s then 0.1s
-                try? await Task.sleep(nanoseconds: sleepDuration)
-                checkCount += 1
+                // If we're not connected anymore and not connecting, stop monitoring
+                if !isConnected && !self.connecting {
+                    break
+                }
+                try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 sec
             }
         }
+
+        // Set the timeout on the registry before connecting
+        await setConnectionTimeout(connectionTimeout)
         
         // Create and store the connection task
         let connectTask = Task {
             do {
                 try await registry.connect()
             } catch {
-                // Connection failed or was lost
+                // Connection failed, timed out, or was cancelled
                 monitorTask.cancel()
                 await MainActor.run {
                     self.connected = false
+                    self.connecting = false
                     self.connectionTask = nil
                 }
                 throw error
@@ -167,30 +168,32 @@ public class ObservableINDIStateRegistry {
             monitorTask.cancel()
             await MainActor.run {
                 self.connected = false
+                self.connecting = false
                 self.connectionTask = nil
             }
         }
-        
+
         connectionTask = connectTask
-        
+
         // Wait for the connection task to complete
         try await connectTask.value
     }
     
     /// Disconnect from the INDI server.
-    /// 
+    ///
     /// This method forwards to the underlying registry's disconnect method
     /// and updates the observable connection status.
     /// - Throws: An error if disconnection fails
     public func disconnect() async throws {
         // Cancel any ongoing connection task
         connectionTask?.cancel()
-        
+
         try await registry.disconnect()
-        
+
         let isConnected = await registry.connected
         await MainActor.run {
             self.connected = isConnected
+            self.connecting = false
             self.connectionTask = nil
         }
     }
@@ -240,5 +243,11 @@ public class ObservableINDIStateRegistry {
         if let device = device {
             await syncDevice(deviceName: deviceName, device: device)
         }
+    }
+    
+    /// Set the connection timeout on the registry.
+    /// - Parameter timeout: The timeout in seconds
+    private func setConnectionTimeout(_ timeout: TimeInterval) async {
+        await registry.setConnectionTimeout(timeout)
     }
 }
