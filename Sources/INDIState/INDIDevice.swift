@@ -257,8 +257,8 @@ public struct INDIDevice: Sendable {
         let topTypes = typeCounts.filter { $0.value == maxCount }
         
         // If there's a clear winner, return it
-        if topTypes.count == 1 {
-            return topTypes.keys.first!
+        if topTypes.count == 1, let winner = topTypes.keys.first {
+            return winner
         }
         
         // If there's a tie, prefer telescope > camera > focuser > filterWheel > dome > others
@@ -267,13 +267,11 @@ public struct INDIDevice: Sendable {
             .rotator, .gps, .weather, .lightBox, .inputInterface, .outputInterface
         ]
         
-        for preferredType in priorityOrder {
-            if topTypes.keys.contains(preferredType) {
-                return preferredType
-            }
+        for preferredType in priorityOrder where topTypes.keys.contains(preferredType) {
+            return preferredType
         }
         
         // Fallback: return the first one alphabetically
-        return topTypes.keys.sorted(by: { $0.rawValue < $1.rawValue }).first ?? .unknown
+        return topTypes.keys.min(by: { $0.rawValue < $1.rawValue }) ?? .unknown
     }
 }

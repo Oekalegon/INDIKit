@@ -148,7 +148,7 @@ private struct StandardField: View {
             .onAppear {
                 textValue = formatValue()
             }
-            .onChange(of: value) { _, newValue in
+            .onChange(of: value) { _, _ in
                 if !isFocused {
                     textValue = formatValue()
                 }
