@@ -205,15 +205,29 @@ public struct INDIDevice: Sendable {
     /// properties belong to each device type. The device type with the most
     /// associated properties is returned as the predicted type.
     ///
+    /// General properties (like `connection`, `devicePort`) that map to all device types
+    /// are excluded from the count, as they don't provide specific device type information.
+    ///
     /// If multiple device types have the same count, the first one (in enum order)
     /// is returned. If no device-specific properties are found, returns `.unknown`.
     ///
     /// - Returns: The predicted device type, or `.unknown` if no specific type can be determined.
     public func predictedDeviceType() -> INDIDeviceType {
-        // Count properties for each device type
+        // General properties that map to all device types - exclude from counting
+        let generalProperties: Set<INDIPropertyName> = [
+            .connection, .devicePort, .localSideralTime, .universalTime,
+            .geographicCoordinates, .atmosphere, .uploadMode, .uploadSettings, .activeDevices
+        ]
+        
+        // Count properties for each device type (excluding general properties)
         var typeCounts: [INDIDeviceType: Int] = [:]
         
         for property in properties {
+            // Skip general properties
+            guard !generalProperties.contains(property.name) else {
+                continue
+            }
+            
             let associatedTypes = property.name.associatedDeviceTypes()
             for deviceType in associatedTypes {
                 typeCounts[deviceType, default: 0] += 1
