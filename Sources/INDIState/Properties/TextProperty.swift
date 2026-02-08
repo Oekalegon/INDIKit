@@ -25,6 +25,13 @@ public struct TextProperty: INDIProperty {
         return targetValues?.compactMap { $0 as? TextValue }
     }
     
+    /// Get a target text value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target text value, or nil if not found or no target values are set
+    public func targetTextValue(name: INDIPropertyValueName) -> String? {
+        return targetTextValues?.first(where: { $0.name == name })?.textValue
+    }
+    
     public var targetValues: [any PropertyValue]?
 
     public var timeStamp: Date

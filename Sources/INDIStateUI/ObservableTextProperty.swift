@@ -49,6 +49,13 @@ public class ObservableTextProperty: ObservableINDIProperty {
         return _property.textValue(name: name)
     }
     
+    /// Get a target text value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target text value, or nil if not found or no target values are set
+    public func targetTextValue(name: INDIPropertyValueName) -> String? {
+        return _property.targetTextValue(name: name)
+    }
+    
     /// Set target text values.
     /// 
     /// This will update the underlying property and send the update to the server.

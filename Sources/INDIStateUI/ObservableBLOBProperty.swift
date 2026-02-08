@@ -42,6 +42,20 @@ public class ObservableBLOBProperty: ObservableINDIProperty {
         self._property = blobProperty
     }
     
+    /// Get a BLOB value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The BLOB value data, or nil if not found
+    public func blobValue(name: INDIPropertyValueName) -> Data? {
+        return _property.blobValue(name: name)
+    }
+    
+    /// Get a target BLOB value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target BLOB value data, or nil if not found or no target values are set
+    public func targetBlobValue(name: INDIPropertyValueName) -> Data? {
+        return _property.targetBlobValue(name: name)
+    }
+    
     /// Set a target BLOB value.
     /// 
     /// This will update the underlying property and send the update to the server.

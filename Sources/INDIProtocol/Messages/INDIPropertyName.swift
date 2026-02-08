@@ -514,7 +514,10 @@ public enum INDIPropertyName: Sendable, CaseIterable, Hashable, Equatable {
     /// - ``INDIPropertyValueName/abortExposure`` to abort the current exposure of the camera/CCD.
     case ccdAbortExposure
 
-    /// The frame size of the camera/CCD.
+    /// The frame size of the camera/CCD. This is NOT the frame size of the camera/CCD, 
+    /// but the frame size of the image that is captured by the camera/CCD. This might be different
+    /// from the frame size of the camera/CCD. Use the property ``INDIPropertyName/ccdInfo`` 
+    /// to get the frame size of the camera/CCD.
     /// 
     /// This is a number property with the following values:
     /// - ``INDIPropertyValueName/ccdFrameX`` the left most pixel position in the frame.

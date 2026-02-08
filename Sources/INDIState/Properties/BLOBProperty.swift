@@ -14,11 +14,25 @@ public struct BLOBProperty: INDIProperty {
     public var blobValues: [BLOBValue] {
         return values.compactMap { $0 as? BLOBValue }
     }
+    
+    /// Get a BLOB value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The BLOB value data, or nil if not found
+    public func blobValue(name: INDIPropertyValueName) -> Data? {
+        return blobValues.first(where: { $0.name == name })?.blobValue
+    }
 
     public var values: [any PropertyValue]
 
     public var targetBlobValues: [BLOBValue]? {
         return targetValues?.compactMap { $0 as? BLOBValue }
+    }
+    
+    /// Get a target BLOB value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target BLOB value data, or nil if not found or no target values are set
+    public func targetBlobValue(name: INDIPropertyValueName) -> Data? {
+        return targetBlobValues?.first(where: { $0.name == name })?.blobValue
     }
 
     public var targetValues: [any PropertyValue]?

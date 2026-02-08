@@ -17,6 +17,7 @@ public class ObservableINDIDevice {
     // Internal state that triggers observation
     private var _connectionStatus: INDIDevice.ConnectionStatus
     private var _properties: [ObservableINDIProperty] = []
+    private var _predictedDeviceType: INDIDeviceType
     
     /// The device name
     public var name: String { deviceName }
@@ -33,6 +34,11 @@ public class ObservableINDIDevice {
         set { _properties = newValue }
     }
     
+    /// The predicted device type based on the device's properties
+    public var predictedDeviceType: INDIDeviceType {
+        _predictedDeviceType
+    }
+    
     /// Initialize an observable device from an INDIDevice.
     /// - Parameters:
     ///   - device: The underlying device
@@ -41,6 +47,7 @@ public class ObservableINDIDevice {
         self.deviceName = device.name
         self.registry = registry
         self._connectionStatus = device.connectionStatus
+        self._predictedDeviceType = device.predictedDeviceType()
         self._properties = device.properties.map { 
             createObservableProperty(from: $0, device: self)
         }
@@ -54,6 +61,9 @@ public class ObservableINDIDevice {
     func sync(from device: INDIDevice) async {
         // Update connection status
         self._connectionStatus = device.connectionStatus
+        
+        // Update predicted device type
+        self._predictedDeviceType = device.predictedDeviceType()
         
         // Update properties - merge with existing to preserve ObservableINDIProperty instances
         let existingPropertyMap = Dictionary(uniqueKeysWithValues: 

@@ -14,11 +14,25 @@ public struct NumberProperty: INDIProperty {
     public var numberValues: [NumberValue] {
         return values.compactMap { $0 as? NumberValue }
     }
+    
+    /// Get a number value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The number value, or nil if not found
+    public func numberValue(name: INDIPropertyValueName) -> Double? {
+        return numberValues.first(where: { $0.name == name })?.numberValue
+    }
 
     public var values: [any PropertyValue]
 
     public var targetNumberValues: [NumberValue]? {
         return targetValues?.compactMap { $0 as? NumberValue }
+    }
+    
+    /// Get a target number value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target number value, or nil if not found or no target values are set
+    public func targetNumberValue(name: INDIPropertyValueName) -> Double? {
+        return targetNumberValues?.first(where: { $0.name == name })?.numberValue
     }
     
     public var targetValues: [any PropertyValue]?

@@ -66,4 +66,18 @@ public class ObservableNumberProperty: ObservableINDIProperty {
     public func setTargetNumberValue(name: INDIPropertyValueName, _ numberValue: Double) async throws {
         try await setTargetNumberValues([(name: name, numberValue: numberValue)])
     }
+    
+    /// Get a number value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The number value, or nil if not found
+    public func numberValue(name: INDIPropertyValueName) -> Double? {
+        return _property.numberValue(name: name)
+    }
+    
+    /// Get a target number value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target number value, or nil if not found or no target values are set
+    public func targetNumberValue(name: INDIPropertyValueName) -> Double? {
+        return _property.targetNumberValue(name: name)
+    }
 }

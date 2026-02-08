@@ -15,11 +15,25 @@ public struct LightProperty: INDIProperty {
     public var lightValues: [LightValue] {
         return values.compactMap { $0 as? LightValue }
     }
+    
+    /// Get a light value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The light value status, or nil if not found
+    public func lightValue(name: INDIPropertyValueName) -> INDIStatus? {
+        return lightValues.first(where: { $0.name == name })?.lightValue
+    }
 
     public var values: [any PropertyValue]
 
     public var targetLightValues: [LightValue]? {
         return targetValues?.compactMap { $0 as? LightValue }
+    }
+    
+    /// Get a target light value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target light value status, or nil if not found or no target values are set
+    public func targetLightValue(name: INDIPropertyValueName) -> INDIStatus? {
+        return targetLightValues?.first(where: { $0.name == name })?.lightValue
     }
 
     public var targetValues: [any PropertyValue]?

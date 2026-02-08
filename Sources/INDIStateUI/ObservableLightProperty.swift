@@ -41,4 +41,18 @@ public class ObservableLightProperty: ObservableINDIProperty {
         guard let lightProperty = property as? LightProperty else { return }
         self._property = lightProperty
     }
+    
+    /// Get a light value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The light value status, or nil if not found
+    public func lightValue(name: INDIPropertyValueName) -> INDIStatus? {
+        return _property.lightValue(name: name)
+    }
+    
+    /// Get a target light value by name.
+    /// - Parameter name: The name of the value
+    /// - Returns: The target light value status, or nil if not found or no target values are set
+    public func targetLightValue(name: INDIPropertyValueName) -> INDIStatus? {
+        return _property.targetLightValue(name: name)
+    }
 }
