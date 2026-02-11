@@ -40,6 +40,9 @@ public enum INDIDeviceType: String, Sendable, CaseIterable, Hashable {
     /// Output interface device (relays, switches, etc.)
     case outputInterface
     
+    /// Tilt Corrector
+    case tiltCorrector
+    
     /// Unknown or generic device type (no specific device type properties detected)
     case unknown
     
@@ -57,6 +60,7 @@ public enum INDIDeviceType: String, Sendable, CaseIterable, Hashable {
         case .lightBox: return "Light Box"
         case .inputInterface: return "Input Interface"
         case .outputInterface: return "Output Interface"
+        case .tiltCorrector: return "Tilt Corrector"
         case .unknown: return "Unknown"
         }
     }
