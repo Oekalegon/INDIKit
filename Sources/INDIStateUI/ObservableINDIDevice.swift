@@ -11,7 +11,7 @@ import Observation
 @Observable
 public class ObservableINDIDevice {
     
-    private let registry: ObservableINDIStateRegistry
+    let registry: ObservableINDIStateRegistry
     private let deviceName: String
     
     // Internal state that triggers observation
@@ -152,5 +152,82 @@ public class ObservableINDIDevice {
         
         // Update in registry (this will trigger callbacks which sync observable state)
         await registry.updateDevice(device)
+    }
+    
+    /// Enable BLOB reception for a property.
+    ///
+    /// This sends an enableBLOB message to the server to enable BLOB data transmission
+    /// for a specific property. BLOB reception must be enabled before capture starts.
+    /// - Parameters:
+    ///   - property: The property name
+    ///   - state: The BLOB sending state (typically `.also` or `.on`)
+    /// - Throws: An error if the device is not found or if sending fails
+    public func enableBLOB(property: INDIPropertyName, state: BLOBSendingState) async throws {
+        guard await registry.getDevice(name: deviceName) != nil else {
+            throw NSError(
+                domain: "ObservableINDIDevice",
+                code: 1,
+                userInfo: [NSLocalizedDescriptionKey: "Device not found in registry: \(deviceName)"]
+            )
+        }
+        
+        try await registry.enableBLOB(device: deviceName, property: property, state: state)
+    }
+    
+    /// Capture an image with automatic BLOB reception and progress tracking.
+    ///
+    /// This is a convenience method that orchestrates the complete capture workflow:
+    /// 1. Enables BLOB reception for the CCD1 property
+    /// 2. Sets the exposure time
+    /// 3. Starts progress tracking
+    /// 4. Waits for the image to arrive
+    ///
+    /// - Parameters:
+    ///   - exposureTime: The exposure time in seconds
+    ///   - progress: Optional callback for progress updates (0.0 to 1.0)
+    /// - Returns: The captured image data
+    /// - Throws: An error if any step fails
+    public func captureImage(exposureTime: Double, progress: (@Sendable (Double) -> Void)? = nil) async throws -> Data? {
+        // Get CCD1 BLOB property
+        guard let ccd1Property = getProperty(name: .ccd1) as? ObservableBLOBProperty else {
+            throw NSError(
+                domain: "ObservableINDIDevice",
+                code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "CCD1 property not found"]
+            )
+        }
+        
+        // Step 1: Enable BLOB reception
+        try await ccd1Property.enableBLOBReception(state: .also)
+        
+        // Step 2: Start progress tracking
+        let progressStream = try await ccd1Property.startProgressTracking(valueName: .ccd1)
+        
+        // Monitor progress in background (on the main actor)
+        let progressTask = Task { @MainActor in
+            for await progressValue in progressStream {
+                progress?(progressValue)
+            }
+        }
+        
+        // Step 3: Set exposure time to trigger capture
+        guard let exposureProperty = getProperty(name: .ccdExposureTime) as? ObservableNumberProperty else {
+            progressTask.cancel()
+            throw NSError(
+                domain: "ObservableINDIDevice",
+                code: 4,
+                userInfo: [NSLocalizedDescriptionKey: "CCD_EXPOSURE property not found"]
+            )
+        }
+        
+        try await exposureProperty.setTargetNumberValue(name: .ccdExposureValue, exposureTime)
+        
+        // Step 4: Wait for image (automatically arrives after capture)
+        let imageData = try await ccd1Property.waitForImage(valueName: .ccd1, timeout: exposureTime + 60)
+        
+        // Cancel progress task
+        progressTask.cancel()
+        
+        return imageData
     }
 }

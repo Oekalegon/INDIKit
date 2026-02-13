@@ -209,6 +209,35 @@ public actor INDIStateRegistry {
         )
         try await server.send(.setProperty(setPropertyMessage))
     }
+    
+    /// Enable BLOB reception for a property.
+    ///
+    /// This sends an enableBLOB message to the server to enable BLOB data transmission
+    /// for a specific property. BLOB reception must be enabled before capture starts.
+    /// - Parameters:
+    ///   - device: The device name
+    ///   - property: The property name
+    ///   - state: The BLOB sending state (typically `.also` or `.on`)
+    /// - Throws: An error if not connected or if sending fails
+    public func enableBLOB(device: String, property: INDIPropertyName, state: BLOBSendingState) async throws {
+        // Check if we're still connected before attempting to send
+        guard connected else {
+            throw NSError(
+                domain: "INDIStateRegistry",
+                code: 2,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Cannot enable BLOB: not connected to server"
+                ]
+            )
+        }
+        
+        let enableBlobMessage = INDIEnableBlob(
+            device: device,
+            name: property,
+            blobSendingState: state
+        )
+        try await server.send(.enableBlob(enableBlobMessage))
+    }
 
     private func createINDIProperty(stateProperty: INDIStateProperty) -> INDIProperty {
         switch stateProperty.propertyType {

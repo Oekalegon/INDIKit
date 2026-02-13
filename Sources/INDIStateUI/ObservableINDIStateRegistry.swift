@@ -216,6 +216,17 @@ public class ObservableINDIStateRegistry {
         // The callback will automatically sync the observable state
     }
     
+    /// Enable BLOB reception for a property.
+    ///
+    /// This is a convenience wrapper around the underlying registry's enableBLOB method.
+    /// - Parameters:
+    ///   - device: The device name
+    ///   - property: The property name
+    ///   - state: The BLOB sending state
+    func enableBLOB(device: String, property: INDIPropertyName, state: BLOBSendingState) async throws {
+        try await registry.enableBLOB(device: device, property: property, state: state)
+    }
+    
     /// Sync a device from the registry.
     /// 
     /// This creates or updates an ObservableINDIDevice instance.
@@ -249,5 +260,25 @@ public class ObservableINDIStateRegistry {
     /// - Parameter timeout: The timeout in seconds
     private func setConnectionTimeout(_ timeout: TimeInterval) async {
         await registry.setConnectionTimeout(timeout)
+    }
+    
+    /// Returns a stream of raw message payloads received from the server.
+    ///
+    /// This provides access to the raw data stream for progress tracking and other purposes.
+    /// The stream yields raw Data chunks as they arrive from the server.
+    /// 
+    /// - Returns: A stream of raw data from the INDI server, or nil if not connected
+    /// - Throws: An error if not connected
+    public func rawDataStream() async throws -> AsyncThrowingStream<Data, Error>? {
+        guard await registry.connected else {
+            throw NSError(
+                domain: "ObservableINDIStateRegistry",
+                code: 1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Not connected. Call connect() first."
+                ]
+            )
+        }
+        return await registry.server.rawDataMessages()
     }
 }
