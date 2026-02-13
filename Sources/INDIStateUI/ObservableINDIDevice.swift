@@ -205,8 +205,12 @@ public class ObservableINDIDevice {
         
         // Monitor progress in background (on the main actor)
         let progressTask = Task { @MainActor in
-            for await progressValue in progressStream {
-                progress?(progressValue)
+            do {
+                for try await progressValue in progressStream {
+                    progress?(progressValue)
+                }
+            } catch {
+                // Stream finished with error, ignore for now
             }
         }
         

@@ -10,7 +10,6 @@ actor BLOBProgressTracker {
     private static let logger = Logger(subsystem: "com.lapsedPacifist.INDIStateUI", category: "BLOBProgressTracker")
     
     private var rawDataStream: AsyncThrowingStream<Data, Error>?
-    private var progressStream: AsyncStream<Double>.Continuation?
     private var trackedBLOBs: [String: BLOBTrackingInfo] = [:]
     private var buffer = Data()
     private var monitoringTask: Task<Void, Error>?
@@ -49,18 +48,16 @@ actor BLOBProgressTracker {
         property: INDIPropertyName,
         valueName: INDIPropertyValueName,
         rawStream: AsyncThrowingStream<Data, Error>
-    ) -> AsyncStream<Double> {
+    ) -> AsyncThrowingStream<Double, Error> {
         // Stop any existing monitoring
         stopTracking()
         
         self.rawDataStream = rawStream
         let trackingKey = "\(device):\(property.indiName):\(valueName.indiName)"
         
-        return AsyncStream<Double> { continuation in
-            self.progressStream = continuation
-            
+        return AsyncThrowingStream<Double, Error> { continuation in
             // Start monitoring task
-            self.monitoringTask = Task {
+            Task {
                 do {
                     guard let stream = self.rawDataStream else {
                         continuation.finish()
@@ -82,8 +79,6 @@ actor BLOBProgressTracker {
     func stopTracking() {
         monitoringTask?.cancel()
         monitoringTask = nil
-        progressStream?.finish()
-        progressStream = nil
         trackedBLOBs.removeAll()
         buffer.removeAll()
     }
@@ -92,7 +87,7 @@ actor BLOBProgressTracker {
     private func processRawChunk(
         _ data: Data,
         trackingKey: String,
-        continuation: AsyncStream<Double>.Continuation
+        continuation: AsyncThrowingStream<Double, Error>.Continuation
     ) async {
         buffer.append(data)
         
@@ -143,21 +138,19 @@ actor BLOBProgressTracker {
         }
         
         // Update progress for tracked BLOBs
-        for (key, var info) in trackedBLOBs {
-            if key == trackingKey {
-                // Calculate bytes received from message start to current buffer end
-                let currentBytes = buffer.count
-                info.bytesReceived = max(0, currentBytes - info.messageStartIndex)
-                
-                let progress = info.progress
-                trackedBLOBs[key] = info
-                continuation.yield(progress)
-                
-                // Check if we've received the complete message (look for closing tag)
-                if bufferString.contains("</updateBLOBVector>") {
-                    continuation.yield(1.0)
-                    trackedBLOBs.removeValue(forKey: key)
-                }
+        for (key, var info) in trackedBLOBs where key == trackingKey {
+            // Calculate bytes received from message start to current buffer end
+            let currentBytes = buffer.count
+            info.bytesReceived = max(0, currentBytes - info.messageStartIndex)
+            
+            let progress = info.progress
+            trackedBLOBs[key] = info
+            continuation.yield(progress)
+            
+            // Check if we've received the complete message (look for closing tag)
+            if bufferString.contains("</updateBLOBVector>") {
+                continuation.yield(1.0)
+                trackedBLOBs.removeValue(forKey: key)
             }
         }
     }

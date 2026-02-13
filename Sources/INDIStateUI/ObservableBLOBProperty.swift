@@ -142,7 +142,7 @@ public class ObservableBLOBProperty: ObservableINDIProperty {
     /// - Parameter valueName: The name of the BLOB value to track
     /// - Returns: A stream of progress updates (0.0 to 1.0)
     /// - Throws: An error if the device or registry is not available
-    public func startProgressTracking(valueName: INDIPropertyValueName) async throws -> AsyncStream<Double> {
+    public func startProgressTracking(valueName: INDIPropertyValueName) async throws -> AsyncThrowingStream<Double, Error> {
         guard let device = device else {
             throw NSError(
                 domain: "ObservableBLOBProperty",
@@ -164,12 +164,16 @@ public class ObservableBLOBProperty: ObservableINDIProperty {
         }
         
         // Create or reuse progress tracker
-        if progressTracker == nil {
-            progressTracker = BLOBProgressTracker()
+        let tracker: BLOBProgressTracker
+        if let existing = progressTracker {
+            tracker = existing
+        } else {
+            tracker = BLOBProgressTracker()
+            progressTracker = tracker
         }
         
         // Start tracking and return the progress stream to the caller
-        return await progressTracker!.startTracking(
+        return await tracker.startTracking(
             device: device.name,
             property: name,
             valueName: valueName,
